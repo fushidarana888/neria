@@ -529,38 +529,54 @@
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
 <script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+<script>
   const SUPABASE_URL = "https://rictvznkxkeygbrlcymn.supabase.co";
 
-  const SUPABASE_PUBLISHABLE_KEY = "sb_publishable_SVwKto14tbMtsmcDOagvCw_TVqg7he7";
+  const SUPABASE_PUBLISHABLE_KEY = "ТВОЙ_PUBLISHABLE_KEY";
 
   const supabaseClient = window.supabase.createClient(
     SUPABASE_URL,
     SUPABASE_PUBLISHABLE_KEY
   );
 
-async function loginWithTelegram() {
-  const { error } = await supabaseClient.auth.signInWithOAuth({
-    provider: "custom:telegram",
-    options: {
-      redirectTo: "https://fushidarana888.github.io/neria/registration.html"
-    }
-  });
+  async function loginWithTelegram() {
+    const { error } = await supabaseClient.auth.signInWithOAuth({
+      provider: "custom:telegram",
+      options: {
+        redirectTo: "https://fushidarana888.github.io/neria/registration.html"
+      }
+    });
 
-  if (error) {
-    alert("Ошибка входа: " + error.message);
+    if (error) {
+      alert("Ошибка входа: " + error.message);
+    }
   }
-}
 
   async function checkLogin() {
-    const { data: { session } } =
-      await supabaseClient.auth.getSession();
+    const {
+      data: { session }
+    } = await supabaseClient.auth.getSession();
+
+    const button = document.getElementById("telegramLoginButton");
+    const status = document.getElementById("telegramStatus");
 
     if (session) {
-      console.log("Пользователь вошёл:", session.user);
+      button.textContent = "✅ Вы вошли через Telegram";
+      button.disabled = true;
+
+      status.textContent = "Telegram успешно подключён.";
+    } else {
+      button.textContent = "Войти через Telegram";
+      button.disabled = false;
+
+      status.textContent = "Сначала войдите через Telegram, затем заполните данные для гражданства.";
     }
   }
 
   checkLogin();
+</script>
 </script>
     
 </body>
