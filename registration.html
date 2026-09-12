@@ -1,1 +1,502 @@
 
+<!DOCTYPE html>
+<html lang="ru">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Гражданство — Нерия</title>
+
+    <style>
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: Arial, Helvetica, sans-serif;
+            background: #f5f5f7;
+            color: #17171c;
+
+            min-height: 100vh;
+        }
+
+        /* ШАПКА */
+
+        header {
+            height: 72px;
+
+            background: white;
+
+            border-bottom: 1px solid #e5e5e8;
+
+            display: flex;
+            align-items: center;
+
+            padding: 0 6%;
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+
+            gap: 12px;
+
+            font-size: 20px;
+            font-weight: 700;
+
+            letter-spacing: 1px;
+        }
+
+        .flag {
+            width: 32px;
+            height: 42px;
+
+            display: flex;
+            flex-direction: column;
+
+            border-radius: 3px;
+
+            overflow: hidden;
+        }
+
+        .flag-purple {
+            background: #6d3fc0;
+            flex: 1;
+        }
+
+        .flag-white {
+            background: white;
+            flex: 1;
+        }
+
+        /* ОСНОВА */
+
+        main {
+            max-width: 650px;
+
+            margin: 0 auto;
+
+            padding: 70px 25px 100px;
+        }
+
+        .back {
+            display: inline-block;
+
+            margin-bottom: 30px;
+
+            color: #6d3fc0;
+
+            text-decoration: none;
+
+            font-size: 14px;
+        }
+
+        .title {
+            text-align: center;
+
+            margin-bottom: 45px;
+        }
+
+        .title h1 {
+            font-size: 38px;
+
+            margin-bottom: 12px;
+        }
+
+        .title p {
+            color: #777780;
+
+            font-size: 16px;
+
+            line-height: 1.5;
+        }
+
+        /* ФОРМА */
+
+        .form {
+            background: white;
+
+            border: 1px solid #e5e5e8;
+
+            border-radius: 14px;
+
+            padding: 35px;
+        }
+
+        .field {
+            margin-bottom: 25px;
+        }
+
+        label {
+            display: block;
+
+            font-size: 14px;
+
+            font-weight: 600;
+
+            margin-bottom: 8px;
+        }
+
+        .optional {
+            color: #999;
+
+            font-weight: normal;
+        }
+
+        input {
+            width: 100%;
+
+            padding: 14px 15px;
+
+            border: 1px solid #dcdce1;
+
+            border-radius: 7px;
+
+            font-size: 15px;
+
+            outline: none;
+
+            transition:
+                border-color 0.2s,
+                box-shadow 0.2s;
+        }
+
+        input:focus {
+            border-color: #6d3fc0;
+
+            box-shadow:
+                0 0 0 3px rgba(109, 63, 192, 0.10);
+        }
+
+        .birth {
+            display: grid;
+
+            grid-template-columns: 1fr 1fr;
+
+            gap: 12px;
+        }
+
+        .hint {
+            margin-top: 8px;
+
+            color: #888891;
+
+            font-size: 12px;
+
+            line-height: 1.5;
+        }
+
+        .important {
+            background: #f7f3fc;
+
+            border-left: 3px solid #6d3fc0;
+
+            padding: 14px 16px;
+
+            margin-bottom: 25px;
+
+            font-size: 13px;
+
+            line-height: 1.5;
+
+            color: #55555d;
+        }
+
+        .submit {
+            width: 100%;
+
+            padding: 15px;
+
+            border: none;
+
+            border-radius: 7px;
+
+            background: #6d3fc0;
+
+            color: white;
+
+            font-size: 15px;
+
+            font-weight: 600;
+
+            cursor: pointer;
+        }
+
+        .submit:hover {
+            background: #5f34ad;
+        }
+
+        .legal {
+            margin-top: 18px;
+
+            text-align: center;
+
+            color: #999;
+
+            font-size: 11px;
+
+            line-height: 1.5;
+        }
+
+        /* МОБИЛЬНАЯ ВЕРСИЯ */
+
+        @media (max-width: 600px) {
+
+            header {
+                padding: 0 20px;
+            }
+
+            main {
+                padding-top: 45px;
+            }
+
+            .title h1 {
+                font-size: 32px;
+            }
+
+            .form {
+                padding: 25px 20px;
+            }
+
+            .birth {
+                grid-template-columns: 1fr;
+            }
+        }
+
+    </style>
+
+</head>
+
+
+<body>
+
+
+<header>
+
+    <div class="logo">
+
+        <div class="flag">
+
+            <div class="flag-purple"></div>
+
+            <div class="flag-white"></div>
+
+            <div class="flag-purple"></div>
+
+        </div>
+
+        НЕРИЯ
+
+    </div>
+
+</header>
+
+
+<main>
+
+    <a class="back" href="index.html">
+        ← Вернуться на главную
+    </a>
+
+
+    <div class="title">
+
+        <h1>
+            Стать гражданином
+        </h1>
+
+        <p>
+            Заполните небольшую анкету,
+            чтобы получить гражданство Нерии.
+        </p>
+
+    </div>
+
+
+    <div class="form">
+
+
+        <div class="field">
+
+            <label for="firstName">
+                Имя
+            </label>
+
+            <input
+                id="firstName"
+                type="text"
+                placeholder="Введите имя"
+                required
+            >
+
+        </div>
+
+
+        <div class="field">
+
+            <label for="lastName">
+                Фамилия
+                <span class="optional">
+                    — необязательно
+                </span>
+            </label>
+
+            <input
+                id="lastName"
+                type="text"
+                placeholder="Введите фамилию"
+            >
+
+        </div>
+
+
+        <div class="field">
+
+            <label>
+                Дата рождения
+            </label>
+
+
+            <div class="birth">
+
+                <select id="day">
+
+                    <option value="">
+                        День
+                    </option>
+
+                    <option>1</option>
+                    <option>2</option>
+                    <option>3</option>
+                    <option>4</option>
+                    <option>5</option>
+                    <option>6</option>
+                    <option>7</option>
+                    <option>8</option>
+                    <option>9</option>
+                    <option>10</option>
+                    <option>11</option>
+                    <option>12</option>
+                    <option>13</option>
+                    <option>14</option>
+                    <option>15</option>
+                    <option>16</option>
+                    <option>17</option>
+                    <option>18</option>
+                    <option>19</option>
+                    <option>20</option>
+                    <option>21</option>
+                    <option>22</option>
+                    <option>23</option>
+                    <option>24</option>
+                    <option>25</option>
+                    <option>26</option>
+                    <option>27</option>
+                    <option>28</option>
+                    <option>29</option>
+                    <option>30</option>
+                    <option>31</option>
+
+                </select>
+
+
+                <select id="month">
+
+                    <option value="">
+                        Месяц
+                    </option>
+
+                    <option value="1">Январь</option>
+                    <option value="2">Февраль</option>
+                    <option value="3">Март</option>
+                    <option value="4">Апрель</option>
+                    <option value="5">Май</option>
+                    <option value="6">Июнь</option>
+                    <option value="7">Июль</option>
+                    <option value="8">Август</option>
+                    <option value="9">Сентябрь</option>
+                    <option value="10">Октябрь</option>
+                    <option value="11">Ноябрь</option>
+                    <option value="12">Декабрь</option>
+
+                </select>
+
+            </div>
+
+
+            <div class="hint">
+
+                День и месяц нельзя будет изменить
+                после получения гражданства.
+
+            </div>
+
+        </div>
+
+
+        <div class="field">
+
+            <label for="birthYear">
+
+                Год рождения
+
+                <span class="optional">
+                    — необязательно
+                </span>
+
+            </label>
+
+            <input
+                id="birthYear"
+                type="number"
+                min="1900"
+                max="2026"
+                placeholder="Например, 2010"
+            >
+
+            <div class="hint">
+
+                Год можно добавить позже.
+                После добавления изменить его будет нельзя.
+
+            </div>
+
+        </div>
+
+
+        <div class="important">
+
+            После регистрации вам будет присвоен
+            уникальный гражданский ID.
+            Например: <strong>000001</strong>.
+
+        </div>
+
+
+        <button class="submit">
+            Получить гражданство
+        </button>
+
+
+        <div class="legal">
+
+            Нерия является виртуальным гражданским
+            сообществом. Регистрация не является
+            приобретением гражданства какого-либо
+            реального государства.
+
+        </div>
+
+
+    </div>
+
+</main>
+
+
+</body>
+
+</html>
