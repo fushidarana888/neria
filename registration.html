@@ -329,6 +329,16 @@
 
         <div id="telegramStatus" class="hint">
         Проверяем вход через Telegram...
+        </div>
+
+        <button
+          type="button"
+          id="logoutButton"
+          onclick="logoutFromNeria()"
+          style="display: none;"
+        >
+          Выйти из аккаунта
+        </button>
 </div>
         <p class="hint">
           Сначала войдите через Telegram, затем заполните данные для гражданства.
@@ -538,9 +548,6 @@
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
 <script>
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-
-<script>
   const SUPABASE_URL = "https://rictvznkxkeygbrlcymn.supabase.co";
 
   const SUPABASE_PUBLISHABLE_KEY = "sb_publishable_SVwKto14tbMtsmcDOagvCw_TVqg7he7";
@@ -550,11 +557,34 @@
     SUPABASE_PUBLISHABLE_KEY
   );
 
+  const button = document.getElementById("telegramLoginButton");
+  const status = document.getElementById("telegramStatus");
+
+  function updateAuthUI(session) {
+    if (session) {
+      button.textContent = "✅ Вы вошли через Telegram";
+      button.disabled = true;
+
+      status.textContent = "Telegram успешно подключён.";
+
+      document.getElementById("logoutButton").style.display = "block";
+    } else {
+      button.textContent = "Войти через Telegram";
+      button.disabled = false;
+
+      status.textContent =
+        "Сначала войдите через Telegram, затем заполните данные для гражданства.";
+
+      document.getElementById("logoutButton").style.display = "none";
+    }
+  }
+
   async function loginWithTelegram() {
     const { error } = await supabaseClient.auth.signInWithOAuth({
       provider: "custom:telegram",
       options: {
-        redirectTo: "https://fushidarana888.github.io/neria/registration.html"
+        redirectTo:
+          "https://fushidarana888.github.io/neria/registration.html"
       }
     });
 
@@ -563,29 +593,29 @@
     }
   }
 
+  async function logoutFromNeria() {
+    const { error } = await supabaseClient.auth.signOut({
+      scope: "local"
+    });
+
+    if (error) {
+      alert("Ошибка выхода: " + error.message);
+    }
+  }
+
+  supabaseClient.auth.onAuthStateChange((event, session) => {
+    updateAuthUI(session);
+  });
+
+  checkLogin();
+
   async function checkLogin() {
     const {
       data: { session }
     } = await supabaseClient.auth.getSession();
 
-    const button = document.getElementById("telegramLoginButton");
-    const status = document.getElementById("telegramStatus");
-
-    if (session) {
-      button.textContent = "✅ Вы вошли через Telegram";
-      button.disabled = true;
-
-      status.textContent = "Telegram успешно подключён.";
-    } else {
-      button.textContent = "Войти через Telegram";
-      button.disabled = false;
-
-      status.textContent = "Сначала войдите через Telegram, затем заполните данные для гражданства.";
-    }
+    updateAuthUI(session);
   }
-
-  checkLogin();
-</script>
 </script>
     
 </body>
