@@ -633,6 +633,46 @@
   const month = document.getElementById("month").value;
   const birthYear = document.getElementById("birthYear").value.trim();
 
+const telegramIdentity = session.user.identities?.find(
+  identity => identity.provider === "custom:telegram"
+);
+
+const telegramData = telegramIdentity?.identity_data || {};
+
+const telegramId = telegramData.sub
+  ? Number(telegramData.sub)
+  : null;
+
+const telegramUsername = telegramData.preferred_username || null;
+
+const telegramName = telegramData.name || null;
+
+if (!telegramId) {
+  alert("Не удалось определить Telegram-аккаунт. Войдите через Telegram ещё раз.");
+  return;
+}
+
+const { data: banned, error: banCheckError } =
+  await supabaseClient.rpc(
+    "is_telegram_banned",
+    {
+      p_telegram_id: telegramId
+    }
+  );
+
+if (banCheckError) {
+  console.error("Ошибка проверки блокировки:", banCheckError);
+  alert("Не удалось проверить статус аккаунта. Попробуйте ещё раз.");
+  return;
+}
+
+if (banned) {
+  alert(
+    "Доступ к Нерии для этого Telegram-аккаунта заблокирован."
+  );
+  return;
+}
+      
   if (!nickname) {
     alert("Введите ник.");
     return;
@@ -678,18 +718,18 @@ const telegramName = telegramData.name
 const { data, error } = await supabaseClient
   .from("citizens")
   .insert({
-    user_id: session.user.id,
-    nickname: nickname,
-    first_name: firstName || null,
-    surname: lastName || null,
-    birth_day: Number(day),
-    birth_month: Number(month),
-    birth_year: birthYear ? Number(birthYear) : null,
+  user_id: session.user.id,
+  nickname: nickname,
+  first_name: firstName || null,
+  surname: lastName || null,
+  birth_day: Number(day),
+  birth_month: Number(month),
+  birth_year: birthYear ? Number(birthYear) : null,
 
-    telegram_id: telegramId,
-    telegram_username: telegramUsername,
-    telegram_name: telegramName
-  })
+  telegram_id: telegramId,
+  telegram_username: telegramUsername,
+  telegram_name: telegramName
+})
     .select("id, nickname")
     .single();
 
