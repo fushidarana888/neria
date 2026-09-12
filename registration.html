@@ -351,6 +351,25 @@
 
         <div class="field">
 
+            <label for="telegramUsername">
+                Telegram
+            </label>
+
+            <input
+                id="telegramUsername"
+                type="text"
+                readonly
+            >
+
+            <div class="hint">
+                Username автоматически получен из подключённого Telegram-аккаунта.
+                Изменить его можно будет в личном кабинете.
+            </div>
+
+</div>
+    
+        <div class="field">
+
             <label for="nickname">
                 Ник
             </label>
@@ -358,7 +377,7 @@
             <input
                 id="nickname"
                 type="text"
-                placeholder="@nickname"
+                placeholder="nickname"
                 required
             >
 
@@ -648,7 +667,15 @@ const telegramId = telegramData.sub
 
 const telegramUsername = telegramData.preferred_username || null;
 const telegramName = telegramData.name || null;
+const telegramUsernameInput =
+    document.getElementById("telegramUsername");
 
+if (telegramUsernameInput) {
+    telegramUsernameInput.value =
+        telegramUsername
+            ? "@" + telegramUsername
+            : "Username не указан";
+}
 
 if (!telegramId) {
   alert("Не удалось определить Telegram-аккаунт. Войдите через Telegram ещё раз.");
