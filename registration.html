@@ -657,17 +657,39 @@
   button.disabled = true;
   button.textContent = "Регистрация...";
 
-  const { data, error } = await supabaseClient
-    .from("citizens")
-    .insert({
-      user_id: session.user.id,
-      nickname: nickname,
-      first_name: firstName || null,
-      surname: lastName || null,
-      birth_day: Number(day),
-      birth_month: Number(month),
-      birth_year: birthYear ? Number(birthYear) : null
-    })
+const telegramIdentity = session.user.identities?.find(
+  identity => identity.provider === "custom:telegram"
+);
+
+const telegramData = telegramIdentity?.identity_data || {};
+
+const telegramId = telegramData.sub
+  ? Number(telegramData.sub)
+  : null;
+
+const telegramUsername = telegramData.preferred_username
+  ? telegramData.preferred_username
+  : null;
+
+const telegramName = telegramData.name
+  ? telegramData.name
+  : null;
+
+const { data, error } = await supabaseClient
+  .from("citizens")
+  .insert({
+    user_id: session.user.id,
+    nickname: nickname,
+    first_name: firstName || null,
+    surname: lastName || null,
+    birth_day: Number(day),
+    birth_month: Number(month),
+    birth_year: birthYear ? Number(birthYear) : null,
+
+    telegram_id: telegramId,
+    telegram_username: telegramUsername,
+    telegram_name: telegramName
+  })
     .select("id, nickname")
     .single();
 
