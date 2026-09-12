@@ -663,7 +663,7 @@ const telegramIdentity = session.user.identities?.find(
 const telegramData = telegramIdentity?.identity_data || {};
 
 const telegramId = telegramData.sub
-  ? Number(telegramData.sub)
+  ? String(telegramData.sub)
   : null;
 
 const telegramUsername = telegramData.preferred_username || null;
