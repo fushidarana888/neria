@@ -318,9 +318,18 @@
 
     <div class="form">
 
-        <button type="button" class="telegram-button" onclick="loginWithTelegram()">
+        <button
+          type="button"
+          id="telegramLoginButton"
+          class="telegram-button"
+          onclick="loginWithTelegram()"
+        >
           Войти через Telegram
         </button>
+
+        <div id="telegramStatus" class="hint">
+        Проверяем вход через Telegram...
+</div>
         <p class="hint">
           Сначала войдите через Telegram, затем заполните данные для гражданства.
         </p>
