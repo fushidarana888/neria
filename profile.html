@@ -489,6 +489,7 @@
                 show_first_name,
                 show_surname,
                 show_birth_date
+                telegram_username
             `)
 
             .eq("user_id", session.user.id)
@@ -603,6 +604,23 @@
     </div>
 </div>
 
+<div class="row">
+
+    <div class="label">
+        Telegram
+    </div>
+
+    <div class="value">
+        <input
+            type="text"
+            id="editTelegramUsername"
+            value="${data.telegram_username ? "@" + data.telegram_username.replace(/^@/, "") : ""}"
+            placeholder="@username"
+            maxlength="32"
+        >
+    </div>
+
+</div>
 
 <div class="row">
     <div class="label">
@@ -786,6 +804,11 @@ async function savePrivacy() {
 
     const surname =
         document.getElementById("editSurname").value.trim();
+        
+    const telegramUsername =
+    document.getElementById("editTelegramUsername").value
+        .trim()
+        .replace(/^@/, "");
 
     if (!nickname) {
         alert("Ник не может быть пустым.");
@@ -813,6 +836,26 @@ async function savePrivacy() {
         return;
     }
 
+        const { error: telegramError } =
+    await supabaseClient.rpc(
+        "update_telegram_username",
+        {
+            p_telegram_username: telegramUsername
+        }
+    );
+
+if (telegramError) {
+    console.error(telegramError);
+
+    alert(
+        "Профиль сохранён, но Telegram username " +
+        "не удалось обновить: " +
+        telegramError.message
+    );
+
+    return;
+}
+        
     alert("Профиль успешно обновлён.");
 
     loadProfile();
