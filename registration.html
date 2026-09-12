@@ -615,6 +615,10 @@
   supabaseClient.auth.onAuthStateChange((event, session) => {
     updateAuthUI(session);
   });
+supabaseClient.auth.getSession().then(({ data: { session } }) => {
+    updateAuthUI(session);
+});
+
 
   async function registerCitizen() {
   const {
