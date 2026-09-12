@@ -424,30 +424,19 @@
             }
 
             nav {
-                width: 100%;
+    width: 100%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 14px 24px;
+    white-space: normal;
+    padding: 4px 0;
+}
 
-                display: flex;
-
-                justify-content: flex-start;
-
-                gap: 24px;
-
-                overflow-x: auto;
-
-                white-space: nowrap;
-
-                padding-bottom: 4px;
-
-                scrollbar-width: none;
-            }
-
-            nav::-webkit-scrollbar {
-                display: none;
-            }
-
-            nav a {
-                flex-shrink: 0;
-            }
+nav a {
+    flex-shrink: 0;
+}
 
             /* ГЛАВНЫЙ ЭКРАН */
 
