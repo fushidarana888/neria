@@ -67,6 +67,41 @@
             flex: 1;
         }
 
+        .value input {
+    width: 100%;
+    padding: 9px 11px;
+
+    border: 1px solid #dcdce1;
+    border-radius: 6px;
+
+    font-size: 15px;
+    font-family: inherit;
+}
+
+.value input:focus {
+    outline: none;
+    border-color: #6d3fc0;
+}
+
+.save-profile {
+    width: 100%;
+    margin-top: 25px;
+    padding: 14px;
+
+    border: none;
+    border-radius: 7px;
+
+    background: #6d3fc0;
+    color: white;
+
+    font-size: 15px;
+    cursor: pointer;
+}
+
+.save-profile:hover {
+    opacity: 0.9;
+}
+        
         /* ОСНОВА */
 
         main {
@@ -619,7 +654,12 @@
             <div class="actions">
             
             <div class="privacy">
-
+            <button
+                class="save-profile"
+                onclick="saveProfileData()"
+            >
+                Сохранить изменения
+            </button>
                 <h2>Приватность</h2>
 
                 <p class="privacy-description">
@@ -735,6 +775,49 @@ async function savePrivacy() {
 
     alert("Настройки приватности сохранены.");
 }
+
+    async function saveProfileData() {
+
+    const nickname =
+        document.getElementById("editNickname").value.trim();
+
+    const firstName =
+        document.getElementById("editFirstName").value.trim();
+
+    const surname =
+        document.getElementById("editSurname").value.trim();
+
+    if (!nickname) {
+        alert("Ник не может быть пустым.");
+        return;
+    }
+
+    const { error } =
+        await supabaseClient.rpc(
+            "update_profile_data",
+            {
+                p_nickname: nickname,
+                p_first_name: firstName,
+                p_surname: surname
+            }
+        );
+
+    if (error) {
+        console.error(error);
+
+        alert(
+            "Не удалось сохранить изменения: " +
+            error.message
+        );
+
+        return;
+    }
+
+    alert("Профиль успешно обновлён.");
+
+    loadProfile();
+}
+    
     loadProfile();
 
 </script>
