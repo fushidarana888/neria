@@ -1,6 +1,6 @@
-```html
 <!DOCTYPE html>
 <html lang="ru">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -8,6 +8,11 @@
     <title>Нерия — виртуальное государство</title>
 
     <style>
+
+        /* =========================
+           ОСНОВНЫЕ НАСТРОЙКИ
+        ========================= */
+
         * {
             margin: 0;
             padding: 0;
@@ -20,31 +25,42 @@
             color: #17171c;
         }
 
-        /* ---------- HEADER ---------- */
+        /* =========================
+           ШАПКА
+        ========================= */
 
         header {
-            height: 72px;
-            background: white;
+            min-height: 72px;
+            background: #ffffff;
+
             border-bottom: 1px solid #e5e5e8;
 
             display: flex;
             align-items: center;
             justify-content: space-between;
 
-            padding: 0 6%;
+            padding: 14px 6%;
+
+            gap: 25px;
         }
 
         .logo {
             display: flex;
             align-items: center;
+
             gap: 12px;
 
             font-size: 20px;
             font-weight: 700;
+
             letter-spacing: 1px;
+
+            flex-shrink: 0;
         }
 
-        /* Флаг Нерии */
+        /* =========================
+           ФЛАГ НЕРИИ
+        ========================= */
 
         .flag {
             width: 32px;
@@ -54,6 +70,7 @@
             flex-direction: column;
 
             border-radius: 3px;
+
             overflow: hidden;
         }
 
@@ -63,18 +80,29 @@
         }
 
         .flag-white {
-            background: white;
+            background: #ffffff;
             flex: 1;
         }
 
+        /* =========================
+           НАВИГАЦИЯ
+        ========================= */
+
         nav {
             display: flex;
+
+            align-items: center;
+
             gap: 30px;
+
+            white-space: nowrap;
         }
 
         nav a {
             color: #55555d;
+
             text-decoration: none;
+
             font-size: 14px;
 
             transition: color 0.2s;
@@ -84,10 +112,13 @@
             color: #6d3fc0;
         }
 
-        /* ---------- HERO ---------- */
+        /* =========================
+           ГЛАВНЫЙ ЭКРАН
+        ========================= */
 
         .hero {
             max-width: 1100px;
+
             margin: 0 auto;
 
             padding: 110px 30px 90px;
@@ -97,74 +128,115 @@
 
         .hero h1 {
             font-size: 64px;
+
             letter-spacing: -2px;
+
             margin-bottom: 18px;
         }
 
         .motto {
             font-size: 23px;
+
             color: #6d3fc0;
+
             font-weight: 500;
+
             margin-bottom: 25px;
         }
 
         .description {
             max-width: 620px;
+
             margin: 0 auto;
 
             font-size: 17px;
+
             line-height: 1.7;
 
             color: #65656d;
         }
 
+        /* =========================
+           КНОПКИ
+        ========================= */
+
         .buttons {
             margin-top: 35px;
 
             display: flex;
+
             justify-content: center;
+
             gap: 12px;
         }
 
         button {
             border: none;
+
             padding: 14px 24px;
 
             border-radius: 7px;
 
             font-size: 15px;
+
             font-weight: 600;
 
             cursor: pointer;
+
+            transition:
+                transform 0.2s,
+                box-shadow 0.2s;
+        }
+
+        button:hover {
+            transform: translateY(-2px);
         }
 
         .primary {
             background: #6d3fc0;
-            color: white;
+
+            color: #ffffff;
+        }
+
+        .primary:hover {
+            box-shadow: 0 7px 20px rgba(109, 63, 192, 0.25);
         }
 
         .secondary {
-            background: white;
-            color: #222;
+            background: #ffffff;
+
+            color: #222222;
+
             border: 1px solid #dedee3;
         }
 
-        /* ---------- STATISTICS ---------- */
+        /* =========================
+           СТАТИСТИКА
+        ========================= */
 
         .statistics {
             max-width: 900px;
+
             margin: 0 auto 90px;
 
             display: grid;
+
             grid-template-columns: repeat(3, 1fr);
 
-            background: white;
+            background: #ffffff;
+
             border: 1px solid #e5e5e8;
+
             border-radius: 12px;
+
+            overflow: hidden;
         }
 
         .stat {
+            min-width: 0;
+
             padding: 30px;
+
             text-align: center;
 
             border-right: 1px solid #e5e5e8;
@@ -176,19 +248,25 @@
 
         .stat-number {
             font-size: 28px;
+
             font-weight: 700;
+
             margin-bottom: 7px;
         }
 
         .stat-name {
             color: #777780;
+
             font-size: 13px;
         }
 
-        /* ---------- SECTIONS ---------- */
+        /* =========================
+           ОСНОВНЫЕ КАРТОЧКИ
+        ========================= */
 
         .section {
             max-width: 1100px;
+
             margin: 0 auto;
 
             padding: 0 30px 100px;
@@ -196,6 +274,7 @@
 
         .section-title {
             font-size: 28px;
+
             margin-bottom: 30px;
         }
 
@@ -208,9 +287,10 @@
         }
 
         .card {
-            background: white;
+            background: #ffffff;
 
             border: 1px solid #e5e5e8;
+
             border-radius: 10px;
 
             padding: 28px;
@@ -231,31 +311,38 @@
 
         .card-icon {
             font-size: 25px;
+
             margin-bottom: 18px;
         }
 
         .card h3 {
             font-size: 17px;
+
             margin-bottom: 9px;
         }
 
         .card p {
             font-size: 14px;
+
             line-height: 1.5;
+
             color: #74747c;
         }
 
-        /* ---------- EVENTS ---------- */
+        /* =========================
+           СОБЫТИЯ
+        ========================= */
 
         .events {
             max-width: 1100px;
+
             margin: 0 auto;
 
             padding: 0 30px 100px;
         }
 
         .event {
-            background: white;
+            background: #ffffff;
 
             border: 1px solid #e5e5e8;
 
@@ -270,6 +357,7 @@
             color: #6d3fc0;
 
             font-size: 12px;
+
             font-weight: 700;
 
             margin-bottom: 5px;
@@ -279,11 +367,14 @@
             font-size: 15px;
         }
 
-        /* ---------- FOOTER ---------- */
+        /* =========================
+           ПОДВАЛ
+        ========================= */
 
         footer {
             background: #17171c;
-            color: #aaa;
+
+            color: #aaaaaa;
 
             padding: 40px 6%;
 
@@ -293,149 +384,205 @@
         }
 
         footer strong {
-            color: white;
+            color: #ffffff;
         }
 
-        /* ---------- MOBILE ---------- */
+        /* =====================================================
+           МОБИЛЬНАЯ ВЕРСИЯ
+        ===================================================== */
 
-@media (max-width: 800px) {
+        @media (max-width: 800px) {
 
-    header {
-        height: auto;
-        min-height: 72px;
-        padding: 14px 20px;
-        flex-wrap: wrap;
-        gap: 14px;
-    }
+            /* ШАПКА */
 
-    nav {
-        display: flex;
-        width: 100%;
-        gap: 24px;
-        overflow-x: auto;
-        white-space: nowrap;
-        padding-bottom: 4px;
-        scrollbar-width: none;
-    }
+            header {
+                padding: 14px 20px;
 
-    nav::-webkit-scrollbar {
-        display: none;
-    }
+                flex-wrap: wrap;
 
-    nav a {
-        flex-shrink: 0;
-    }
+                justify-content: center;
 
-    .hero {
-        padding-top: 60px;
-    }
+                gap: 14px;
+            }
 
-    .hero h1 {
-        font-size: 46px;
-    }
+            .logo {
+                width: 100%;
 
-    .statistics {
-        grid-template-columns: 1fr;
-        margin-left: 20px;
-        margin-right: 20px;
-    }
+                justify-content: center;
+            }
 
-    .stat {
-        border-right: none;
-        border-bottom: 1px solid #e5e5e8;
-    }
+            nav {
+                width: 100%;
 
-    .stat:last-child {
-        border-bottom: none;
-    }
+                display: flex;
 
-    .cards {
-        grid-template-columns: 1fr;
-    }
+                justify-content: flex-start;
 
-    .buttons {
-        flex-direction: column;
-    }
-}
+                gap: 24px;
+
+                overflow-x: auto;
+
+                white-space: nowrap;
+
+                padding-bottom: 4px;
+
+                scrollbar-width: none;
+            }
+
+            nav::-webkit-scrollbar {
+                display: none;
+            }
+
+            nav a {
+                flex-shrink: 0;
+            }
+
+            /* ГЛАВНЫЙ ЭКРАН */
 
             .hero {
-                padding-top: 80px;
+                padding: 70px 25px 70px;
             }
 
             .hero h1 {
                 font-size: 46px;
             }
 
+            .motto {
+                font-size: 21px;
+            }
+
+            .description {
+                font-size: 16px;
+            }
+
+            /* КНОПКИ */
+
+            .buttons {
+                flex-direction: column;
+
+                width: 100%;
+            }
+
+            button {
+                width: 100%;
+            }
+
+            /* СТАТИСТИКА */
+
             .statistics {
-                grid-template-columns: 1fr;
+                width: calc(100% - 40px);
+
                 margin-left: 20px;
                 margin-right: 20px;
+
+                grid-template-columns: 1fr;
+
+                margin-bottom: 70px;
             }
 
             .stat {
                 border-right: none;
+
                 border-bottom: 1px solid #e5e5e8;
+
+                padding: 28px;
             }
 
             .stat:last-child {
                 border-bottom: none;
             }
 
+            /* КАРТОЧКИ */
+
+            .section {
+                padding-left: 20px;
+                padding-right: 20px;
+            }
+
             .cards {
                 grid-template-columns: 1fr;
             }
 
-            .buttons {
-                flex-direction: column;
+            /* СОБЫТИЯ */
+
+            .events {
+                padding-left: 20px;
+                padding-right: 20px;
             }
+
         }
+
     </style>
 </head>
 
+
 <body>
 
-    <!-- HEADER -->
+    <!-- =========================
+         ШАПКА
+    ========================= -->
 
     <header>
 
         <div class="logo">
 
             <div class="flag">
+
                 <div class="flag-purple"></div>
+
                 <div class="flag-white"></div>
+
                 <div class="flag-purple"></div>
+
             </div>
 
             НЕРИЯ
 
         </div>
 
+
         <nav>
+
             <a href="#">Государство</a>
+
             <a href="#">Граждане</a>
+
             <a href="#">Экономика</a>
+
             <a href="#">Законы</a>
+
         </nav>
 
     </header>
 
 
-    <!-- HERO -->
+    <!-- =========================
+         ОСНОВНОЕ СОДЕРЖИМОЕ
+    ========================= -->
 
     <main>
 
+
+        <!-- ГЛАВНЫЙ БЛОК -->
+
         <section class="hero">
 
-            <h1>Нерия</h1>
+            <h1>
+                Нерия
+            </h1>
 
             <div class="motto">
                 Далеко, но вместе.
             </div>
 
             <p class="description">
-                Виртуальное государство, объединяющее людей
+
+                Виртуальное государство,
+                объединяющее людей
                 из разных уголков интернета.
+
             </p>
+
 
             <div class="buttons">
 
@@ -452,9 +599,13 @@
         </section>
 
 
-        <!-- STATISTICS -->
+
+        <!-- =========================
+             СТАТИСТИКА
+        ========================= -->
 
         <section class="statistics">
+
 
             <div class="stat">
 
@@ -494,10 +645,14 @@
 
             </div>
 
+
         </section>
 
 
-        <!-- MAIN FEATURES -->
+
+        <!-- =========================
+             РАЗДЕЛ НЕРИИ
+        ========================= -->
 
         <section class="section">
 
@@ -505,43 +660,54 @@
                 Нерия
             </h2>
 
+
             <div class="cards">
+
 
                 <div class="card">
 
-                    <div class="card-icon">🏛</div>
+                    <div class="card-icon">
+                        🏛
+                    </div>
 
                     <h3>
                         Государство
                     </h3>
 
                     <p>
-                        Устройство Нерии, органы власти
+                        Устройство Нерии,
+                        органы власти
                         и государственные институты.
                     </p>
 
                 </div>
 
 
+
                 <div class="card">
 
-                    <div class="card-icon">👥</div>
+                    <div class="card-icon">
+                        👥
+                    </div>
 
                     <h3>
                         Граждане
                     </h3>
 
                     <p>
-                        Сообщество людей, являющихся
-                        гражданами Нерии.
+                        Сообщество людей,
+                        являющихся гражданами Нерии.
                     </p>
 
                 </div>
 
 
+
                 <div class="card">
 
-                    <div class="card-icon">💰</div>
+                    <div class="card-icon">
+                        💰
+                    </div>
 
                     <h3>
                         Экономика
@@ -555,9 +721,12 @@
                 </div>
 
 
+
                 <div class="card">
 
-                    <div class="card-icon">📜</div>
+                    <div class="card-icon">
+                        📜
+                    </div>
 
                     <h3>
                         Законы
@@ -570,18 +739,23 @@
 
                 </div>
 
+
             </div>
 
         </section>
 
 
-        <!-- EVENTS -->
+
+        <!-- =========================
+             СОБЫТИЯ
+        ========================= -->
 
         <section class="events">
 
             <h2 class="section-title">
                 Последние события
             </h2>
+
 
             <div class="event">
 
@@ -608,24 +782,34 @@
 
             </div>
 
+
         </section>
+
 
     </main>
 
 
-    <!-- FOOTER -->
+
+    <!-- =========================
+         ПОДВАЛ
+    ========================= -->
 
     <footer>
 
-        <strong>Нерия</strong>
+        <strong>
+            Нерия
+        </strong>
+
         — Далеко, но вместе.
 
-        <br><br>
+        <br>
+        <br>
 
         Виртуальное гражданское сообщество.
 
     </footer>
 
+
 </body>
+
 </html>
-```
