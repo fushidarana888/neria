@@ -318,6 +318,13 @@
 
     <div class="form">
 
+        <button type="button" class="telegram-button" onclick="loginWithTelegram()">
+          Войти через Telegram
+        </button>
+        <p class="hint">
+          Сначала войдите через Telegram, затем заполните данные для гражданства.
+        </p>
+
         <div class="field">
 
             <label for="nickname">
@@ -519,7 +526,43 @@
 
 </main>
 
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
+<script>
+  const SUPABASE_URL = "https://rictvznxkkeygbrlcymn.supabase.co";
+
+  const SUPABASE_PUBLISHABLE_KEY = "sb_publishable_SVwKto14tbMtsmcDOagvCw_TVqg7he7";
+
+  const supabaseClient = window.supabase.createClient(
+    SUPABASE_URL,
+    SUPABASE_PUBLISHABLE_KEY
+  );
+
+  async function loginWithTelegram() {
+    const { error } = await supabaseClient.auth.signInWithOAuth({
+      provider: "custom:telegram",
+      options: {
+        redirectTo: "https://fushidarana888.github.io/neria/registration.html"
+      }
+    });
+
+    if (error) {
+      alert("Ошибка входа: " + error.message);
+    }
+  }
+
+  async function checkLogin() {
+    const { data: { session } } =
+      await supabaseClient.auth.getSession();
+
+    if (session) {
+      console.log("Пользователь вошёл:", session.user);
+    }
+  }
+
+  checkLogin();
+</script>
+    
 </body>
 
 </html>
