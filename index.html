@@ -945,13 +945,9 @@
     updateMainButton();
 
 
-    supabaseClient.auth.onAuthStateChange(
-        (event, session) => {
-
-            const button =
-                document.getElementById(
-                    "mainAccountButton"
-                );
+supabaseClient.auth.onAuthStateChange(() => {
+    updateMainButton();
+});
 
 
             if (!button) {
