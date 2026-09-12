@@ -623,8 +623,8 @@
 
             <div class="stat">
 
-                <div class="stat-number">
-                    0
+                <div class="stat-number" id="citizenCount">
+                    ...
                 </div>
 
                 <div class="stat-name">
@@ -823,7 +823,57 @@
 
     </footer>
 
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
+<script>
+
+    const SUPABASE_URL =
+        "https://rictvznkxkeygbrlcymn.supabase.co";
+
+    const SUPABASE_PUBLISHABLE_KEY =
+        "sb_publishable_SVwKto14tbMtsmcDOagvCw_TVqg7he7";
+
+
+    const supabaseClient =
+        window.supabase.createClient(
+            SUPABASE_URL,
+            SUPABASE_PUBLISHABLE_KEY
+        );
+
+
+    async function loadCitizenCount() {
+
+        const { data, error } =
+            await supabaseClient
+                .rpc("get_citizen_count");
+
+
+        if (error) {
+
+            console.error(
+                "Ошибка получения количества граждан:",
+                error
+            );
+
+            document.getElementById(
+                "citizenCount"
+            ).textContent = "—";
+
+            return;
+        }
+
+
+        document.getElementById(
+            "citizenCount"
+        ).textContent = data;
+
+    }
+
+
+    loadCitizenCount();
+
+</script>
+    
 </body>
 
 </html>
