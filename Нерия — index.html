@@ -1,0 +1,581 @@
+```html
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Нерия — виртуальное государство</title>
+
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: Arial, Helvetica, sans-serif;
+            background: #f5f5f7;
+            color: #17171c;
+        }
+
+        /* ---------- HEADER ---------- */
+
+        header {
+            height: 72px;
+            background: white;
+            border-bottom: 1px solid #e5e5e8;
+
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+
+            padding: 0 6%;
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+
+            font-size: 20px;
+            font-weight: 700;
+            letter-spacing: 1px;
+        }
+
+        /* Флаг Нерии */
+
+        .flag {
+            width: 32px;
+            height: 42px;
+
+            display: flex;
+            flex-direction: column;
+
+            border-radius: 3px;
+            overflow: hidden;
+        }
+
+        .flag-purple {
+            background: #6d3fc0;
+            flex: 1;
+        }
+
+        .flag-white {
+            background: white;
+            flex: 1;
+        }
+
+        nav {
+            display: flex;
+            gap: 30px;
+        }
+
+        nav a {
+            color: #55555d;
+            text-decoration: none;
+            font-size: 14px;
+
+            transition: color 0.2s;
+        }
+
+        nav a:hover {
+            color: #6d3fc0;
+        }
+
+        /* ---------- HERO ---------- */
+
+        .hero {
+            max-width: 1100px;
+            margin: 0 auto;
+
+            padding: 110px 30px 90px;
+
+            text-align: center;
+        }
+
+        .hero h1 {
+            font-size: 64px;
+            letter-spacing: -2px;
+            margin-bottom: 18px;
+        }
+
+        .motto {
+            font-size: 23px;
+            color: #6d3fc0;
+            font-weight: 500;
+            margin-bottom: 25px;
+        }
+
+        .description {
+            max-width: 620px;
+            margin: 0 auto;
+
+            font-size: 17px;
+            line-height: 1.7;
+
+            color: #65656d;
+        }
+
+        .buttons {
+            margin-top: 35px;
+
+            display: flex;
+            justify-content: center;
+            gap: 12px;
+        }
+
+        button {
+            border: none;
+            padding: 14px 24px;
+
+            border-radius: 7px;
+
+            font-size: 15px;
+            font-weight: 600;
+
+            cursor: pointer;
+        }
+
+        .primary {
+            background: #6d3fc0;
+            color: white;
+        }
+
+        .secondary {
+            background: white;
+            color: #222;
+            border: 1px solid #dedee3;
+        }
+
+        /* ---------- STATISTICS ---------- */
+
+        .statistics {
+            max-width: 900px;
+            margin: 0 auto 90px;
+
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+
+            background: white;
+            border: 1px solid #e5e5e8;
+            border-radius: 12px;
+        }
+
+        .stat {
+            padding: 30px;
+            text-align: center;
+
+            border-right: 1px solid #e5e5e8;
+        }
+
+        .stat:last-child {
+            border-right: none;
+        }
+
+        .stat-number {
+            font-size: 28px;
+            font-weight: 700;
+            margin-bottom: 7px;
+        }
+
+        .stat-name {
+            color: #777780;
+            font-size: 13px;
+        }
+
+        /* ---------- SECTIONS ---------- */
+
+        .section {
+            max-width: 1100px;
+            margin: 0 auto;
+
+            padding: 0 30px 100px;
+        }
+
+        .section-title {
+            font-size: 28px;
+            margin-bottom: 30px;
+        }
+
+        .cards {
+            display: grid;
+
+            grid-template-columns: repeat(4, 1fr);
+
+            gap: 16px;
+        }
+
+        .card {
+            background: white;
+
+            border: 1px solid #e5e5e8;
+            border-radius: 10px;
+
+            padding: 28px;
+
+            min-height: 170px;
+
+            transition:
+                transform 0.2s,
+                box-shadow 0.2s;
+        }
+
+        .card:hover {
+            transform: translateY(-3px);
+
+            box-shadow:
+                0 8px 25px rgba(0, 0, 0, 0.06);
+        }
+
+        .card-icon {
+            font-size: 25px;
+            margin-bottom: 18px;
+        }
+
+        .card h3 {
+            font-size: 17px;
+            margin-bottom: 9px;
+        }
+
+        .card p {
+            font-size: 14px;
+            line-height: 1.5;
+            color: #74747c;
+        }
+
+        /* ---------- EVENTS ---------- */
+
+        .events {
+            max-width: 1100px;
+            margin: 0 auto;
+
+            padding: 0 30px 100px;
+        }
+
+        .event {
+            background: white;
+
+            border: 1px solid #e5e5e8;
+
+            padding: 20px 24px;
+
+            border-radius: 8px;
+
+            margin-bottom: 10px;
+        }
+
+        .event-date {
+            color: #6d3fc0;
+
+            font-size: 12px;
+            font-weight: 700;
+
+            margin-bottom: 5px;
+        }
+
+        .event-title {
+            font-size: 15px;
+        }
+
+        /* ---------- FOOTER ---------- */
+
+        footer {
+            background: #17171c;
+            color: #aaa;
+
+            padding: 40px 6%;
+
+            text-align: center;
+
+            font-size: 13px;
+        }
+
+        footer strong {
+            color: white;
+        }
+
+        /* ---------- MOBILE ---------- */
+
+        @media (max-width: 800px) {
+
+            header {
+                padding: 0 20px;
+            }
+
+            nav {
+                display: none;
+            }
+
+            .hero {
+                padding-top: 80px;
+            }
+
+            .hero h1 {
+                font-size: 46px;
+            }
+
+            .statistics {
+                grid-template-columns: 1fr;
+                margin-left: 20px;
+                margin-right: 20px;
+            }
+
+            .stat {
+                border-right: none;
+                border-bottom: 1px solid #e5e5e8;
+            }
+
+            .stat:last-child {
+                border-bottom: none;
+            }
+
+            .cards {
+                grid-template-columns: 1fr;
+            }
+
+            .buttons {
+                flex-direction: column;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <!-- HEADER -->
+
+    <header>
+
+        <div class="logo">
+
+            <div class="flag">
+                <div class="flag-purple"></div>
+                <div class="flag-white"></div>
+                <div class="flag-purple"></div>
+            </div>
+
+            НЕРИЯ
+
+        </div>
+
+        <nav>
+            <a href="#">Государство</a>
+            <a href="#">Граждане</a>
+            <a href="#">Экономика</a>
+            <a href="#">Законы</a>
+        </nav>
+
+    </header>
+
+
+    <!-- HERO -->
+
+    <main>
+
+        <section class="hero">
+
+            <h1>Нерия</h1>
+
+            <div class="motto">
+                Далеко, но вместе.
+            </div>
+
+            <p class="description">
+                Виртуальное государство, объединяющее людей
+                из разных уголков интернета.
+            </p>
+
+            <div class="buttons">
+
+                <button class="primary">
+                    Стать гражданином
+                </button>
+
+                <button class="secondary">
+                    Узнать о Нерии
+                </button>
+
+            </div>
+
+        </section>
+
+
+        <!-- STATISTICS -->
+
+        <section class="statistics">
+
+            <div class="stat">
+
+                <div class="stat-number">
+                    0
+                </div>
+
+                <div class="stat-name">
+                    граждан
+                </div>
+
+            </div>
+
+
+            <div class="stat">
+
+                <div class="stat-number">
+                    0
+                </div>
+
+                <div class="stat-name">
+                    организаций
+                </div>
+
+            </div>
+
+
+            <div class="stat">
+
+                <div class="stat-number">
+                    0 NR
+                </div>
+
+                <div class="stat-name">
+                    в обороте
+                </div>
+
+            </div>
+
+        </section>
+
+
+        <!-- MAIN FEATURES -->
+
+        <section class="section">
+
+            <h2 class="section-title">
+                Нерия
+            </h2>
+
+            <div class="cards">
+
+                <div class="card">
+
+                    <div class="card-icon">🏛</div>
+
+                    <h3>
+                        Государство
+                    </h3>
+
+                    <p>
+                        Устройство Нерии, органы власти
+                        и государственные институты.
+                    </p>
+
+                </div>
+
+
+                <div class="card">
+
+                    <div class="card-icon">👥</div>
+
+                    <h3>
+                        Граждане
+                    </h3>
+
+                    <p>
+                        Сообщество людей, являющихся
+                        гражданами Нерии.
+                    </p>
+
+                </div>
+
+
+                <div class="card">
+
+                    <div class="card-icon">💰</div>
+
+                    <h3>
+                        Экономика
+                    </h3>
+
+                    <p>
+                        Внутренняя валюта Нерии —
+                        нер (NR).
+                    </p>
+
+                </div>
+
+
+                <div class="card">
+
+                    <div class="card-icon">📜</div>
+
+                    <h3>
+                        Законы
+                    </h3>
+
+                    <p>
+                        Конституция и правила,
+                        регулирующие жизнь Нерии.
+                    </p>
+
+                </div>
+
+            </div>
+
+        </section>
+
+
+        <!-- EVENTS -->
+
+        <section class="events">
+
+            <h2 class="section-title">
+                Последние события
+            </h2>
+
+            <div class="event">
+
+                <div class="event-date">
+                    12 СЕНТЯБРЯ 2026
+                </div>
+
+                <div class="event-title">
+                    Нерия основана.
+                </div>
+
+            </div>
+
+
+            <div class="event">
+
+                <div class="event-date">
+                    СКОРО
+                </div>
+
+                <div class="event-title">
+                    Первые граждане Нерии.
+                </div>
+
+            </div>
+
+        </section>
+
+    </main>
+
+
+    <!-- FOOTER -->
+
+    <footer>
+
+        <strong>Нерия</strong>
+        — Далеко, но вместе.
+
+        <br><br>
+
+        Виртуальное гражданское сообщество.
+
+    </footer>
+
+</body>
+</html>
+```
