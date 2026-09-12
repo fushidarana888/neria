@@ -831,7 +831,7 @@
         "https://rictvznkxkeygbrlcymn.supabase.co";
 
     const SUPABASE_PUBLISHABLE_KEY =
-        "sb_publishable_SVwKto14tbMtsmcDOagvCw_TVqg7he7";
+        "ТВОЙ_PUBLISHABLE_KEY";
 
 
     const supabaseClient =
@@ -840,6 +840,10 @@
             SUPABASE_PUBLISHABLE_KEY
         );
 
+
+    /* =========================
+       КОЛИЧЕСТВО ГРАЖДАН
+    ========================= */
 
     async function loadCitizenCount() {
 
@@ -870,27 +874,9 @@
     }
 
 
-    loadCitizenCount();
-
-</script>  
-    
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-
-<script>
-
-    const SUPABASE_URL =
-        "https://rictvznkxkeygbrlcymn.supabase.co";
-
-    const SUPABASE_PUBLISHABLE_KEY =
-        "sb_publishable_SVwKto14tbMtsmcDOagvCw_TVqg7he7";
-
-
-    const supabaseClient =
-        window.supabase.createClient(
-            SUPABASE_URL,
-            SUPABASE_PUBLISHABLE_KEY
-        );
-
+    /* =========================
+       КНОПКА ГРАЖДАНСТВА
+    ========================= */
 
     async function updateMainButton() {
 
@@ -900,7 +886,9 @@
 
 
         const button =
-            document.getElementById("mainAccountButton");
+            document.getElementById(
+                "mainAccountButton"
+            );
 
 
         if (!button) {
@@ -929,6 +917,12 @@
     }
 
 
+    /* =========================
+       ЗАПУСК
+    ========================= */
+
+    loadCitizenCount();
+
     updateMainButton();
 
 
@@ -939,6 +933,7 @@
                 document.getElementById(
                     "mainAccountButton"
                 );
+
 
             if (!button) {
                 return;
@@ -967,6 +962,7 @@
     );
 
 </script>
+    
 </body>
 
 </html>
