@@ -636,7 +636,18 @@ supabaseClient.auth.getSession().then(({ data: { session } }) => {
   const day = document.getElementById("day").value;
   const month = document.getElementById("month").value;
   const birthYear = document.getElementById("birthYear").value.trim();
+const telegramIdentity = session.user.identities?.find(
+  identity => identity.provider === "custom:telegram"
+);
 
+const telegramData = telegramIdentity?.identity_data || {};
+
+const telegramId = telegramData.sub
+  ? Number(telegramData.sub)
+  : null;
+
+const telegramUsername = telegramData.preferred_username || null;
+const telegramName = telegramData.name || null;
 
 
 if (!telegramId) {
