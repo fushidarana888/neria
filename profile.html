@@ -230,7 +230,57 @@
 
             line-height: 1.5;
         }
+.privacy {
+    margin-top: 35px;
+    padding-top: 25px;
+    border-top: 1px solid #e5e5e8;
+}
 
+.privacy h2 {
+    font-size: 20px;
+    margin-bottom: 8px;
+}
+
+.privacy-description {
+    color: #777780;
+    font-size: 14px;
+    line-height: 1.5;
+    margin-bottom: 20px;
+}
+
+.privacy-option {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 12px 0;
+    cursor: pointer;
+    font-size: 15px;
+}
+
+.privacy-option input {
+    width: 18px;
+    height: 18px;
+    cursor: pointer;
+}
+
+.save-privacy {
+    width: 100%;
+    margin-top: 15px;
+    padding: 14px;
+
+    border: none;
+    border-radius: 7px;
+
+    background: #6d3fc0;
+    color: white;
+
+    font-size: 15px;
+    cursor: pointer;
+}
+
+.save-privacy:hover {
+    opacity: 0.9;
+}
         /* МОБИЛЬНАЯ ВЕРСИЯ */
 
         @media (max-width: 600px) {
@@ -400,7 +450,10 @@
                 surname,
                 birth_day,
                 birth_month,
-                birth_year
+                birth_year,
+                show_first_name,
+                show_surname,
+                show_birth_date
             `)
 
             .eq("user_id", session.user.id)
@@ -561,7 +614,51 @@
 
 
             <div class="actions">
+            
+            <div class="privacy">
 
+                <h2>Приватность</h2>
+
+                <p class="privacy-description">
+                    Выберите, какие данные будут видны другим гражданам Нерии.
+                </p>
+
+                <label class="privacy-option">
+                    <input
+                        type="checkbox"
+                        id="showFirstName"
+                        ${data.show_first_name ? "checked" : ""}
+                    >
+                    <span>Показывать имя</span>
+                </label>
+
+                <label class="privacy-option">
+                    <input
+                        type="checkbox"
+                        id="showSurname"
+                        ${data.show_surname ? "checked" : ""}
+                    >
+                    <span>Показывать фамилию</span>
+                </label>
+
+                <label class="privacy-option">
+                    <input
+                        type="checkbox"
+                        id="showBirthDate"
+                        ${data.show_birth_date ? "checked" : ""}
+                    >
+                    <span>Показывать дату рождения</span>
+                </label>
+
+                <button
+                    class="save-privacy"
+                    onclick="savePrivacy()"
+                >
+                    Сохранить настройки
+                </button>
+
+            </div>
+            
                 <button
                     class="logout"
                     onclick="logout()"
@@ -601,7 +698,40 @@
 
     }
 
+async function savePrivacy() {
 
+    const showFirstName =
+        document.getElementById("showFirstName").checked;
+
+    const showSurname =
+        document.getElementById("showSurname").checked;
+
+    const showBirthDate =
+        document.getElementById("showBirthDate").checked;
+
+    const { error } =
+        await supabaseClient.rpc(
+            "update_profile_visibility",
+            {
+                p_show_first_name: showFirstName,
+                p_show_surname: showSurname,
+                p_show_birth_date: showBirthDate
+            }
+        );
+
+    if (error) {
+        console.error(error);
+
+        alert(
+            "Не удалось сохранить настройки: " +
+            error.message
+        );
+
+        return;
+    }
+
+    alert("Настройки приватности сохранены.");
+}
     loadProfile();
 
 </script>
