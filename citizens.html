@@ -1,0 +1,382 @@
+<!DOCTYPE html>
+<html lang="ru">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Граждане — Нерия</title>
+
+    <style>
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: Arial, Helvetica, sans-serif;
+            background: #f5f5f7;
+            color: #17171c;
+            min-height: 100vh;
+        }
+
+        header {
+            height: 72px;
+            background: white;
+            border-bottom: 1px solid #e5e5e8;
+            display: flex;
+            align-items: center;
+            padding: 0 6%;
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            font-size: 20px;
+            font-weight: 700;
+            letter-spacing: 1px;
+            text-decoration: none;
+            color: inherit;
+        }
+
+        .flag {
+            width: 32px;
+            height: 42px;
+            display: flex;
+            flex-direction: column;
+            border-radius: 3px;
+            overflow: hidden;
+        }
+
+        .flag-purple {
+            background: #6d3fc0;
+            flex: 1;
+        }
+
+        .flag-white {
+            background: white;
+            flex: 1;
+        }
+
+        main {
+            max-width: 1000px;
+            margin: 0 auto;
+            padding: 60px 25px 100px;
+        }
+
+        .back {
+            display: inline-block;
+            margin-bottom: 30px;
+            color: #6d3fc0;
+            text-decoration: none;
+            font-size: 14px;
+        }
+
+        .title {
+            margin-bottom: 35px;
+        }
+
+        .title h1 {
+            font-size: 38px;
+            margin-bottom: 10px;
+        }
+
+        .title p {
+            color: #777780;
+            font-size: 16px;
+        }
+
+        .registry {
+            background: white;
+            border: 1px solid #e5e5e8;
+            border-radius: 14px;
+            overflow: hidden;
+        }
+
+        .citizen {
+            display: grid;
+            grid-template-columns: 100px 1.5fr 1fr 1fr 1fr;
+            gap: 20px;
+            padding: 18px 22px;
+            border-bottom: 1px solid #eeeeF1;
+            align-items: center;
+        }
+
+        .citizen:last-child {
+            border-bottom: none;
+        }
+
+        .citizen.header {
+            background: #f8f8fa;
+            color: #777780;
+            font-size: 12px;
+            font-weight: 600;
+        }
+
+        .id {
+            font-family: monospace;
+            font-size: 14px;
+            color: #6d3fc0;
+            font-weight: 600;
+        }
+
+        .nickname {
+            font-weight: 600;
+        }
+
+        .empty {
+            padding: 40px 25px;
+            text-align: center;
+            color: #777780;
+        }
+
+        .error {
+            background: #fff3f3;
+            border: 1px solid #f0caca;
+            color: #a33;
+            border-radius: 10px;
+            padding: 18px;
+        }
+
+        .info {
+            margin-top: 18px;
+            color: #888891;
+            font-size: 12px;
+            line-height: 1.5;
+        }
+
+        @media (max-width: 700px) {
+
+            main {
+                padding: 40px 15px 80px;
+            }
+
+            .title h1 {
+                font-size: 32px;
+            }
+
+            .registry {
+                overflow-x: auto;
+            }
+
+            .citizen {
+                min-width: 700px;
+            }
+
+        }
+
+    </style>
+
+</head>
+
+<body>
+
+<header>
+
+    <a href="index.html" class="logo">
+
+        <div class="flag">
+            <div class="flag-purple"></div>
+            <div class="flag-white"></div>
+            <div class="flag-purple"></div>
+        </div>
+
+        НЕРИЯ
+
+    </a>
+
+</header>
+
+
+<main>
+
+    <a class="back" href="index.html">
+        ← Вернуться на главную
+    </a>
+
+
+    <div class="title">
+
+        <h1>Граждане Нерии</h1>
+
+        <p>
+            Реестр граждан виртуального государства Нерия.
+        </p>
+
+    </div>
+
+
+    <div id="content">
+
+        <div class="empty">
+            Загрузка списка граждан...
+        </div>
+
+    </div>
+
+
+    <div class="info">
+        В реестре отображаются только данные, которые граждане
+        разрешили показывать другим гражданам.
+    </div>
+
+</main>
+
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+<script>
+
+const SUPABASE_URL =
+    "https://rictvznkxkeygbrlcymn.supabase.co";
+
+const SUPABASE_PUBLISHABLE_KEY =
+    "sb_publishable_SVwKto14tbMtsmcDOagvCw_TVqg7he7";
+
+const supabaseClient =
+    window.supabase.createClient(
+        SUPABASE_URL,
+        SUPABASE_PUBLISHABLE_KEY
+    );
+
+
+async function loadCitizens() {
+
+    const content =
+        document.getElementById("content");
+
+
+    // Проверяем авторизацию
+    const {
+        data: { session }
+    } = await supabaseClient.auth.getSession();
+
+
+    if (!session) {
+
+        content.innerHTML = `
+            <div class="error">
+                Чтобы просматривать список граждан,
+                необходимо войти через Telegram.
+            </div>
+        `;
+
+        return;
+    }
+
+
+    // Получаем список через защищённую функцию
+    const {
+        data,
+        error
+    } = await supabaseClient.rpc(
+        "get_public_citizens"
+    );
+
+
+    if (error) {
+
+        console.error(error);
+
+        content.innerHTML = `
+            <div class="error">
+                Не удалось загрузить список граждан.
+            </div>
+        `;
+
+        return;
+    }
+
+
+    if (!data || data.length === 0) {
+
+        content.innerHTML = `
+            <div class="registry">
+                <div class="empty">
+                    В Нерии пока нет граждан.
+                </div>
+            </div>
+        `;
+
+        return;
+    }
+
+
+    let html = `
+
+        <div class="registry">
+
+            <div class="citizen header">
+
+                <div>ID</div>
+                <div>Никнейм</div>
+                <div>Имя</div>
+                <div>Фамилия</div>
+                <div>Дата рождения</div>
+
+            </div>
+
+    `;
+
+
+    data.forEach(citizen => {
+
+        html += `
+
+            <div class="citizen">
+
+                <div class="id">
+                    ${escapeHtml(citizen.citizen_id)}
+                </div>
+
+                <div class="nickname">
+                    ${escapeHtml(citizen.nickname)}
+                </div>
+
+                <div>
+                    ${escapeHtml(citizen.first_name || "—")}
+                </div>
+
+                <div>
+                    ${escapeHtml(citizen.surname || "—")}
+                </div>
+
+                <div>
+                    ${escapeHtml(citizen.birth_date || "—")}
+                </div>
+
+            </div>
+
+        `;
+
+    });
+
+
+    html += `</div>`;
+
+    content.innerHTML = html;
+}
+
+
+// Защита от вставки HTML через пользовательские данные
+function escapeHtml(value) {
+
+    return String(value)
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;")
+        .replace(/'/g, "&#039;");
+
+}
+
+
+loadCitizens();
+
+</script>
+
+</body>
+</html>
