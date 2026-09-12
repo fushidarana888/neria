@@ -553,49 +553,52 @@
 
             <div class="data">
 
-                <div class="row">
+<div class="row">
+    <div class="label">
+        Ник
+    </div>
 
-                    <div class="label">
-                        Ник
-                    </div>
-
-                    <div class="value">
-                        ${data.nickname}
-                    </div>
-
-                </div>
-
-
-                <div class="row">
-
-                    <div class="label">
-                        Имя
-                    </div>
-
-                    <div class="value">
-
-                        ${data.first_name || "Не указано"}
-
-                    </div>
-
-                </div>
+    <div class="value">
+        <input
+            type="text"
+            id="editNickname"
+            value="${data.nickname}"
+            maxlength="30"
+        >
+    </div>
+</div>
 
 
-                <div class="row">
+<div class="row">
+    <div class="label">
+        Имя
+    </div>
 
-                    <div class="label">
-                        Фамилия
-                    </div>
-
-                    <div class="value">
-
-                        ${data.surname || "Не указано"}
-
-                    </div>
-
-                </div>
+    <div class="value">
+        <input
+            type="text"
+            id="editFirstName"
+            value="${data.first_name || ""}"
+            maxlength="50"
+        >
+    </div>
+</div>
 
 
+<div class="row">
+    <div class="label">
+        Фамилия
+    </div>
+
+    <div class="value">
+        <input
+            type="text"
+            id="editSurname"
+            value="${data.surname || ""}"
+            maxlength="50"
+        >
+    </div>
+</div>
                 <div class="row">
 
                     <div class="label">
