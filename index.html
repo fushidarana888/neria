@@ -950,31 +950,7 @@ supabaseClient.auth.onAuthStateChange(() => {
 });
 
 
-            if (!button) {
-                return;
-            }
 
-
-            if (session) {
-
-                button.textContent =
-                    "Личный кабинет";
-
-                button.href =
-                    "profile.html";
-
-            } else {
-
-                button.textContent =
-                    "Стать гражданином";
-
-                button.href =
-                    "registration.html";
-
-            }
-
-        }
-    );
 
 </script>
     
