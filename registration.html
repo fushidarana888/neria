@@ -693,7 +693,7 @@ const { data: banned, error: banCheckError } =
 
 if (banCheckError) {
   console.error("Ошибка проверки блокировки:", banCheckError);
-  alert("Не удалось проверить статус аккаунта. Попробуйте ещё раз.");
+  alert("Ошибка проверки блокировки:\n" + banCheckError.message);
   return;
 }
 
