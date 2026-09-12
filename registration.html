@@ -310,8 +310,7 @@
         </h1>
 
         <p>
-            Заполните небольшую анкету,
-            чтобы получить гражданство Нерии.
+            Создайте гражданский профиль Нерии.
         </p>
 
     </div>
@@ -319,11 +318,33 @@
 
     <div class="form">
 
+        <div class="field">
+
+            <label for="nickname">
+                Ник
+            </label>
+
+            <input
+                id="nickname"
+                type="text"
+                placeholder="@nickname"
+                required
+            >
+
+            <div class="hint">
+                Ник будет использоваться для обращения к вам
+                и отображения в Нерии.
+            </div>
+
+        </div>
 
         <div class="field">
 
             <label for="firstName">
                 Имя
+                <span class="optional">
+                    — необязательно
+                </span>
             </label>
 
             <input
@@ -332,7 +353,8 @@
                 placeholder="Введите имя"
                 required
             >
-
+            <div class="hint">
+                Имя можно не указывать или изменить позже.
         </div>
 
 
