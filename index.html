@@ -600,7 +600,7 @@
 
             <div class="buttons">
 
-                <a href="registration.html" class="primary">
+                <a href="registration.html" class="primary" id="mainAccountButton">
                     Стать гражданином
                 </a>
 
@@ -872,8 +872,101 @@
 
     loadCitizenCount();
 
-</script>
+</script>  
     
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+<script>
+
+    const SUPABASE_URL =
+        "https://rictvznkxkeygbrlcymn.supabase.co";
+
+    const SUPABASE_PUBLISHABLE_KEY =
+        "ВСТАВЬ_СЮДА_СВОЙ_PUBLISHABLE_KEY";
+
+
+    const supabaseClient =
+        window.supabase.createClient(
+            SUPABASE_URL,
+            SUPABASE_PUBLISHABLE_KEY
+        );
+
+
+    async function updateMainButton() {
+
+        const {
+            data: { session }
+        } = await supabaseClient.auth.getSession();
+
+
+        const button =
+            document.getElementById("mainAccountButton");
+
+
+        if (!button) {
+            return;
+        }
+
+
+        if (session) {
+
+            button.textContent =
+                "Личный кабинет";
+
+            button.href =
+                "profile.html";
+
+        } else {
+
+            button.textContent =
+                "Стать гражданином";
+
+            button.href =
+                "registration.html";
+
+        }
+
+    }
+
+
+    updateMainButton();
+
+
+    supabaseClient.auth.onAuthStateChange(
+        (event, session) => {
+
+            const button =
+                document.getElementById(
+                    "mainAccountButton"
+                );
+
+            if (!button) {
+                return;
+            }
+
+
+            if (session) {
+
+                button.textContent =
+                    "Личный кабинет";
+
+                button.href =
+                    "profile.html";
+
+            } else {
+
+                button.textContent =
+                    "Стать гражданином";
+
+                button.href =
+                    "registration.html";
+
+            }
+
+        }
+    );
+
+</script>
 </body>
 
 </html>
