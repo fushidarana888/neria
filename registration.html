@@ -377,7 +377,6 @@
                 id="firstName"
                 type="text"
                 placeholder="Введите имя"
-                required
             >
             <div class="hint">
                 Имя можно не указывать или изменить позже.
@@ -526,7 +525,12 @@
         </div>
 
 
-        <button class="submit">
+        <button
+            type="button"
+            id="citizenshipButton"
+            class="submit"
+            onclick="registerCitizen()"
+        >
             Получить гражданство
         </button>
 
@@ -607,15 +611,85 @@
     updateAuthUI(session);
   });
 
-  checkLogin();
+  async function registerCitizen() {
+  const {
+    data: { session }
+  } = await supabaseClient.auth.getSession();
 
-  async function checkLogin() {
-    const {
-      data: { session }
-    } = await supabaseClient.auth.getSession();
-
-    updateAuthUI(session);
+  if (!session) {
+    alert("Сначала войдите через Telegram.");
+    return;
   }
+
+  const nickname = document.getElementById("nickname").value.trim();
+  const firstName = document.getElementById("firstName").value.trim();
+  const lastName = document.getElementById("lastName").value.trim();
+  const day = document.getElementById("day").value;
+  const month = document.getElementById("month").value;
+  const birthYear = document.getElementById("birthYear").value.trim();
+
+  if (!nickname) {
+    alert("Введите ник.");
+    return;
+  }
+
+  if (!day || !month) {
+    alert("Укажите день и месяц рождения.");
+    return;
+  }
+
+  if (birthYear) {
+    const year = Number(birthYear);
+
+    if (year < 1900 || year > 2026) {
+      alert("Укажите корректный год рождения.");
+      return;
+    }
+  }
+
+  const button = document.getElementById("citizenshipButton");
+
+  button.disabled = true;
+  button.textContent = "Регистрация...";
+
+  const { data, error } = await supabaseClient
+    .from("citizens")
+    .insert({
+      user_id: session.user.id,
+      nickname: nickname,
+      first_name: firstName || null,
+      surname: lastName || null,
+      birth_day: Number(day),
+      birth_month: Number(month),
+      birth_year: birthYear ? Number(birthYear) : null
+    })
+    .select("id, nickname")
+    .single();
+
+  if (error) {
+    button.disabled = false;
+    button.textContent = "Получить гражданство";
+
+    if (error.code === "23505") {
+      alert("Этот аккаунт уже зарегистрирован или такой ник уже занят.");
+    } else {
+      alert("Ошибка регистрации: " + error.message);
+    }
+
+    return;
+  }
+
+  const citizenId = String(data.id).padStart(6, "0");
+
+  alert(
+    "🎉 Добро пожаловать в Нерию!\n\n" +
+    "Ваш гражданский ID: " + citizenId + "\n" +
+    "Ник: " + data.nickname
+  );
+
+  button.textContent = "✅ Гражданство получено";
+  button.disabled = true;
+}
 </script>
     
 </body>
