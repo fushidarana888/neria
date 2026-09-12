@@ -542,12 +542,14 @@ async function loginWithTelegram() {
   const { error } = await supabaseClient.auth.signInWithOAuth({
     provider: "custom:telegram",
     options: {
-      redirectTo: "https://fushidarana888.github.io/neria/registration.html",
-      queryParams: {
-        origin: "https://fushidarana888.github.io"
-      }
+      redirectTo: "https://fushidarana888.github.io/neria/registration.html"
     }
   });
+
+  if (error) {
+    alert("Ошибка входа: " + error.message);
+  }
+}
 
   if (error) {
     alert("Ошибка входа: " + error.message);
