@@ -551,16 +551,6 @@ async function loginWithTelegram() {
   }
 }
 
-  if (error) {
-    alert("Ошибка входа: " + error.message);
-  }
-}
-
-    if (error) {
-      alert("Ошибка входа: " + error.message);
-    }
-  }
-
   async function checkLogin() {
     const { data: { session } } =
       await supabaseClient.auth.getSession();
