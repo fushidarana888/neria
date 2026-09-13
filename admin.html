@@ -588,7 +588,13 @@
 
         const titleEl = document.querySelector(".title h1");
         const descEl = document.querySelector(".title p");
+        const historyLinkRow = document.querySelectorAll(".title p")[1];
         const badgeEl = document.querySelector(".header-badge");
+
+        if (historyLinkRow) {
+            historyLinkRow.style.display =
+                governmentRoles.is_founder ? "" : "none";
+        }
 
         if (governmentRoles.is_founder) {
             if (titleEl) titleEl.textContent = "Панель Основателя";
