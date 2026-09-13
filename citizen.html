@@ -259,7 +259,7 @@
     }
 
 
-    function getAvatarUrl(path) {
+    function getAvatarUrl(path, updatedAt) {
         if (!path) {
             return "";
         }
@@ -269,7 +269,12 @@
                 .from("avatars")
                 .getPublicUrl(path);
 
-        return data.publicUrl;
+        const version =
+            updatedAt
+                ? new Date(updatedAt).getTime()
+                : 0;
+
+        return data.publicUrl + "?v=" + version;
     }
 
 
@@ -433,7 +438,7 @@
                     <div class="avatar">
                         ${
                             citizen.avatar_path
-                                ? `<img src="${escapeHtml(getAvatarUrl(citizen.avatar_path))}" alt="Аватар ${escapeHtml(citizen.nickname)}">`
+                                ? `<img src="${escapeHtml(getAvatarUrl(citizen.avatar_path, citizen.avatar_updated_at))}" alt="Аватар ${escapeHtml(citizen.nickname)}">`
                                 : escapeHtml(
                                     getInitial(
                                         citizen.nickname
