@@ -1,0 +1,955 @@
+<!DOCTYPE html>
+<html lang="ru">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Админ-панель — Нерия</title>
+
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: Arial, Helvetica, sans-serif;
+            background: #f5f5f7;
+            color: #17171c;
+            min-height: 100vh;
+        }
+
+        header {
+            min-height: 72px;
+            background: #ffffff;
+            border-bottom: 1px solid #e5e5e8;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 14px 6%;
+            gap: 20px;
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            font-size: 20px;
+            font-weight: 700;
+            letter-spacing: 1px;
+            text-decoration: none;
+            color: inherit;
+        }
+
+        .flag {
+            width: 32px;
+            height: 42px;
+            display: flex;
+            flex-direction: column;
+            border-radius: 3px;
+            overflow: hidden;
+        }
+
+        .flag-purple {
+            background: #6d3fc0;
+            flex: 1;
+        }
+
+        .flag-white {
+            background: #eee8ff;
+            flex: 1;
+        }
+
+        .header-badge {
+            padding: 7px 11px;
+            background: #f7f3fc;
+            color: #6d3fc0;
+            border-radius: 999px;
+            font-size: 12px;
+            font-weight: 700;
+        }
+
+        main {
+            max-width: 1150px;
+            margin: 0 auto;
+            padding: 55px 25px 100px;
+        }
+
+        .back {
+            display: inline-block;
+            margin-bottom: 28px;
+            color: #6d3fc0;
+            text-decoration: none;
+            font-size: 14px;
+        }
+
+        .title {
+            margin-bottom: 30px;
+        }
+
+        .title h1 {
+            font-size: 38px;
+            margin-bottom: 10px;
+        }
+
+        .title p {
+            color: #777780;
+            font-size: 16px;
+            line-height: 1.5;
+        }
+
+        .panel {
+            background: #ffffff;
+            border: 1px solid #e5e5e8;
+            border-radius: 14px;
+            overflow: hidden;
+        }
+
+        .toolbar {
+            padding: 18px 20px;
+            border-bottom: 1px solid #e5e5e8;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+            flex-wrap: wrap;
+        }
+
+        .toolbar-info {
+            color: #777780;
+            font-size: 14px;
+        }
+
+        button {
+            border: none;
+            border-radius: 7px;
+            padding: 10px 14px;
+            font-size: 13px;
+            font-weight: 600;
+            cursor: pointer;
+        }
+
+        button:disabled {
+            opacity: 0.55;
+            cursor: wait;
+        }
+
+        .primary {
+            background: #6d3fc0;
+            color: #ffffff;
+        }
+
+        .secondary {
+            background: #ffffff;
+            color: #333333;
+            border: 1px solid #dcdce1;
+        }
+
+        .danger {
+            background: #fff0f0;
+            color: #a92f2f;
+            border: 1px solid #efcaca;
+        }
+
+        .success {
+            background: #eef9f1;
+            color: #27763a;
+            border: 1px solid #c9e6d0;
+        }
+
+        .table-wrap {
+            overflow-x: auto;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            min-width: 1000px;
+        }
+
+        th,
+        td {
+            padding: 14px 16px;
+            text-align: left;
+            border-bottom: 1px solid #eeeeF1;
+            vertical-align: middle;
+        }
+
+        th {
+            background: #f8f8fa;
+            color: #777780;
+            font-size: 12px;
+            font-weight: 700;
+            white-space: nowrap;
+        }
+
+        td {
+            font-size: 14px;
+        }
+
+        tr:last-child td {
+            border-bottom: none;
+        }
+
+        .citizen-number {
+            font-family: monospace;
+            color: #6d3fc0;
+            font-weight: 700;
+        }
+
+        .nickname {
+            font-weight: 700;
+        }
+
+        .muted {
+            color: #888891;
+        }
+
+        .status {
+            display: inline-block;
+            border-radius: 999px;
+            padding: 6px 9px;
+            font-size: 11px;
+            font-weight: 700;
+            white-space: nowrap;
+        }
+
+        .status-active {
+            background: #eef9f1;
+            color: #27763a;
+        }
+
+        .status-banned {
+            background: #fff0f0;
+            color: #a92f2f;
+        }
+
+        .actions {
+            display: flex;
+            gap: 7px;
+            flex-wrap: wrap;
+        }
+
+        .message {
+            padding: 22px;
+            line-height: 1.6;
+        }
+
+        .error {
+            background: #fff3f3;
+            border: 1px solid #f0caca;
+            color: #8f3030;
+            border-radius: 10px;
+            padding: 18px;
+            line-height: 1.5;
+        }
+
+        .loading,
+        .empty {
+            padding: 45px 25px;
+            text-align: center;
+            color: #777780;
+        }
+
+        .ban-reason {
+            display: block;
+            margin-top: 5px;
+            max-width: 250px;
+            color: #9b5656;
+            font-size: 12px;
+            line-height: 1.35;
+        }
+
+        @media (max-width: 700px) {
+            header {
+                padding: 14px 20px;
+            }
+
+            main {
+                padding: 40px 15px 80px;
+            }
+
+            .title h1 {
+                font-size: 31px;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+<header>
+    <a href="index.html" class="logo">
+        <div class="flag">
+            <div class="flag-purple"></div>
+            <div class="flag-white"></div>
+            <div class="flag-purple"></div>
+        </div>
+        НЕРИЯ
+    </a>
+
+    <div class="header-badge">АДМИНИСТРАЦИЯ</div>
+</header>
+
+<main>
+
+    <a class="back" href="index.html">← Вернуться на главную</a>
+
+    <div class="title">
+        <h1>Админ-панель</h1>
+        <p>Управление гражданами Нерии.</p>
+    </div>
+
+    <div id="adminContent">
+        <div class="panel">
+            <div class="loading">Проверяем права администратора...</div>
+        </div>
+    </div>
+
+</main>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+<script>
+    const SUPABASE_URL =
+        "https://rictvznkxkeygbrlcymn.supabase.co";
+
+    const SUPABASE_PUBLISHABLE_KEY =
+        "sb_publishable_SVwKto14tbMtsmcDOagvCw_TVqg7he7";
+
+    const supabaseClient =
+        window.supabase.createClient(
+            SUPABASE_URL,
+            SUPABASE_PUBLISHABLE_KEY
+        );
+
+    const adminContent =
+        document.getElementById("adminContent");
+
+    let citizens = [];
+
+
+    function escapeHtml(value) {
+        return String(value ?? "")
+            .replace(/&/g, "&amp;")
+            .replace(/</g, "&lt;")
+            .replace(/>/g, "&gt;")
+            .replace(/"/g, "&quot;")
+            .replace(/'/g, "&#039;");
+    }
+
+
+    function formatCitizenNumber(value) {
+        return String(value).padStart(6, "0");
+    }
+
+
+    function formatDate(value) {
+        if (!value) return "—";
+
+        const date = new Date(value);
+
+        if (Number.isNaN(date.getTime())) {
+            return "—";
+        }
+
+        return date.toLocaleString("ru-RU");
+    }
+
+
+    function formatBirthDate(citizen) {
+        if (!citizen.birth_day || !citizen.birth_month) {
+            return "—";
+        }
+
+        let result =
+            String(citizen.birth_day).padStart(2, "0") +
+            "." +
+            String(citizen.birth_month).padStart(2, "0");
+
+        if (citizen.birth_year) {
+            result += "." + citizen.birth_year;
+        }
+
+        return result;
+    }
+
+
+    async function initAdmin() {
+
+        const {
+            data: { session },
+            error: sessionError
+        } = await supabaseClient.auth.getSession();
+
+        if (sessionError) {
+            showFatalError(
+                "Не удалось проверить авторизацию: " +
+                sessionError.message
+            );
+            return;
+        }
+
+        if (!session) {
+            adminContent.innerHTML = `
+                <div class="error">
+                    Вы не вошли в аккаунт Нерии.
+                    <br><br>
+                    <a href="registration.html">
+                        Войти через Telegram
+                    </a>
+                </div>
+            `;
+            return;
+        }
+
+
+        const {
+            data: isAdmin,
+            error: adminError
+        } = await supabaseClient.rpc("is_admin");
+
+
+        if (adminError) {
+            showFatalError(
+                "Не удалось проверить права администратора: " +
+                adminError.message
+            );
+            return;
+        }
+
+
+        if (!isAdmin) {
+            adminContent.innerHTML = `
+                <div class="error">
+                    Доступ запрещён.
+                    <br><br>
+                    Эта страница доступна только администраторам Нерии.
+                </div>
+            `;
+            return;
+        }
+
+
+        renderShell();
+        await loadCitizens();
+    }
+
+
+    function renderShell() {
+
+        adminContent.innerHTML = `
+            <div class="panel">
+
+                <div class="toolbar">
+
+                    <div class="toolbar-info" id="citizenSummary">
+                        Загружаем граждан...
+                    </div>
+
+                    <button
+                        type="button"
+                        class="secondary"
+                        onclick="loadCitizens()"
+                    >
+                        Обновить
+                    </button>
+
+                </div>
+
+                <div id="citizenList">
+                    <div class="loading">
+                        Загрузка списка граждан...
+                    </div>
+                </div>
+
+            </div>
+        `;
+    }
+
+
+    async function loadCitizens() {
+
+        const list =
+            document.getElementById("citizenList");
+
+        if (!list) return;
+
+        list.innerHTML =
+            `<div class="loading">Загрузка списка граждан...</div>`;
+
+
+        const {
+            data,
+            error
+        } = await supabaseClient.rpc(
+            "admin_get_citizens"
+        );
+
+
+        if (error) {
+
+            console.error(error);
+
+            list.innerHTML = `
+                <div class="message">
+                    <div class="error">
+                        Не удалось загрузить граждан.
+                        <br><br>
+                        ${escapeHtml(error.message)}
+                    </div>
+                </div>
+            `;
+
+            return;
+        }
+
+
+        citizens = data || [];
+
+        renderCitizenTable();
+    }
+
+
+    function renderCitizenTable() {
+
+        const list =
+            document.getElementById("citizenList");
+
+        const summary =
+            document.getElementById("citizenSummary");
+
+
+        if (!list) return;
+
+
+        const bannedCount =
+            citizens.filter(c => c.is_banned).length;
+
+        const activeCount =
+            citizens.length - bannedCount;
+
+
+        if (summary) {
+            summary.textContent =
+                `Всего: ${citizens.length} · ` +
+                `Активных: ${activeCount} · ` +
+                `Заблокированных: ${bannedCount}`;
+        }
+
+
+        if (citizens.length === 0) {
+
+            list.innerHTML = `
+                <div class="empty">
+                    Граждан пока нет.
+                </div>
+            `;
+
+            return;
+        }
+
+
+        let html = `
+            <div class="table-wrap">
+
+                <table>
+
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Ник</th>
+                            <th>Telegram</th>
+                            <th>Имя</th>
+                            <th>Дата рождения</th>
+                            <th>Статус</th>
+                            <th>Регистрация</th>
+                            <th>Действия</th>
+                        </tr>
+                    </thead>
+
+                    <tbody>
+        `;
+
+
+        citizens.forEach(citizen => {
+
+            const number =
+                formatCitizenNumber(
+                    citizen.citizen_number
+                );
+
+            const telegram =
+                citizen.telegram_username
+                    ? "@" +
+                      String(citizen.telegram_username)
+                          .replace(/^@/, "")
+                    : "—";
+
+            const fullName =
+                [
+                    citizen.first_name,
+                    citizen.surname
+                ]
+                .filter(Boolean)
+                .join(" ") || "—";
+
+
+            let statusHtml;
+
+            if (citizen.is_banned) {
+
+                statusHtml = `
+                    <span class="status status-banned">
+                        ЗАБЛОКИРОВАН
+                    </span>
+
+                    ${
+                        citizen.ban_reason
+                            ? `
+                                <span class="ban-reason">
+                                    ${escapeHtml(citizen.ban_reason)}
+                                </span>
+                              `
+                            : ""
+                    }
+                `;
+
+            } else {
+
+                statusHtml = `
+                    <span class="status status-active">
+                        АКТИВЕН
+                    </span>
+                `;
+            }
+
+
+            const banButton =
+                citizen.is_banned
+                    ? `
+                        <button
+                            type="button"
+                            class="success"
+                            onclick="unbanCitizen(${Number(citizen.internal_id)})"
+                        >
+                            Разблокировать
+                        </button>
+                      `
+                    : `
+                        <button
+                            type="button"
+                            class="danger"
+                            onclick="banCitizen(${Number(citizen.internal_id)})"
+                        >
+                            Заблокировать
+                        </button>
+                      `;
+
+
+            html += `
+                <tr>
+
+                    <td>
+                        <span class="citizen-number">
+                            ${escapeHtml(number)}
+                        </span>
+                    </td>
+
+                    <td class="nickname">
+                        ${escapeHtml(citizen.nickname || "—")}
+                    </td>
+
+                    <td>
+                        ${escapeHtml(telegram)}
+                    </td>
+
+                    <td>
+                        ${escapeHtml(fullName)}
+                    </td>
+
+                    <td>
+                        ${escapeHtml(formatBirthDate(citizen))}
+                    </td>
+
+                    <td>
+                        ${statusHtml}
+                    </td>
+
+                    <td class="muted">
+                        ${escapeHtml(formatDate(citizen.created_at))}
+                    </td>
+
+                    <td>
+                        <div class="actions">
+
+                            <button
+                                type="button"
+                                class="secondary"
+                                onclick="changeCitizenNumber(
+                                    ${Number(citizen.internal_id)},
+                                    ${Number(citizen.citizen_number)}
+                                )"
+                            >
+                                Изменить ID
+                            </button>
+
+                            ${banButton}
+
+                        </div>
+                    </td>
+
+                </tr>
+            `;
+        });
+
+
+        html += `
+                    </tbody>
+                </table>
+            </div>
+        `;
+
+
+        list.innerHTML = html;
+    }
+
+
+    async function changeCitizenNumber(
+        internalId,
+        currentNumber
+    ) {
+
+        const input =
+            prompt(
+                "Новый гражданский ID:",
+                String(currentNumber)
+                    .padStart(6, "0")
+            );
+
+        if (input === null) {
+            return;
+        }
+
+
+        const normalized =
+            input.trim().replace(/^0+/, "") || "0";
+
+        const newNumber =
+            Number(normalized);
+
+
+        if (
+            !Number.isInteger(newNumber) ||
+            newNumber <= 0
+        ) {
+            alert(
+                "Введите положительное целое число."
+            );
+            return;
+        }
+
+
+        if (
+            newNumber === Number(currentNumber)
+        ) {
+            return;
+        }
+
+
+        const confirmed =
+            confirm(
+                "Изменить гражданский ID на " +
+                String(newNumber).padStart(6, "0") +
+                "?"
+            );
+
+        if (!confirmed) {
+            return;
+        }
+
+
+        const { error } =
+            await supabaseClient.rpc(
+                "admin_change_citizen_number",
+                {
+                    p_citizen_id: internalId,
+                    p_new_number: newNumber
+                }
+            );
+
+
+        if (error) {
+
+            console.error(error);
+
+            alert(
+                "Не удалось изменить ID:\n" +
+                error.message
+            );
+
+            return;
+        }
+
+
+        await loadCitizens();
+    }
+
+
+    async function banCitizen(internalId) {
+
+        const citizen =
+            citizens.find(
+                c =>
+                    Number(c.internal_id) ===
+                    Number(internalId)
+            );
+
+
+        if (!citizen) {
+            return;
+        }
+
+
+        const reason =
+            prompt(
+                "Причина блокировки гражданина " +
+                formatCitizenNumber(
+                    citizen.citizen_number
+                ) +
+                " (" +
+                citizen.nickname +
+                "):"
+            );
+
+
+        if (reason === null) {
+            return;
+        }
+
+
+        if (!reason.trim()) {
+            alert(
+                "Укажите причину блокировки."
+            );
+            return;
+        }
+
+
+        const confirmed =
+            confirm(
+                "Заблокировать гражданина " +
+                formatCitizenNumber(
+                    citizen.citizen_number
+                ) +
+                "?"
+            );
+
+
+        if (!confirmed) {
+            return;
+        }
+
+
+        const { error } =
+            await supabaseClient.rpc(
+                "admin_ban_citizen",
+                {
+                    p_citizen_id: internalId,
+                    p_reason: reason.trim()
+                }
+            );
+
+
+        if (error) {
+
+            console.error(error);
+
+            alert(
+                "Не удалось заблокировать гражданина:\n" +
+                error.message
+            );
+
+            return;
+        }
+
+
+        await loadCitizens();
+    }
+
+
+    async function unbanCitizen(internalId) {
+
+        const citizen =
+            citizens.find(
+                c =>
+                    Number(c.internal_id) ===
+                    Number(internalId)
+            );
+
+
+        if (!citizen) {
+            return;
+        }
+
+
+        const confirmed =
+            confirm(
+                "Разблокировать гражданина " +
+                formatCitizenNumber(
+                    citizen.citizen_number
+                ) +
+                " (" +
+                citizen.nickname +
+                ")?"
+            );
+
+
+        if (!confirmed) {
+            return;
+        }
+
+
+        const { error } =
+            await supabaseClient.rpc(
+                "admin_unban_citizen",
+                {
+                    p_citizen_id: internalId
+                }
+            );
+
+
+        if (error) {
+
+            console.error(error);
+
+            alert(
+                "Не удалось разблокировать гражданина:\n" +
+                error.message
+            );
+
+            return;
+        }
+
+
+        await loadCitizens();
+    }
+
+
+    function showFatalError(message) {
+
+        adminContent.innerHTML = `
+            <div class="error">
+                ${escapeHtml(message)}
+            </div>
+        `;
+    }
+
+
+    initAdmin();
+</script>
+
+</body>
+</html>
