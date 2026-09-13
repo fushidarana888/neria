@@ -112,6 +112,81 @@
             height: 100%;
             object-fit: cover;
             display: block;
+            cursor: zoom-in;
+        }
+
+        .avatar-modal {
+            position: fixed;
+            inset: 0;
+            z-index: 1000;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            padding: 24px;
+            background: rgba(0, 0, 0, 0.82);
+        }
+
+        .avatar-modal.open {
+            display: flex;
+        }
+
+        .avatar-modal-content {
+            position: relative;
+            max-width: min(92vw, 1100px);
+            max-height: 92vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 14px;
+        }
+
+        .avatar-modal-image {
+            display: block;
+            max-width: 92vw;
+            max-height: 82vh;
+            object-fit: contain;
+            border-radius: 10px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.35);
+        }
+
+        .avatar-modal-actions {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+
+        .avatar-modal-button {
+            border: 1px solid rgba(255,255,255,0.24);
+            border-radius: 8px;
+            padding: 10px 14px;
+            background: rgba(255,255,255,0.12);
+            color: white;
+            text-decoration: none;
+            font-size: 13px;
+            font-weight: 600;
+            cursor: pointer;
+            backdrop-filter: blur(6px);
+        }
+
+        .avatar-modal-button:hover {
+            background: rgba(255,255,255,0.2);
+        }
+
+        .avatar-modal-close {
+            position: absolute;
+            top: -46px;
+            right: 0;
+            width: 36px;
+            height: 36px;
+            border: none;
+            border-radius: 50%;
+            background: rgba(255,255,255,0.14);
+            color: white;
+            font-size: 22px;
+            line-height: 36px;
+            text-align: center;
+            cursor: pointer;
         }
 
         .name {
@@ -230,6 +305,53 @@
 
 </main>
 
+<div
+    id="avatarModal"
+    class="avatar-modal"
+    onclick="closeAvatarModal(event)"
+>
+    <div class="avatar-modal-content">
+
+        <button
+            type="button"
+            class="avatar-modal-close"
+            onclick="closeAvatarModal()"
+            aria-label="Закрыть"
+        >
+            ×
+        </button>
+
+        <img
+            id="avatarModalImage"
+            class="avatar-modal-image"
+            alt="Аватар гражданина"
+        >
+
+        <div class="avatar-modal-actions">
+
+            <a
+                id="avatarOpenOriginal"
+                class="avatar-modal-button"
+                href="#"
+                target="_blank"
+                rel="noopener"
+            >
+                Открыть изображение
+            </a>
+
+            <button
+                type="button"
+                class="avatar-modal-button"
+                onclick="closeAvatarModal()"
+            >
+                Закрыть
+            </button>
+
+        </div>
+
+    </div>
+</div>
+
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
 <script>
@@ -309,6 +431,66 @@
             }
         );
     }
+
+
+    function openAvatarModal(url, altText) {
+
+        const modal =
+            document.getElementById("avatarModal");
+
+        const modalImage =
+            document.getElementById("avatarModalImage");
+
+        const originalLink =
+            document.getElementById("avatarOpenOriginal");
+
+        if (!modal || !modalImage || !originalLink) {
+            return;
+        }
+
+        modalImage.src = url;
+        modalImage.alt =
+            altText || "Аватар гражданина";
+
+        originalLink.href = url;
+
+        modal.classList.add("open");
+
+        document.body.style.overflow = "hidden";
+    }
+
+
+    function closeAvatarModal(event) {
+
+        if (
+            event &&
+            event.target !==
+                document.getElementById("avatarModal")
+        ) {
+            return;
+        }
+
+        const modal =
+            document.getElementById("avatarModal");
+
+        if (!modal) {
+            return;
+        }
+
+        modal.classList.remove("open");
+
+        document.body.style.overflow = "";
+    }
+
+
+    document.addEventListener(
+        "keydown",
+        (event) => {
+            if (event.key === "Escape") {
+                closeAvatarModal();
+            }
+        }
+    );
 
 
     function showError(message) {
@@ -438,7 +620,14 @@
                     <div class="avatar">
                         ${
                             citizen.avatar_path
-                                ? `<img src="${escapeHtml(getAvatarUrl(citizen.avatar_path, citizen.avatar_updated_at))}" alt="Аватар ${escapeHtml(citizen.nickname)}">`
+                                ? `<img
+                                    src="${escapeHtml(getAvatarUrl(citizen.avatar_path, citizen.avatar_updated_at))}"
+                                    alt="Аватар ${escapeHtml(citizen.nickname)}"
+                                    onclick="openAvatarModal(
+                                        this.src,
+                                        this.alt
+                                    )"
+                                  >`
                                 : escapeHtml(
                                     getInitial(
                                         citizen.nickname
