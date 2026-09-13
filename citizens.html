@@ -423,6 +423,20 @@ async function loadCitizens() {
 
             <div class="citizen">
 
+                <div class="avatar-cell">
+                    ${
+                        citizen.avatar_path
+                            ? `<img
+                                class="citizen-avatar"
+                                src="${escapeHtml(getAvatarUrl(citizen.avatar_path))}"
+                                alt="Аватар ${escapeHtml(citizen.nickname)}"
+                              >`
+                            : `<div class="citizen-avatar-fallback">
+                                ${escapeHtml((citizen.nickname || "?").charAt(0).toUpperCase())}
+                              </div>`
+                    }
+                </div>
+
                 <div class="id">
                     ${escapeHtml(citizen.citizen_id)}
                 </div>
