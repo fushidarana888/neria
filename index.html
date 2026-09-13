@@ -543,7 +543,13 @@ nav a {
 }
         
     </style>
-</head>
+<style id="neria-global-header-style">
+.neria-global-header{min-height:72px!important;background:#fff!important;border-bottom:1px solid #e5e5e8!important;display:flex!important;align-items:center!important;justify-content:space-between!important;padding:14px 6%!important;gap:25px!important}
+.neria-global-logo{display:flex!important;align-items:center!important;gap:12px!important;color:#17171c!important;text-decoration:none!important;font-size:20px!important;font-weight:700!important;letter-spacing:1px!important;flex-shrink:0!important}
+.neria-global-flag{width:32px!important;height:42px!important;display:flex!important;flex-direction:column!important;border-radius:3px!important;overflow:hidden!important}.neria-global-flag .p{background:#6d3fc0;flex:1}.neria-global-flag .w{background:#eee8ff;flex:1}
+.neria-global-nav{display:flex!important;align-items:center!important;justify-content:flex-end!important;gap:26px!important;flex-wrap:wrap!important}.neria-global-nav a{color:#55555d!important;text-decoration:none!important;font-size:14px!important;white-space:nowrap!important}.neria-global-nav a:hover{color:#6d3fc0!important}
+@media(max-width:900px){.neria-global-header{padding:14px 20px!important;flex-wrap:wrap!important;justify-content:center!important}.neria-global-logo{width:100%!important;justify-content:center!important}.neria-global-nav{width:100%!important;justify-content:center!important;gap:12px 20px!important}}
+</style></head>
 
 
 <body>
@@ -552,42 +558,7 @@ nav a {
          ШАПКА
     ========================= -->
 
-    <header>
-
-        <a href="index.html" class="logo">
-
-            <div class="flag">
-
-                <div class="flag-purple"></div>
-
-                <div class="flag-white"></div>
-
-                <div class="flag-purple"></div>
-
-            </div>
-
-            НЕРИЯ
-
-        </a>
-
-
-        <nav>
-
-            <a href="profile.html">Личный кабинет</a>
-
-            <a href="citizens.html">Граждане Нерии</a>
-            
-            <a href="state.html">Государство</a>
-
-            <a href="treasury.html">Экономика</a>
-
-            <a href="market.html">Объявления</a>
-
-            <a href="laws.html">Законы</a>
-
-        </nav>
-
-    </header>
+    <header class="neria-global-header"><a href="index.html" class="neria-global-logo"><span class="neria-global-flag" aria-label="Флаг Нерии"><span class="p"></span><span class="w"></span><span class="p"></span></span>НЕРИЯ</a><nav class="neria-global-nav"><a href="profile.html">Личный кабинет</a><a href="citizens.html">Граждане Нерии</a><a href="state.html">Государство</a><a href="treasury.html">Экономика</a><a href="market.html">Объявления</a><a href="laws.html">Законы</a></nav></header>
 
 
     <!-- =========================
