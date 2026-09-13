@@ -579,7 +579,7 @@ nav a {
             
             <a href="state.html">Государство</a>
 
-            <a href="#">Экономика</a>
+            <a href="treasury.html">Экономика</a>
 
             <a href="laws.html">Законы</a>
 
@@ -625,6 +625,10 @@ nav a {
                 <button class="secondary">
                     Узнать о Нерии
                 </button>
+
+                <a href="treasury.html" class="primary">
+                    Казна Нерии
+                </a>
 
             </div>
 
@@ -677,12 +681,12 @@ nav a {
 
             <div class="stat">
 
-                <div class="stat-number">
-                    0 NR
+                <div class="stat-number" id="nrSupply">
+                    ...
                 </div>
 
                 <div class="stat-name">
-                    в обороте
+                    NR в системе
                 </div>
 
             </div>
@@ -745,7 +749,7 @@ nav a {
 
 
 
-                <div class="card">
+                <div class="card" onclick="location.href='treasury.html'" style="cursor:pointer">
 
                     <div class="card-icon">
                         💰
@@ -890,6 +894,44 @@ nav a {
 
 
     /* =========================
+       ОБЪЁМ NR
+    ========================= */
+
+    async function loadNrSupply() {
+
+        const el =
+            document.getElementById("nrSupply");
+
+        if (!el) {
+            return;
+        }
+
+        const {
+            data,
+            error
+        } = await supabaseClient.rpc(
+            "get_treasury_stats"
+        );
+
+        if (error) {
+            console.error(
+                "Ошибка получения статистики NR:",
+                error
+            );
+            el.textContent = "—";
+            return;
+        }
+
+        const stats = data?.[0];
+
+        el.textContent =
+            new Intl.NumberFormat("ru-RU")
+                .format(Number(stats?.total_supply || 0))
+            + " NR";
+    }
+
+
+    /* =========================
        КНОПКА ГРАЖДАНСТВА
     ========================= */
 
@@ -1017,6 +1059,7 @@ nav a {
     ========================= */
 
     loadCitizenCount();
+    loadNrSupply();
 
     updateMainButton();
     updateAdminButtons();
