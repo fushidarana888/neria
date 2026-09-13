@@ -16,11 +16,18 @@ h1{font-size:38px;margin-bottom:10px}.lead{color:#777780;line-height:1.6;margin-
 .balance-label{font-size:13px;color:#777780;margin-bottom:9px}.balance{font-size:50px;font-weight:700;color:#6d3fc0}.unit{font-size:20px}
 .panel{margin-top:22px;background:#fff;border:1px solid #e5e5e8;border-radius:14px;padding:24px}
 .panel h2{font-size:19px;margin-bottom:14px}.panel p{color:#777780;font-size:14px;line-height:1.6}
+.transfer-box{margin-top:22px;background:#fff;border:1px solid #ded7f0;border-radius:14px;padding:24px}
+.transfer-box h2{font-size:19px;margin-bottom:7px}.transfer-box p{color:#777780;font-size:13px;line-height:1.5;margin-bottom:16px}
+.transfer-form{display:grid;grid-template-columns:1fr 150px 1.2fr auto;gap:10px}
+.transfer-form input{width:100%;padding:11px 12px;border:1px solid #dcdce1;border-radius:7px;font:inherit;font-size:13px}
+.transfer-form input:focus{outline:none;border-color:#6d3fc0}
+.transfer-button{border:none;border-radius:7px;background:#6d3fc0;color:#fff;font-weight:700;padding:11px 16px;cursor:pointer}
+.transfer-button:disabled{opacity:.6;cursor:wait}
 .wallet-history-item{display:grid;grid-template-columns:150px 1fr auto;gap:14px;padding:14px 0;border-bottom:1px solid #eeeeF1;align-items:center}
 .wallet-history-item:last-child{border-bottom:none}.wallet-date{font-size:12px;color:#888891}.wallet-reason{font-size:14px;font-weight:600}.wallet-type{font-size:12px;color:#777780;margin-top:4px}.wallet-amount{font-weight:700}.wallet-positive{color:#15803d}.wallet-negative{color:#b91c1c}.wallet-empty{color:#777780;font-size:14px;padding:8px 0}
 .error{background:#fff3f3;border-left:3px solid #c43d3d;padding:16px;color:#7a2929;line-height:1.5}
 .loading{padding:45px;text-align:center;color:#777780}
-@media(max-width:600px){header{padding:0 20px}main{padding:40px 15px 75px}h1{font-size:32px}.balance{font-size:42px}.balance-card{padding:30px 20px}.wallet-history-item{grid-template-columns:1fr;gap:6px}}
+@media(max-width:600px){header{padding:0 20px}main{padding:40px 15px 75px}h1{font-size:32px}.balance{font-size:42px}.balance-card{padding:30px 20px}.wallet-history-item{grid-template-columns:1fr;gap:6px}.transfer-form{grid-template-columns:1fr}}
 </style>
 </head>
 <body>
@@ -49,6 +56,76 @@ function escapeHtml(value){
         .replace(/>/g,"&gt;")
         .replace(/"/g,"&quot;")
         .replace(/'/g,"&#039;");
+}
+
+async function sendTransfer(){
+    const recipientNumber =
+        Number(document.getElementById("recipientNumber")?.value);
+
+    const amount =
+        Number(document.getElementById("transferAmount")?.value);
+
+    const reason =
+        document.getElementById("transferReason")?.value?.trim() || null;
+
+    const button =
+        document.getElementById("transferButton");
+
+    if(!Number.isSafeInteger(recipientNumber)||recipientNumber<=0){
+        alert("Введите корректный гражданский ID получателя.");
+        return;
+    }
+
+    if(!Number.isSafeInteger(amount)||amount<=0){
+        alert("Введите положительное целое количество NR.");
+        return;
+    }
+
+    if(!confirm(
+        "Перевести " +
+        new Intl.NumberFormat("ru-RU").format(amount) +
+        " NR гражданину #" +
+        String(recipientNumber).padStart(6,"0") +
+        "?"
+    )){
+        return;
+    }
+
+    if(button) button.disabled=true;
+
+    const {error}=
+        await supabaseClient.rpc(
+            "transfer_nr_to_citizen",
+            {
+                p_recipient_number:recipientNumber,
+                p_amount:amount,
+                p_reason:reason
+            }
+        );
+
+    if(button) button.disabled=false;
+
+    if(error){
+        console.error(error);
+
+        let message=error.message;
+
+        if(message.includes("Insufficient balance")){
+            message="Недостаточно NR на вашем кошельке.";
+        } else if(message.includes("Recipient citizen not found")){
+            message="Гражданин с таким ID не найден.";
+        } else if(message.includes("Recipient citizenship is not active")){
+            message="Получатель сейчас не является активным гражданином.";
+        } else if(message.includes("Cannot transfer NR to yourself")){
+            message="Нельзя переводить NR самому себе.";
+        }
+
+        alert("Перевод не выполнен:\n"+message);
+        return;
+    }
+
+    alert("Перевод выполнен.");
+    await loadWallet();
 }
 
 async function loadWallet(){
@@ -92,12 +169,34 @@ async function loadWallet(){
             ? '<div class="wallet-empty">Операций пока не было.</div>'
             : history.map(item=>{
                 const positive=Number(item.amount)>=0;
-                const typeLabel=
-                    item.operation_type==="admin_emission"
-                        ? "Административное начисление"
-                        : item.operation_type==="treasury_transfer"
-                            ? "Выплата из казны"
-                            : item.operation_type;
+                let typeLabel;
+                switch(item.operation_type){
+                    case "admin_emission":
+                        typeLabel="Административное начисление";
+                        break;
+                    case "admin_burn":
+                        typeLabel="Административное удаление NR";
+                        break;
+                    case "treasury_transfer":
+                        typeLabel="Выплата из казны";
+                        break;
+                    case "citizen_transfer_out":
+                        typeLabel="Перевод гражданину";
+                        break;
+                    case "citizen_transfer_in":
+                        typeLabel="Перевод от гражданина";
+                        break;
+                    default:
+                        typeLabel=item.operation_type||"Операция";
+                }
+
+                if(item.counterparty_citizen_number){
+                    typeLabel +=
+                        " · #" +
+                        String(item.counterparty_citizen_number).padStart(6,"0") +
+                        " · " +
+                        (item.counterparty_nickname||"");
+                }
 
                 return '<div class="wallet-history-item">'+
                     '<div class="wallet-date">'+
@@ -119,6 +218,46 @@ async function loadWallet(){
             <div class="balance-label">Доступный баланс</div>
             <div class="balance">${formatNR(wallet.balance)} <span class="unit">NR</span></div>
         </div>
+
+        <div class="transfer-box">
+            <h2>Перевести NR</h2>
+            <p>
+                Укажите гражданский ID получателя. Перевод списывается с вашего баланса
+                и не создаёт новые NR.
+            </p>
+
+            <div class="transfer-form">
+                <input
+                    type="number"
+                    id="recipientNumber"
+                    min="1"
+                    step="1"
+                    placeholder="ID гражданина"
+                >
+                <input
+                    type="number"
+                    id="transferAmount"
+                    min="1"
+                    step="1"
+                    placeholder="Сумма NR"
+                >
+                <input
+                    type="text"
+                    id="transferReason"
+                    maxlength="250"
+                    placeholder="Комментарий (необязательно)"
+                >
+                <button
+                    type="button"
+                    class="transfer-button"
+                    id="transferButton"
+                    onclick="sendTransfer()"
+                >
+                    Перевести
+                </button>
+            </div>
+        </div>
+
         <div class="panel">
             <h2>История операций</h2>
             ${historyHtml}
