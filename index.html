@@ -606,11 +606,11 @@ nav a {
             </div>
 
             <div class="admin-buttons" id="adminButtons">
-                <a href="admin.html" class="admin-link">
-                    Админ-панель
+                <a href="admin.html" class="admin-link" id="governmentPanelLink">
+                    Государственная панель
                 </a>
 
-                <a href="admin-history.html" class="admin-link">
+                <a href="admin-history.html" class="admin-link" id="adminHistoryLink">
                     История админ-действий
                 </a>
             </div>
@@ -994,11 +994,21 @@ nav a {
         const adminButtons =
             document.getElementById("adminButtons");
 
+        const panelLink =
+            document.getElementById("governmentPanelLink");
+
+        const historyLink =
+            document.getElementById("adminHistoryLink");
+
         if (!adminButtons) {
             return;
         }
 
         adminButtons.style.display = "none";
+
+        if (historyLink) {
+            historyLink.style.display = "none";
+        }
 
         const {
             data: { session }
@@ -1009,21 +1019,50 @@ nav a {
         }
 
         const {
-            data: isAdmin,
+            data: roleData,
             error
-        } = await supabaseClient.rpc("is_admin");
+        } = await supabaseClient.rpc("get_my_government_roles");
 
         if (error) {
             console.error(
-                "Ошибка проверки прав администратора:",
+                "Ошибка проверки государственных полномочий:",
                 error
             );
             return;
         }
 
-        if (isAdmin) {
-            adminButtons.style.display = "flex";
+        const roles =
+            roleData?.[0] || {
+                is_founder: false,
+                economy_minister: false,
+                mvd: false
+            };
+
+        if (
+            !roles.is_founder &&
+            !roles.economy_minister &&
+            !roles.mvd
+        ) {
+            return;
         }
+
+        if (panelLink) {
+            if (roles.is_founder) {
+                panelLink.textContent = "Панель Основателя";
+            } else if (roles.economy_minister && !roles.mvd) {
+                panelLink.textContent = "Министерство экономики";
+            } else if (roles.mvd && !roles.economy_minister) {
+                panelLink.textContent = "Панель МВД";
+            } else {
+                panelLink.textContent = "Государственная панель";
+            }
+        }
+
+        if (historyLink && roles.is_founder) {
+            historyLink.style.display = "";
+        }
+
+        adminButtons.style.display = "flex";
     }
 
 
