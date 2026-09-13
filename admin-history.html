@@ -46,7 +46,7 @@ button{border:1px solid #dcdce1;background:#fff;border-radius:7px;padding:10px 1
 
 <div class="title">
 <h1>История действий</h1>
-<p>Журнал административных изменений гражданства и гражданских ID.</p>
+<p>Журнал административных изменений гражданства, гражданских ID и VIP-доступа к аватарам.</p>
 </div>
 
 <div class="panel">
@@ -88,6 +88,8 @@ case "citizenship_revoked": return "Гражданство отозвано";
 case "citizenship_restored": return "Гражданство восстановлено";
 case "citizenship_resigned": return "Отказ от гражданства";
 case "citizen_number_changed": return "Изменён гражданский ID";
+case "avatar_permission_granted": return "Разрешён VIP-аватар";
+case "avatar_permission_revoked": return "VIP-аватар отключён";
 default: return "Изменён статус гражданина";
 }
 }
@@ -98,6 +100,15 @@ const oldNumber=item.old_value?.citizen_number;
 const newNumber=item.new_value?.citizen_number;
 return "ID: "+formatCitizenNumber(oldNumber)+" → "+formatCitizenNumber(newNumber);
 }
+
+if(item.action_type==="avatar_permission_granted"){
+return "Разрешено загружать и менять собственный аватар.";
+}
+
+if(item.action_type==="avatar_permission_revoked"){
+return "Запрещено загружать и менять собственный аватар.";
+}
+
 const oldStatus=item.old_value?.citizenship_status;
 const newStatus=item.new_value?.citizenship_status;
 if(oldStatus&&newStatus)return "Статус: "+oldStatus+" → "+newStatus;
