@@ -812,7 +812,7 @@
                     ${
                         data.can_upload_avatar
                             ? `
-                                <p>VIP-возможность активна. JPG, PNG или WebP, максимум 3 МБ.</p>
+                                <p>VIP-возможность активна. Фото автоматически уменьшается до 1024×1024 и сжимается в WebP с высоким качеством.</p>
                                 <input type="file" id="avatarFile" accept="image/jpeg,image/png,image/webp">
                                 <div class="avatar-buttons">
                                     <button type="button" class="avatar-button avatar-button-primary" onclick="uploadAvatar()">Загрузить аватар</button>
@@ -1004,23 +1004,158 @@
         return data.publicUrl;
     }
 
+    async function compressAvatar(file) {
+        const image = await createImageBitmap(file);
+        const maxSide = 1024;
+
+        const scale = Math.min(
+            1,
+            maxSide / Math.max(image.width, image.height)
+        );
+
+        const width = Math.max(
+            1,
+            Math.round(image.width * scale)
+        );
+
+        const height = Math.max(
+            1,
+            Math.round(image.height * scale)
+        );
+
+        const canvas = document.createElement("canvas");
+        canvas.width = width;
+        canvas.height = height;
+
+        const ctx = canvas.getContext("2d", {
+            alpha: false
+        });
+
+        ctx.drawImage(image, 0, 0, width, height);
+        image.close();
+
+        const blob = await new Promise((resolve) => {
+            canvas.toBlob(
+                resolve,
+                "image/webp",
+                0.88
+            );
+        });
+
+        if (!blob) {
+            throw new Error(
+                "Браузер не смог обработать изображение."
+            );
+        }
+
+        return blob;
+    }
+
+
     async function uploadAvatar() {
         const input = document.getElementById("avatarFile");
         const file = input?.files?.[0];
-        if (!file) { alert("Сначала выберите изображение."); return; }
-        const allowed = ["image/jpeg","image/png","image/webp"];
-        if (!allowed.includes(file.type)) { alert("Разрешены только JPG, PNG и WebP."); return; }
-        if (file.size > 3 * 1024 * 1024) { alert("Файл слишком большой. Максимум — 3 МБ."); return; }
-        const { data: { session } } = await supabaseClient.auth.getSession();
-        if (!session) { alert("Сессия не найдена."); return; }
-        const avatarPath = session.user.id + "/avatar";
-        const { error: uploadError } = await supabaseClient.storage.from("avatars").upload(avatarPath, file, { upsert:true, contentType:file.type, cacheControl:"3600" });
-        if (uploadError) { console.error(uploadError); alert("Не удалось загрузить аватар: " + uploadError.message); return; }
-        const { error: saveError } = await supabaseClient.rpc("update_my_avatar_path", { p_avatar_path: avatarPath });
-        if (saveError) { console.error(saveError); alert("Не удалось сохранить аватар в профиле: " + saveError.message); return; }
-        alert("Аватар обновлён.");
+
+        if (!file) {
+            alert("Сначала выберите изображение.");
+            return;
+        }
+
+        const allowed = [
+            "image/jpeg",
+            "image/png",
+            "image/webp"
+        ];
+
+        if (!allowed.includes(file.type)) {
+            alert("Разрешены только JPG, PNG и WebP.");
+            return;
+        }
+
+        if (file.size > 12 * 1024 * 1024) {
+            alert(
+                "Исходный файл слишком большой. Максимум — 12 МБ."
+            );
+            return;
+        }
+
+        let compressedFile;
+
+        try {
+            compressedFile =
+                await compressAvatar(file);
+        } catch (error) {
+            console.error(error);
+            alert(
+                "Не удалось обработать изображение: " +
+                error.message
+            );
+            return;
+        }
+
+        const {
+            data: { session }
+        } = await supabaseClient.auth.getSession();
+
+        if (!session) {
+            alert("Сессия не найдена.");
+            return;
+        }
+
+        const avatarPath =
+            session.user.id + "/avatar";
+
+        const { error: uploadError } =
+            await supabaseClient.storage
+                .from("avatars")
+                .upload(
+                    avatarPath,
+                    compressedFile,
+                    {
+                        upsert: true,
+                        contentType: "image/webp",
+                        cacheControl: "86400"
+                    }
+                );
+
+        if (uploadError) {
+            console.error(uploadError);
+            alert(
+                "Не удалось загрузить аватар: " +
+                uploadError.message
+            );
+            return;
+        }
+
+        const { error: saveError } =
+            await supabaseClient.rpc(
+                "update_my_avatar_path",
+                {
+                    p_avatar_path: avatarPath
+                }
+            );
+
+        if (saveError) {
+            console.error(saveError);
+            alert(
+                "Не удалось сохранить аватар в профиле: " +
+                saveError.message
+            );
+            return;
+        }
+
+        alert(
+            "Аватар обновлён. После обработки он занимает " +
+            Math.max(
+                1,
+                Math.round(compressedFile.size / 1024)
+            ) +
+            " КБ."
+        );
+
         loadProfile();
     }
+
 
     async function removeAvatar() {
         if (!confirm("Удалить текущий аватар?")) return;
