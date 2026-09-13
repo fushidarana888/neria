@@ -562,7 +562,70 @@
 
 </main>
 
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2">
+
+function friendlyError(error){
+    const raw=String(error?.message || error || "");
+    const rules=[
+        ["Authentication required","Сначала войдите в аккаунт Нерии."],
+        ["Active citizenship required","Это действие доступно только действующим гражданам Нерии."],
+        ["Sender citizenship is not active","Переводы недоступны: ваше гражданство сейчас не активно."],
+        ["Recipient citizenship is not active","Получатель сейчас не является действующим гражданином Нерии."],
+        ["Economy access required","У вас нет полномочий Министерства экономики для этого действия."],
+        ["MVD access required","У вас нет полномочий МВД для этого действия."],
+        ["Founder access required","Это действие доступно только Основателю."],
+        ["Access denied","У вас нет доступа к этому разделу или действию."],
+        ["Insufficient treasury balance","В государственной казне недостаточно NR."],
+        ["Insufficient citizen balance","На счёте гражданина недостаточно NR."],
+        ["Insufficient balance","Недостаточно NR на вашем кошельке."],
+        ["Citizen not found","Гражданин не найден."],
+        ["Recipient citizen not found","Получатель не найден."],
+        ["Sender citizen not found","Ваш гражданский профиль не найден."],
+        ["Wallet not found","Кошелёк не найден."],
+        ["Cannot transfer NR to yourself","Нельзя переводить NR самому себе."],
+        ["Listing unavailable","Объявление уже недоступно или его статус изменился."],
+        ["Request listing unavailable","Это объявление уже недоступно для отклика."],
+        ["Response unavailable","Этот отклик уже обработан или больше недоступен."],
+        ["Only listing author can accept","Только автор объявления может выбрать исполнителя."],
+        ["Only listing author can reject","Только автор объявления может отклонить отклик."],
+        ["Cannot respond to yourself","Нельзя откликнуться на собственное объявление."],
+        ["Deal unavailable","Сделка уже недоступна для этого действия."],
+        ["Deal is not in dispute","По этой сделке сейчас нет открытого спора."],
+        ["Deal already resolved","Сделка уже была завершена."],
+        ["Dispute unavailable","Спор уже закрыт или недоступен."],
+        ["Open dispute not found","Открытый спор не найден. Возможно, он уже разрешён."],
+        ["Dispute already resolved","Спор уже был разрешён."],
+        ["Minister cannot resolve own dispute","Министр экономики не может рассматривать собственный спор."],
+        ["Minister cannot issue NR to self","Министр экономики не может начислять NR самому себе."],
+        ["Minister cannot transfer treasury funds to self","Министр экономики не может переводить деньги из казны самому себе."],
+        ["Minister cannot include self in a treasury reward","Министр экономики не может включить себя в государственную награду."],
+        ["MVD cannot block self","Сотрудник МВД не может заблокировать самого себя."],
+        ["MVD cannot block Founder","МВД не может заблокировать Основателя."],
+        ["MVD cannot revoke own citizenship","Сотрудник МВД не может лишить гражданства самого себя."],
+        ["MVD cannot revoke Founder citizenship","МВД не может лишить Основателя гражданства."],
+        ["Chat is closed","Этот чат уже закрыт."],
+        ["Thread not found","Обращение не найдено."],
+        ["Message required","Введите сообщение."],
+        ["Reason required","Укажите причину."],
+        ["Reason is required","Укажите причину."],
+        ["Amount required","Укажите сумму NR."],
+        ["Amount must be positive","Сумма должна быть положительным целым числом NR."],
+        ["Invalid amount","Указана некорректная сумма NR."],
+        ["Invalid split","Некорректно указано распределение NR."],
+        ["Invalid price","Указана некорректная цена."],
+        ["Title and description required","Заполните заголовок и описание."],
+        ["Citizen already exists","У этого аккаунта уже есть гражданство Нерии."],
+        ["Telegram identity required","Не удалось подтвердить вход через Telegram. Войдите ещё раз."],
+        ["Telegram account is blocked","Этот Telegram-аккаунт заблокирован в Нерии."],
+        ["Nickname required","Введите ник."],
+        ["duplicate key value violates unique constraint","Такое действие уже было выполнено или эти данные уже заняты."]
+    ];
+    for(const [key,text] of rules){
+        if(raw.includes(key)) return text;
+    }
+    return "Не удалось выполнить действие. Попробуйте ещё раз. Если ошибка повторится, обратитесь к Основателю.";
+}
+</script>
 
 <script>
   const SUPABASE_URL = "https://rictvznkxkeygbrlcymn.supabase.co";
@@ -731,7 +794,7 @@
     });
 
     if (error) {
-      alert("Ошибка входа: " + error.message);
+      alert("Ошибка входа: " + friendlyError(error));
     }
   }
 
@@ -741,7 +804,7 @@
     });
 
     if (error) {
-      alert("Ошибка выхода: " + error.message);
+      alert("Ошибка выхода: " + friendlyError(error));
     }
   }
 
@@ -896,7 +959,7 @@ const data = registrationData?.[0] || null;
     if (error.code === "23505") {
       alert("Этот аккаунт уже зарегистрирован или такой ник уже занят.");
     } else {
-      alert("Ошибка регистрации: " + error.message);
+      alert(friendlyError(error));
     }
 
     return;
