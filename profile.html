@@ -482,30 +482,30 @@
         }
 
 
-        /* Проверяем блокировку */
+        /* Проверяем статус гражданства */
 
         const {
-            data: banned,
-            error: banCheckError
+            data: citizenshipStatus,
+            error: statusError
         } = await supabaseClient.rpc(
-            "is_current_user_banned"
+            "get_my_citizenship_status"
         );
 
 
-        if (banCheckError) {
+        if (statusError) {
 
             console.error(
-                "Ошибка проверки блокировки:",
-                banCheckError
+                "Ошибка проверки статуса гражданства:",
+                statusError
             );
 
             profileCard.innerHTML = `
                 <div class="error">
-                    Не удалось проверить статус аккаунта.
+                    Не удалось проверить статус гражданства.
 
                     <br><br>
 
-                    Ошибка: ${banCheckError.message}
+                    Ошибка: ${escapeHtml(statusError.message)}
                 </div>
             `;
 
@@ -513,11 +513,80 @@
         }
 
 
-        if (banned) {
+        if (!citizenshipStatus) {
+
+            profileCard.innerHTML = `
+                <div class="error">
+                    У этого аккаунта нет гражданства Нерии.
+
+                    <br><br>
+
+                    <a href="registration.html">
+                        Перейти к регистрации
+                    </a>
+                </div>
+            `;
+
+            return;
+        }
+
+
+        if (citizenshipStatus === "banned") {
 
             profileCard.innerHTML = `
                 <div class="error">
                     Доступ к Нерии для этого аккаунта заблокирован.
+
+                    <br><br>
+
+                    Гражданство и гражданский ID сохранены,
+                    но доступ к государственным сервисам ограничен.
+                </div>
+            `;
+
+            return;
+        }
+
+
+        if (citizenshipStatus === "revoked") {
+
+            profileCard.innerHTML = `
+                <div class="error">
+                    Ваше гражданство Нерии отозвано.
+
+                    <br><br>
+
+                    Ваша историческая запись и гражданский ID сохранены.
+                    Восстановить гражданство может администрация Нерии.
+                </div>
+            `;
+
+            return;
+        }
+
+
+        if (citizenshipStatus === "resigned") {
+
+            profileCard.innerHTML = `
+                <div class="error">
+                    Вы отказались от гражданства Нерии.
+
+                    <br><br>
+
+                    Ваша историческая запись и гражданский ID сохранены.
+                </div>
+            `;
+
+            return;
+        }
+
+
+        if (citizenshipStatus !== "active") {
+
+            profileCard.innerHTML = `
+                <div class="error">
+                    Неизвестный статус гражданства:
+                    ${escapeHtml(citizenshipStatus)}
                 </div>
             `;
 
