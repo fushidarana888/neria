@@ -222,6 +222,30 @@
             border: 1px solid #dedee3;
         }
 
+        .admin-buttons {
+            display: none;
+            margin-top: 14px;
+            justify-content: center;
+            gap: 12px;
+            flex-wrap: wrap;
+        }
+
+        .admin-link {
+            display: inline-block;
+            padding: 12px 18px;
+            border-radius: 7px;
+            font-size: 14px;
+            font-weight: 600;
+            text-decoration: none;
+            border: 1px solid #d9cdef;
+            background: #f7f3fc;
+            color: #6d3fc0;
+        }
+
+        .admin-link:hover {
+            box-shadow: 0 5px 16px rgba(109, 63, 192, 0.16);
+        }
+
         /* =========================
            СТАТИСТИКА
         ========================= */
@@ -604,6 +628,16 @@ nav a {
 
             </div>
 
+            <div class="admin-buttons" id="adminButtons">
+                <a href="admin.html" class="admin-link">
+                    Админ-панель
+                </a>
+
+                <a href="admin-history.html" class="admin-link">
+                    История админ-действий
+                </a>
+            </div>
+
         </section>
 
 
@@ -950,16 +984,60 @@ nav a {
 
 
     /* =========================
+       КНОПКИ АДМИНИСТРАТОРА
+    ========================= */
+
+    async function updateAdminButtons() {
+
+        const adminButtons =
+            document.getElementById("adminButtons");
+
+        if (!adminButtons) {
+            return;
+        }
+
+        adminButtons.style.display = "none";
+
+        const {
+            data: { session }
+        } = await supabaseClient.auth.getSession();
+
+        if (!session) {
+            return;
+        }
+
+        const {
+            data: isAdmin,
+            error
+        } = await supabaseClient.rpc("is_admin");
+
+        if (error) {
+            console.error(
+                "Ошибка проверки прав администратора:",
+                error
+            );
+            return;
+        }
+
+        if (isAdmin) {
+            adminButtons.style.display = "flex";
+        }
+    }
+
+
+    /* =========================
        ЗАПУСК
     ========================= */
 
     loadCitizenCount();
 
     updateMainButton();
+    updateAdminButtons();
 
 
 supabaseClient.auth.onAuthStateChange(() => {
     updateMainButton();
+    updateAdminButtons();
 });
 
 
