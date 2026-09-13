@@ -23,7 +23,6 @@ main{max-width:760px;margin:0 auto;padding:60px 25px 100px}
 .data{margin-top:30px;border-top:1px solid #ededf0}
 .row{display:grid;grid-template-columns:180px 1fr;gap:20px;padding:16px 0;border-bottom:1px solid #ededf0}
 .label{color:#888891;font-size:13px}.value{font-size:14px;font-weight:500;word-break:break-word}
-.placeholder{margin-top:26px;padding:17px;border:1px dashed #d9d2e7;border-radius:10px;color:#777780;font-size:13px;line-height:1.55;background:#faf8fd}
 .message{background:#fff;border:1px solid #e5e5e8;border-radius:14px;padding:30px;line-height:1.65}
 .error{color:#963838;background:#fff4f4;border-color:#efcccc}
 @media(max-width:600px){main{padding:40px 15px 80px}.profile{padding:0 22px 28px}.row{grid-template-columns:1fr;gap:6px}.name{font-size:26px}}
@@ -127,10 +126,6 @@ content.innerHTML=`
 <div class="row"><div class="label">Имя и фамилия</div><div class="value">${escapeHtml(fullName)}</div></div>
 <div class="row"><div class="label">Дата рождения</div><div class="value">${escapeHtml(citizen.birth_date||"Скрыта")}</div></div>
 <div class="row"><div class="label">Гражданин с</div><div class="value">${escapeHtml(formatMemberSince(citizen.member_since))}</div></div>
-</div>
-
-<div class="placeholder">
-Профиль уже подготовлен для следующих возможностей: аватар, рамка профиля, цвет ника, государственная должность и баланс NR. Добавим их позже, не меняя адрес этой страницы.
 </div>
 </div>
 </div>
