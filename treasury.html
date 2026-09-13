@@ -72,6 +72,8 @@ function operationLabel(type){
             return "Эмиссия в казну";
         case "transfer_to_citizen":
             return "Выплата гражданину";
+        case "admin_burn":
+            return "Удаление NR из обращения";
         default:
             return type || "Операция";
     }
