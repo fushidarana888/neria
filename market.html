@@ -24,31 +24,94 @@
 <section class="box"><h2>Мои сделки</h2><div id="deals"><div class="empty">Загрузка…</div></div><div class="note">Здесь отображаются только ваши активные сделки и споры. После завершения сделка автоматически переносится в раздел ниже.</div></section>
 <section class="box"><h2>Завершённые сделки</h2><div id="completedDeals"><div class="empty">Загрузка…</div></div><div class="note">Архив ваших завершённых сделок и сделок, по которым средства были возвращены.</div></section>
 </main>
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script><script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2">
+
+function friendlyError(error){
+    const raw=String(error?.message || error || "");
+    const rules=[
+        ["Authentication required","Сначала войдите в аккаунт Нерии."],
+        ["Active citizenship required","Это действие доступно только действующим гражданам Нерии."],
+        ["Sender citizenship is not active","Переводы недоступны: ваше гражданство сейчас не активно."],
+        ["Recipient citizenship is not active","Получатель сейчас не является действующим гражданином Нерии."],
+        ["Economy access required","У вас нет полномочий Министерства экономики для этого действия."],
+        ["MVD access required","У вас нет полномочий МВД для этого действия."],
+        ["Founder access required","Это действие доступно только Основателю."],
+        ["Access denied","У вас нет доступа к этому разделу или действию."],
+        ["Insufficient treasury balance","В государственной казне недостаточно NR."],
+        ["Insufficient citizen balance","На счёте гражданина недостаточно NR."],
+        ["Insufficient balance","Недостаточно NR на вашем кошельке."],
+        ["Citizen not found","Гражданин не найден."],
+        ["Recipient citizen not found","Получатель не найден."],
+        ["Sender citizen not found","Ваш гражданский профиль не найден."],
+        ["Wallet not found","Кошелёк не найден."],
+        ["Cannot transfer NR to yourself","Нельзя переводить NR самому себе."],
+        ["Listing unavailable","Объявление уже недоступно или его статус изменился."],
+        ["Request listing unavailable","Это объявление уже недоступно для отклика."],
+        ["Response unavailable","Этот отклик уже обработан или больше недоступен."],
+        ["Only listing author can accept","Только автор объявления может выбрать исполнителя."],
+        ["Only listing author can reject","Только автор объявления может отклонить отклик."],
+        ["Cannot respond to yourself","Нельзя откликнуться на собственное объявление."],
+        ["Deal unavailable","Сделка уже недоступна для этого действия."],
+        ["Deal is not in dispute","По этой сделке сейчас нет открытого спора."],
+        ["Deal already resolved","Сделка уже была завершена."],
+        ["Dispute unavailable","Спор уже закрыт или недоступен."],
+        ["Open dispute not found","Открытый спор не найден. Возможно, он уже разрешён."],
+        ["Dispute already resolved","Спор уже был разрешён."],
+        ["Minister cannot resolve own dispute","Министр экономики не может рассматривать собственный спор."],
+        ["Minister cannot issue NR to self","Министр экономики не может начислять NR самому себе."],
+        ["Minister cannot transfer treasury funds to self","Министр экономики не может переводить деньги из казны самому себе."],
+        ["Minister cannot include self in a treasury reward","Министр экономики не может включить себя в государственную награду."],
+        ["MVD cannot block self","Сотрудник МВД не может заблокировать самого себя."],
+        ["MVD cannot block Founder","МВД не может заблокировать Основателя."],
+        ["MVD cannot revoke own citizenship","Сотрудник МВД не может лишить гражданства самого себя."],
+        ["MVD cannot revoke Founder citizenship","МВД не может лишить Основателя гражданства."],
+        ["Chat is closed","Этот чат уже закрыт."],
+        ["Thread not found","Обращение не найдено."],
+        ["Message required","Введите сообщение."],
+        ["Reason required","Укажите причину."],
+        ["Reason is required","Укажите причину."],
+        ["Amount required","Укажите сумму NR."],
+        ["Amount must be positive","Сумма должна быть положительным целым числом NR."],
+        ["Invalid amount","Указана некорректная сумма NR."],
+        ["Invalid split","Некорректно указано распределение NR."],
+        ["Invalid price","Указана некорректная цена."],
+        ["Title and description required","Заполните заголовок и описание."],
+        ["Citizen already exists","У этого аккаунта уже есть гражданство Нерии."],
+        ["Telegram identity required","Не удалось подтвердить вход через Telegram. Войдите ещё раз."],
+        ["Telegram account is blocked","Этот Telegram-аккаунт заблокирован в Нерии."],
+        ["Nickname required","Введите ник."],
+        ["duplicate key value violates unique constraint","Такое действие уже было выполнено или эти данные уже заняты."]
+    ];
+    for(const [key,text] of rules){
+        if(raw.includes(key)) return text;
+    }
+    return "Не удалось выполнить действие. Попробуйте ещё раз. Если ошибка повторится, обратитесь к Основателю.";
+}
+</script><script>
 const sb=window.supabase.createClient("https://rictvznkxkeygbrlcymn.supabase.co","sb_publishable_SVwKto14tbMtsmcDOagvCw_TVqg7he7");
 let listings=[],filter="all";
 const esc=v=>String(v??"").replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;");
 const nr=v=>new Intl.NumberFormat("ru-RU").format(Number(v||0));
 async function requireUser(){const {data:{user}}=await sb.auth.getUser();if(!user){location.href="login.html";return false}return true}
-async function load(){if(!await requireUser())return;const [{data:l,error:e},{data:d,error:de},{data:r,error:re},{data:sa,error:se}]=await Promise.all([sb.rpc("market_list"),sb.rpc("market_my_deals"),sb.rpc("market_my_request_responses"),sb.rpc("state_market_announcements_list")]);if(e)document.getElementById("list").innerHTML='<div class="empty">Недоступно: '+esc(e.message)+'</div>';else{listings=l||[];render()}renderStateAnnouncements(sa||[],se);renderResponses(r||[],re);renderDeals(d||[],de)}
-function renderStateAnnouncements(items,error){const el=document.getElementById("stateAnnouncements");if(error){el.innerHTML='<div class="empty">'+esc(error.message)+'</div>';return}el.innerHTML=items.length?items.map(x=>'<article class="state-card"><span class="state-badge">ГОСУДАРСТВО НЕРИЯ</span><h3>'+esc(x.title)+'</h3><div class="desc">'+esc(x.description)+'</div>'+(x.price?'<div class="price">'+nr(x.price)+' NR</div>':'')+'<div class="state-seal">Официальное государственное объявление</div><div class="meta">'+new Date(x.created_at).toLocaleString("ru-RU")+'</div></article>').join(""):'<div class="empty">Государственных объявлений сейчас нет.</div>'}
+async function load(){if(!await requireUser())return;const [{data:l,error:e},{data:d,error:de},{data:r,error:re},{data:sa,error:se}]=await Promise.all([sb.rpc("market_list"),sb.rpc("market_my_deals"),sb.rpc("market_my_request_responses"),sb.rpc("state_market_announcements_list")]);if(e)document.getElementById("list").innerHTML='<div class="empty">Недоступно: '+esc(friendlyError(e))+'</div>';else{listings=l||[];render()}renderStateAnnouncements(sa||[],se);renderResponses(r||[],re);renderDeals(d||[],de)}
+function renderStateAnnouncements(items,error){const el=document.getElementById("stateAnnouncements");if(error){el.innerHTML='<div class="empty">'+esc(friendlyError(error))+'</div>';return}el.innerHTML=items.length?items.map(x=>'<article class="state-card"><span class="state-badge">ГОСУДАРСТВО НЕРИЯ</span><h3>'+esc(x.title)+'</h3><div class="desc">'+esc(x.description)+'</div>'+(x.price?'<div class="price">'+nr(x.price)+' NR</div>':'')+'<div class="state-seal">Официальное государственное объявление</div><div class="meta">'+new Date(x.created_at).toLocaleString("ru-RU")+'</div></article>').join(""):'<div class="empty">Государственных объявлений сейчас нет.</div>'}
 function setFilter(v){filter=v;["all","offer","request"].forEach(x=>document.getElementById(x+"Tab").classList.toggle("on",x===v));render()}
 function render(){const arr=listings.filter(x=>(filter==="all"||x.listing_type===filter)&&x.status==="open");document.getElementById("list").innerHTML=arr.length?arr.map(x=>'<article class="card"><div class="tag">'+(x.listing_type==="offer"?"Предлагаю":"Ищу")+'</div><h3>'+esc(x.title)+'</h3><div class="desc">'+esc(x.description)+'</div><div class="meta">'+esc(x.author_nickname)+' · #'+String(x.author_number).padStart(6,"0")+'</div><div class="price">'+(x.price?nr(x.price)+" NR":"Цена договорная")+'</div><div class="actions">'+(x.is_mine?'<button class="btn danger" onclick="removeListing('+x.id+')">Удалить своё объявление</button>':(x.listing_type==="offer"?'<button class="btn" onclick="accept('+x.id+','+(x.price??"null")+')">Откликнуться и начать сделку</button>':'<button class="btn secondary" onclick="respondToRequest('+x.id+','+(x.price??"null")+')">Откликнуться</button>'))+'</div></article>').join(""):'<div class="empty">Открытых объявлений нет.</div>'}
-async function createListing(){const t=type.value,ti=title.value.trim(),ds=description.value.trim(),p=price.value.trim()?Number(price.value):null;if(ti.length<3||ds.length<3){alert("Заполните заголовок и описание.");return}if(p!==null&&(!Number.isSafeInteger(p)||p<=0)){alert("Некорректная цена.");return}const {error}=await sb.rpc("market_create",{p_type:t,p_title:ti,p_description:ds,p_price:p});if(error){alert(error.message);return}title.value="";description.value="";price.value="";await load()}
-async function removeListing(id){if(!confirm("Удалить объявление?"))return;const {error}=await sb.rpc("market_delete",{p_listing_id:id});if(error){alert(error.message);return}await load()}
-async function accept(id,fixed){let amount=fixed;if(amount==null){const x=prompt("Согласованная сумма сделки в NR:");if(x===null)return;amount=Number(x)}if(!Number.isSafeInteger(Number(amount))||Number(amount)<=0){alert("Некорректная сумма.");return}if(!confirm("Начать сделку на "+nr(amount)+" NR? Деньги будут удержаны до завершения."))return;const {error}=await sb.rpc("market_accept",{p_listing_id:id,p_amount:Number(amount)});if(error){alert(error.message);return}await load()}
-async function respondToRequest(id,fixed){let amount=fixed;if(amount==null){const x=prompt("Предложите сумму в NR:");if(x===null)return;amount=Number(x)}if(!Number.isSafeInteger(Number(amount))||Number(amount)<=0){alert("Некорректная сумма.");return}const message=prompt("Комментарий автору запроса (необязательно):","");if(message===null)return;const {error}=await sb.rpc("market_respond_to_request",{p_listing_id:id,p_amount:Number(amount),p_message:message.trim()||null});if(error){alert(error.message);return}alert("Отклик отправлен.");await load()}
+async function createListing(){const t=type.value,ti=title.value.trim(),ds=description.value.trim(),p=price.value.trim()?Number(price.value):null;if(ti.length<3||ds.length<3){alert("Заполните заголовок и описание.");return}if(p!==null&&(!Number.isSafeInteger(p)||p<=0)){alert("Некорректная цена.");return}const {error}=await sb.rpc("market_create",{p_type:t,p_title:ti,p_description:ds,p_price:p});if(error){alert(friendlyError(error));return}title.value="";description.value="";price.value="";await load()}
+async function removeListing(id){if(!confirm("Удалить объявление?"))return;const {error}=await sb.rpc("market_delete",{p_listing_id:id});if(error){alert(friendlyError(error));return}await load()}
+async function accept(id,fixed){let amount=fixed;if(amount==null){const x=prompt("Согласованная сумма сделки в NR:");if(x===null)return;amount=Number(x)}if(!Number.isSafeInteger(Number(amount))||Number(amount)<=0){alert("Некорректная сумма.");return}if(!confirm("Начать сделку на "+nr(amount)+" NR? Деньги будут удержаны до завершения."))return;const {error}=await sb.rpc("market_accept",{p_listing_id:id,p_amount:Number(amount)});if(error){alert(friendlyError(error));return}await load()}
+async function respondToRequest(id,fixed){let amount=fixed;if(amount==null){const x=prompt("Предложите сумму в NR:");if(x===null)return;amount=Number(x)}if(!Number.isSafeInteger(Number(amount))||Number(amount)<=0){alert("Некорректная сумма.");return}const message=prompt("Комментарий автору запроса (необязательно):","");if(message===null)return;const {error}=await sb.rpc("market_respond_to_request",{p_listing_id:id,p_amount:Number(amount),p_message:message.trim()||null});if(error){alert(friendlyError(error));return}alert("Отклик отправлен.");await load()}
 
-function renderResponses(r,e){const el=document.getElementById("responses");if(e){el.innerHTML='<div class="empty">'+esc(e.message)+'</div>';return}const pending=r.filter(x=>x.status==="pending");el.innerHTML=pending.length?pending.map(x=>'<div class="deal"><strong>'+esc(x.listing_title)+'</strong><div class="meta">Отклик: '+esc(x.responder_nickname)+' · #'+String(x.responder_number).padStart(6,"0")+'</div><div class="price">'+nr(x.proposed_amount)+' NR</div>'+(x.message?'<div class="desc">'+esc(x.message)+'</div>':'')+'<div class="actions"><button class="btn" onclick="acceptResponse('+x.response_id+','+x.proposed_amount+')">Выбрать исполнителя</button><button class="btn danger" onclick="rejectResponse('+x.response_id+')">Отклонить</button></div></div>').join(""):'<div class="empty">Новых откликов нет.</div>'}
+function renderResponses(r,e){const el=document.getElementById("responses");if(e){el.innerHTML='<div class="empty">'+esc(friendlyError(e))+'</div>';return}const pending=r.filter(x=>x.status==="pending");el.innerHTML=pending.length?pending.map(x=>'<div class="deal"><strong>'+esc(x.listing_title)+'</strong><div class="meta">Отклик: '+esc(x.responder_nickname)+' · #'+String(x.responder_number).padStart(6,"0")+'</div><div class="price">'+nr(x.proposed_amount)+' NR</div>'+(x.message?'<div class="desc">'+esc(x.message)+'</div>':'')+'<div class="actions"><button class="btn" onclick="acceptResponse('+x.response_id+','+x.proposed_amount+')">Выбрать исполнителя</button><button class="btn danger" onclick="rejectResponse('+x.response_id+')">Отклонить</button></div></div>').join(""):'<div class="empty">Новых откликов нет.</div>'}
 
-async function acceptResponse(id,amount){if(!confirm("Выбрать этого исполнителя и удержать "+nr(amount)+" NR с вашего кошелька?"))return;const {error}=await sb.rpc("market_accept_request_response",{p_response_id:id});if(error){let m=error.message;if(m.includes("Insufficient balance"))m="Недостаточно NR на вашем кошельке.";alert(m);return}await load()}
+async function acceptResponse(id,amount){if(!confirm("Выбрать этого исполнителя и удержать "+nr(amount)+" NR с вашего кошелька?"))return;const {error}=await sb.rpc("market_accept_request_response",{p_response_id:id});if(error){let m=friendlyError(error);if(m.includes("Insufficient balance"))m="Недостаточно NR на вашем кошельке.";alert(m);return}await load()}
 
-async function rejectResponse(id){if(!confirm("Отклонить этот отклик?"))return;const {error}=await sb.rpc("market_reject_request_response",{p_response_id:id});if(error)alert(error.message);else await load()}
+async function rejectResponse(id){if(!confirm("Отклонить этот отклик?"))return;const {error}=await sb.rpc("market_reject_request_response",{p_response_id:id});if(error)alert(friendlyError(error));else await load()}
 
 function dealCard(x){return '<div class="deal"><div class="status">'+esc(x.status)+'</div><strong>'+esc(x.title)+'</strong> · '+nr(x.amount)+' NR<div class="meta">Вторая сторона: '+esc(x.other_nickname)+' · #'+String(x.other_number).padStart(6,"0")+' · ваша роль: '+(x.my_role==="payer"?"плательщик":"получатель")+'</div><div class="actions"><a class="btn" style="text-decoration:none" href="deal.html?id='+x.id+'">Открыть сделку</a></div></div>'}
-function renderDeals(d,e){const active=document.getElementById("deals"),completed=document.getElementById("completedDeals");if(e){active.innerHTML='<div class="empty">'+esc(e.message)+'</div>';completed.innerHTML='<div class="empty">'+esc(e.message)+'</div>';return}const current=d.filter(x=>x.status==="active"||x.status==="dispute"),archive=d.filter(x=>x.status==="completed"||x.status==="refunded");active.innerHTML=current.length?current.map(dealCard).join(""):'<div class="empty">Активных сделок нет.</div>';completed.innerHTML=archive.length?archive.map(dealCard).join(""):'<div class="empty">Завершённых сделок пока нет.</div>'}
-async function done(id){if(!confirm("Подтвердить выполнение своих обязательств?"))return;const {error}=await sb.rpc("market_mark_done",{p_deal_id:id});if(error)alert(error.message);else await load()}
-async function dispute(id){const r=prompt("Опишите проблему и причину спора:");if(r===null||!r.trim())return;const {error}=await sb.rpc("market_open_dispute",{p_deal_id:id,p_reason:r.trim()});if(error)alert(error.message);else await load()}
+function renderDeals(d,e){const active=document.getElementById("deals"),completed=document.getElementById("completedDeals");if(e){active.innerHTML='<div class="empty">'+esc(friendlyError(e))+'</div>';completed.innerHTML='<div class="empty">'+esc(friendlyError(e))+'</div>';return}const current=d.filter(x=>x.status==="active"||x.status==="dispute"),archive=d.filter(x=>x.status==="completed"||x.status==="refunded");active.innerHTML=current.length?current.map(dealCard).join(""):'<div class="empty">Активных сделок нет.</div>';completed.innerHTML=archive.length?archive.map(dealCard).join(""):'<div class="empty">Завершённых сделок пока нет.</div>'}
+async function done(id){if(!confirm("Подтвердить выполнение своих обязательств?"))return;const {error}=await sb.rpc("market_mark_done",{p_deal_id:id});if(error)alert(friendlyError(error));else await load()}
+async function dispute(id){const r=prompt("Опишите проблему и причину спора:");if(r===null||!r.trim())return;const {error}=await sb.rpc("market_open_dispute",{p_deal_id:id,p_reason:r.trim()});if(error)alert(friendlyError(error));else await load()}
 load();
 </script><script>
 async function neriaLoadNotificationBadge(){
