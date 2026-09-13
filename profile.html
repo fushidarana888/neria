@@ -475,7 +475,34 @@
             data,
             error
         } = await supabaseClient
+const {
+    data: banned,
+    error: banCheckError
+} = await supabaseClient.rpc(
+    "is_current_user_banned"
+);
 
+if (banCheckError) {
+    console.error(banCheckError);
+
+    profileCard.innerHTML = `
+        <div class="error">
+            Не удалось проверить статус аккаунта.
+        </div>
+    `;
+
+    return;
+}
+
+if (banned) {
+    profileCard.innerHTML = `
+        <div class="error">
+            Доступ к Нерии для этого аккаунта заблокирован.
+        </div>
+    `;
+
+    return;
+}
             .from("citizens")
 
             .select(`
