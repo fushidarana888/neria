@@ -437,6 +437,11 @@
         document.getElementById("adminContent");
 
     let citizens = [];
+    let governmentRoles = {
+        is_founder: false,
+        economy_minister: false,
+        mvd: false
+    };
 
 
     function escapeHtml(value) {
@@ -552,44 +557,76 @@
 
 
         const {
-            data: isAdmin,
-            error: adminError
-        } = await supabaseClient.rpc("is_admin");
+            data: roleData,
+            error: roleError
+        } = await supabaseClient.rpc("get_my_government_roles");
 
-
-        if (adminError) {
+        if (roleError) {
             showFatalError(
-                "Не удалось проверить права администратора: " +
-                adminError.message
+                "Не удалось проверить государственные полномочия: " +
+                roleError.message
             );
             return;
         }
 
+        governmentRoles = roleData?.[0] || governmentRoles;
 
-        if (!isAdmin) {
+        if (
+            !governmentRoles.is_founder &&
+            !governmentRoles.economy_minister &&
+            !governmentRoles.mvd
+        ) {
             adminContent.innerHTML = `
                 <div class="error">
                     Доступ запрещён.
                     <br><br>
-                    Эта страница доступна только администраторам Нерии.
+                    У вашего аккаунта нет государственных административных полномочий.
                 </div>
             `;
             return;
         }
 
+        const titleEl = document.querySelector(".title h1");
+        const descEl = document.querySelector(".title p");
+        const badgeEl = document.querySelector(".header-badge");
+
+        if (governmentRoles.is_founder) {
+            if (titleEl) titleEl.textContent = "Панель Основателя";
+            if (descEl) descEl.textContent = "Полное управление государством Нерия.";
+            if (badgeEl) badgeEl.textContent = "ОСНОВАТЕЛЬ";
+        } else if (governmentRoles.economy_minister && !governmentRoles.mvd) {
+            if (titleEl) titleEl.textContent = "Министерство экономики";
+            if (descEl) descEl.textContent = "Казна, NR, государственные выплаты и экономические споры.";
+            if (badgeEl) badgeEl.textContent = "МИНИСТР ЭКОНОМИКИ";
+        } else if (governmentRoles.mvd && !governmentRoles.economy_minister) {
+            if (titleEl) titleEl.textContent = "Панель МВД";
+            if (descEl) descEl.textContent = "Гражданство, блокировки и государственный учёт граждан.";
+            if (badgeEl) badgeEl.textContent = "МВД";
+        } else {
+            if (titleEl) titleEl.textContent = "Государственная панель";
+            if (badgeEl) badgeEl.textContent = "ГОСУДАРСТВО";
+        }
 
         renderShell();
-        await Promise.all([
-            loadCitizens(),
-            loadMarketDisputes(),
-            loadActiveMarketDeals()
-        ]);
+
+        const jobs = [loadCitizens()];
+
+        if (governmentRoles.economy_minister) {
+            jobs.push(loadMarketDisputes());
+            jobs.push(loadActiveMarketDeals());
+        }
+
+        if (governmentRoles.is_founder) {
+            jobs.push(loadGovernmentRoles());
+        }
+
+        await Promise.all(jobs);
     }
 
 
     function renderShell() {
 
-        adminContent.innerHTML = `
+        const economyHtml = governmentRoles.economy_minister ? `
             <div class="money-panel">
                 <h2>Экономика NR</h2>
                 <p>
@@ -598,31 +635,10 @@
                 </p>
 
                 <div class="money-form">
-                    <input
-                        type="number"
-                        id="treasuryMintAmount"
-                        min="1"
-                        step="1"
-                        placeholder="Сумма NR"
-                    >
-
-                    <input
-                        type="text"
-                        id="treasuryMintReason"
-                        maxlength="250"
-                        placeholder="Причина, например: плановое пополнение казны"
-                    >
-
-                    <button
-                        type="button"
-                        class="primary"
-                        onclick="mintToTreasury()"
-                    >
-                        Пополнить казну
-                    </button>
-                    <button type="button" class="danger" onclick="burnFromTreasury()">
-                        Удалить NR из казны
-                    </button>
+                    <input type="number" id="treasuryMintAmount" min="1" step="1" placeholder="Сумма NR">
+                    <input type="text" id="treasuryMintReason" maxlength="250" placeholder="Причина, например: плановое пополнение казны">
+                    <button type="button" class="primary" onclick="mintToTreasury()">Пополнить казну</button>
+                    <button type="button" class="danger" onclick="burnFromTreasury()">Удалить NR из казны</button>
                 </div>
             </div>
 
@@ -653,8 +669,7 @@
             <div class="dispute-panel">
                 <h2>Активные сделки</h2>
                 <p>
-                    Все текущие сделки без спора. Администратор может открыть любую сделку
-                    и прочитать переписку между её участниками.
+                    Все текущие сделки без спора. Здесь можно открыть сделку и прочитать переписку.
                 </p>
                 <div id="activeMarketDeals">
                     <div class="loading">Загрузка активных сделок...</div>
@@ -671,23 +686,31 @@
                     <div class="loading">Загрузка споров...</div>
                 </div>
             </div>
+        ` : "";
+
+        const rolesHtml = governmentRoles.is_founder ? `
+            <div class="reward-panel">
+                <h2>Государственные роли</h2>
+                <p>
+                    Основатель может назначать и снимать Министра экономики и сотрудников МВД.
+                    Эти роли получают только свои административные полномочия.
+                </p>
+                <div id="governmentRoleList">
+                    <div class="loading">Загрузка ролей...</div>
+                </div>
+            </div>
+        ` : "";
+
+        adminContent.innerHTML = `
+            ${rolesHtml}
+            ${economyHtml}
 
             <div class="panel">
-
                 <div class="toolbar">
-
                     <div class="toolbar-info" id="citizenSummary">
                         Загружаем граждан...
                     </div>
-
-                    <button
-                        type="button"
-                        class="secondary"
-                        onclick="loadCitizens()"
-                    >
-                        Обновить
-                    </button>
-
+                    <button type="button" class="secondary" onclick="loadCitizens()">Обновить</button>
                 </div>
 
                 <div id="citizenList">
@@ -695,13 +718,81 @@
                         Загрузка списка граждан...
                     </div>
                 </div>
-
             </div>
         `;
     }
 
 
-    async function loadCitizens() {
+    async function loadGovernmentRoles() {
+        const el = document.getElementById("governmentRoleList");
+        if (!el) return;
+
+        const { data, error } =
+            await supabaseClient.rpc("founder_get_government_roles");
+
+        if (error) {
+            el.innerHTML =
+                '<div class="error">' +
+                escapeHtml(error.message) +
+                '</div>';
+            return;
+        }
+
+        const rows = data || [];
+
+        if (!rows.length) {
+            el.innerHTML = '<div class="muted">Нет активных граждан.</div>';
+            return;
+        }
+
+        el.innerHTML = rows.map(c => {
+            return '<div class="deal-admin-card">' +
+                '<div class="deal-admin-title">' +
+                    escapeHtml(c.nickname || "Без ника") +
+                    ' · ' +
+                    escapeHtml(formatCitizenNumber(c.citizen_number)) +
+                '</div>' +
+                '<div class="dispute-actions">' +
+                    '<button class="' + (c.economy_minister ? 'danger' : 'success') + '" onclick="setGovernmentRole(' +
+                        Number(c.internal_id) + ',\'economy_minister\',' + (!c.economy_minister) +
+                    ')">' +
+                        (c.economy_minister ? 'Снять Министра экономики' : 'Назначить Министром экономики') +
+                    '</button>' +
+                    '<button class="' + (c.mvd ? 'danger' : 'success') + '" onclick="setGovernmentRole(' +
+                        Number(c.internal_id) + ',\'mvd\',' + (!c.mvd) +
+                    ')">' +
+                        (c.mvd ? 'Снять роль МВД' : 'Назначить МВД') +
+                    '</button>' +
+                '</div>' +
+            '</div>';
+        }).join("");
+    }
+
+    async function setGovernmentRole(citizenId, role, enabled) {
+        const action = enabled ? "назначить" : "снять роль у";
+
+        if (!confirm(action + " выбранного гражданина?")) return;
+
+        const { error } =
+            await supabaseClient.rpc(
+                "founder_set_government_role",
+                {
+                    p_citizen_id: citizenId,
+                    p_role: role,
+                    p_enabled: enabled
+                }
+            );
+
+        if (error) {
+            alert("Не удалось изменить роль:\n" + error.message);
+            return;
+        }
+
+        await loadGovernmentRoles();
+    }
+
+
+        async function loadCitizens() {
 
         const list =
             document.getElementById("citizenList");
