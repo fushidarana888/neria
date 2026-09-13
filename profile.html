@@ -743,7 +743,8 @@ table{max-width:100%}
                 avatar_path,
                 avatar_updated_at,
                 can_upload_avatar,
-                nickname_color
+                nickname_color,
+                prefix
             `)
 
             .eq("user_id", session.user.id)
@@ -818,6 +819,7 @@ table{max-width:100%}
             <div class="status">
 
                 Гражданин Нерии
+                ${data.prefix ? ' · <strong>[' + escapeHtml(data.prefix) + ']</strong>' : ''}
 
             </div>
 
