@@ -761,7 +761,7 @@
                                     ${citizen.can_upload_avatar ? "false" : "true"}
                                 )"
                             >
-                                ${citizen.can_upload_avatar ? "Убрать VIP-аватар" : "Разрешить VIP-аватар"}
+                                ${citizen.can_upload_avatar ? "Убрать VIP" : "Выдать VIP"}
                             </button>
 
                         </div>
@@ -868,8 +868,8 @@
         if (!citizen) return;
 
         const actionText = enabled
-            ? "разрешить загрузку собственного аватара"
-            : "запретить загрузку собственного аватара";
+            ? "выдать VIP-доступ"
+            : "отключить VIP-доступ";
 
         if (!confirm(
             actionText + " для гражданина " +
@@ -889,7 +889,7 @@
 
         if (error) {
             console.error(error);
-            alert("Не удалось изменить VIP-доступ к аватару:\n" + error.message);
+            alert("Не удалось изменить VIP-доступ:\n" + error.message);
             return;
         }
 
