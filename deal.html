@@ -67,7 +67,10 @@ function render(d,msgs,events,me,ee){
  '<div class="party"><div><strong>'+esc(d.payer_nickname)+'</strong><div class="muted">#'+String(d.payer_number).padStart(6,"0")+' · плательщик</div></div><span class="badge '+(d.payer_done?"done":"")+'">'+(d.payer_done?"Подтвердил":"Не подтвердил")+'</span></div>'+
  '<div class="party"><div><strong>'+esc(d.payee_nickname)+'</strong><div class="muted">#'+String(d.payee_number).padStart(6,"0")+' · получатель</div></div><span class="badge '+(d.payee_done?"done":"")+'">'+(d.payee_done?"Подтвердил":"Не подтвердил")+'</span></div>'+
  (active&&canAct?'<div class="actions" style="margin-top:15px"><button class="btn" onclick="markDone()">Я выполнил обязательства</button><button class="btn danger" onclick="openDispute()">Открыть спор</button></div>':'')+
- (d.status==="dispute"?'<div class="dispute" style="margin-top:15px"><strong>Спор открыт.</strong><br>'+esc(d.dispute_reason||"")+(d.dispute_resolution?'<br><br><strong>Решение:</strong> '+esc(d.dispute_resolution):'')+'</div>':'')+
+ (d.status==="dispute"?'<div class="dispute" style="margin-top:15px"><strong>Спор открыт.</strong><br>'+esc(d.dispute_reason||"")+
+    (d.my_role==="payee"?'<div class="actions" style="margin-top:12px"><button class="btn danger" onclick="selfResolveDispute(\'payee_refund_all\')">Отказаться от денег и вернуть их плательщику</button></div>':'')+
+    (d.my_role==="payer"?'<div class="actions" style="margin-top:12px"><button class="btn" onclick="selfResolveDispute(\'payer_release_all\')">Передать всю сумму получателю</button></div>':'')+
+    (d.dispute_resolution?'<br><br><strong>Решение:</strong> '+esc(d.dispute_resolution):'')+'</div>':'')+
  '</section>'+
  '<section class="box"><h2>Переписка</h2><div class="chat" id="chat">'+renderMessages(msgs,me)+'</div>'+
  ((canAct||(d.my_role==="admin"&&d.status==="dispute"))?'<div class="chat-form"><textarea id="message" maxlength="2000" placeholder="'+(d.my_role==="admin"?"Сообщение модератора участникам спора":"Сообщение второй стороне")+'"></textarea><button class="btn" onclick="sendMessage()">Отправить</button></div>':'')+
@@ -110,6 +113,29 @@ function renderEvents(events,err){if(err)return '<div class="empty">'+esc(err.me
 async function sendMessage(){const el=document.getElementById("message");const text=el.value.trim();if(!text)return;const {error}=await sb.rpc("market_deal_send_message",{p_deal_id:dealId,p_message:text});if(error){alert(error.message);return}el.value=""}
 async function markDone(){if(!confirm("Подтвердить выполнение своих обязательств?"))return;const {error}=await sb.rpc("market_mark_done",{p_deal_id:dealId});if(error)alert(error.message);else await load()}
 async function openDispute(){const reason=prompt("Опишите причину спора:");if(reason===null||!reason.trim())return;const {error}=await sb.rpc("market_open_dispute",{p_deal_id:dealId,p_reason:reason.trim()});if(error)alert(error.message);else await load()}
+
+async function selfResolveDispute(action){
+ let text="";
+ if(action==="payee_refund_all"){
+  text="Вы уверены, что хотите полностью отказаться от удерживаемых NR и вернуть всю сумму плательщику? После подтверждения спор будет закрыт.";
+ }else{
+  text="Вы уверены, что хотите передать всю удерживаемую сумму получателю? После подтверждения спор будет закрыт.";
+ }
+ if(!confirm(text))return;
+
+ const {error}=await sb.rpc(
+  "market_self_resolve_dispute",
+  {p_deal_id:dealId,p_action:action}
+ );
+
+ if(error){
+  alert("Не удалось закрыть спор:\n"+error.message);
+  return;
+ }
+
+ await load();
+}
+
 load();
 </script>
 </body>
