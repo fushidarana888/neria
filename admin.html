@@ -1141,6 +1141,7 @@
                 '<div class="dispute-meta">Плательщик: '+escapeHtml(d.payer_name)+' · Получатель: '+escapeHtml(d.payee_name)+'</div>'+
                 '<div class="dispute-reason"><strong>Причина спора:</strong><br>'+escapeHtml(d.reason)+'</div>'+
                 '<div class="dispute-actions">'+
+                    '<a class="secondary" style="display:inline-block;text-decoration:none;padding:10px 14px;border-radius:7px" href="deal.html?id='+Number(d.deal_id)+'">Открыть сделку и переписку</a>'+
                     '<button class="success" onclick="resolveMarketDispute('+Number(d.dispute_id)+','+Number(d.amount)+','+Number(d.amount)+')">Все получателю</button>'+
                     '<button class="secondary" onclick="resolveMarketDispute('+Number(d.dispute_id)+',0,'+Number(d.amount)+')">Все вернуть плательщику</button>'+
                     '<button class="warning" onclick="splitMarketDispute('+Number(d.dispute_id)+','+Number(d.amount)+')">Разделить сумму</button>'+
