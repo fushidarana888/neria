@@ -589,22 +589,147 @@
   const button = document.getElementById("telegramLoginButton");
   const status = document.getElementById("telegramStatus");
 
-  function updateAuthUI(session) {
-    if (session) {
-      button.textContent = "✅ Вы вошли через Telegram";
-      button.disabled = true;
+  async function updateAuthUI(session) {
 
-      status.textContent = "Telegram успешно подключён.";
+    const logoutButton =
+        document.getElementById("logoutButton");
 
-      document.getElementById("logoutButton").style.display = "block";
-    } else {
+    const citizenshipButton =
+        document.getElementById("citizenshipButton");
+
+    if (!session) {
+
       button.textContent = "Войти через Telegram";
       button.disabled = false;
 
       status.textContent =
         "Сначала войдите через Telegram, затем заполните данные для гражданства.";
 
-      document.getElementById("logoutButton").style.display = "none";
+      logoutButton.style.display = "none";
+
+      if (citizenshipButton) {
+        citizenshipButton.disabled = false;
+        citizenshipButton.textContent = "Получить гражданство";
+      }
+
+      return;
+    }
+
+
+    button.textContent = "✅ Вы вошли через Telegram";
+    button.disabled = true;
+
+    logoutButton.style.display = "block";
+
+
+    const telegramIdentity = session.user.identities?.find(
+      identity => identity.provider === "custom:telegram"
+    );
+
+    const telegramData =
+      telegramIdentity?.identity_data || {};
+
+    const telegramUsername =
+      telegramData.preferred_username || null;
+
+    const telegramUsernameInput =
+      document.getElementById("telegramUsername");
+
+    if (telegramUsernameInput) {
+      telegramUsernameInput.value =
+        telegramUsername
+          ? "@" + telegramUsername
+          : "Username не указан";
+    }
+
+
+    const {
+      data: citizenshipStatus,
+      error: statusError
+    } = await supabaseClient.rpc(
+      "get_my_citizenship_status"
+    );
+
+
+    if (statusError) {
+
+      console.error(
+        "Ошибка проверки статуса гражданства:",
+        statusError
+      );
+
+      status.textContent =
+        "Telegram подключён, но не удалось проверить статус гражданства.";
+
+      return;
+    }
+
+
+    if (!citizenshipStatus) {
+
+      status.textContent =
+        "Telegram успешно подключён. Заполните данные для получения гражданства.";
+
+      if (citizenshipButton) {
+        citizenshipButton.disabled = false;
+        citizenshipButton.textContent = "Получить гражданство";
+      }
+
+      return;
+    }
+
+
+    if (citizenshipButton) {
+      citizenshipButton.disabled = true;
+    }
+
+
+    switch (citizenshipStatus) {
+
+      case "active":
+        status.innerHTML =
+          'У вас уже есть гражданство Нерии. <a href="profile.html">Открыть личный кабинет</a>.';
+
+        if (citizenshipButton) {
+          citizenshipButton.textContent = "✅ Вы уже гражданин";
+        }
+        break;
+
+      case "banned":
+        status.innerHTML =
+          'Ваш аккаунт заблокирован. <a href="profile.html">Подробнее</a>.';
+
+        if (citizenshipButton) {
+          citizenshipButton.textContent = "Доступ заблокирован";
+        }
+        break;
+
+      case "revoked":
+        status.innerHTML =
+          'Ваше гражданство было отозвано. <a href="profile.html">Подробнее</a>.';
+
+        if (citizenshipButton) {
+          citizenshipButton.textContent = "Гражданство отозвано";
+        }
+        break;
+
+      case "resigned":
+        status.innerHTML =
+          'Вы отказались от гражданства Нерии. <a href="profile.html">Подробнее</a>.';
+
+        if (citizenshipButton) {
+          citizenshipButton.textContent = "Гражданство прекращено";
+        }
+        break;
+
+      default:
+        status.textContent =
+          "Неизвестный статус гражданства.";
+
+        if (citizenshipButton) {
+          citizenshipButton.textContent = "Недоступно";
+        }
+        break;
     }
   }
 
@@ -635,9 +760,10 @@
   supabaseClient.auth.onAuthStateChange((event, session) => {
     updateAuthUI(session);
   });
-supabaseClient.auth.getSession().then(({ data: { session } }) => {
+
+  supabaseClient.auth.getSession().then(({ data: { session } }) => {
     updateAuthUI(session);
-});
+  });
 
 
   async function registerCitizen() {
@@ -647,6 +773,37 @@ supabaseClient.auth.getSession().then(({ data: { session } }) => {
 
   if (!session) {
     alert("Сначала войдите через Telegram.");
+    return;
+  }
+
+  const {
+    data: existingStatus,
+    error: existingStatusError
+  } = await supabaseClient.rpc(
+    "get_my_citizenship_status"
+  );
+
+  if (existingStatusError) {
+    alert(
+      "Не удалось проверить статус гражданства: " +
+      existingStatusError.message
+    );
+    return;
+  }
+
+  if (existingStatus) {
+    const messages = {
+      active: "У этого аккаунта уже есть гражданство Нерии.",
+      banned: "Этот аккаунт заблокирован и не может зарегистрироваться повторно.",
+      revoked: "Гражданство этого аккаунта отозвано. Повторная регистрация недоступна.",
+      resigned: "Гражданство этого аккаунта прекращено. Повторная регистрация недоступна."
+    };
+
+    alert(
+      messages[existingStatus] ||
+      "Повторная регистрация для этого аккаунта недоступна."
+    );
+
     return;
   }
 
@@ -744,7 +901,7 @@ const { data, error } = await supabaseClient
   telegram_username: telegramUsername,
   telegram_name: telegramName
 })
-    .select("id, nickname")
+    .select("id, citizen_number, nickname")
     .single();
 
   if (error) {
@@ -760,7 +917,7 @@ const { data, error } = await supabaseClient
     return;
   }
 
-  const citizenId = String(data.id).padStart(6, "0");
+  const citizenId = String(data.citizen_number).padStart(6, "0");
 
   alert(
     "🎉 Добро пожаловать в Нерию!\n\n" +
