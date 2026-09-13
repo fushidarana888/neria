@@ -31,7 +31,70 @@ h1{font-size:38px;margin:0 0 8px}.lead{color:#777780;line-height:1.5;margin-bott
 <p class="lead" id="pageLead">Личная переписка. Сообщения видите только вы и Основатель Нерии.</p>
 <div id="app"><div class="box">Загрузка…</div></div>
 </main>
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2">
+
+function friendlyError(error){
+    const raw=String(error?.message || error || "");
+    const rules=[
+        ["Authentication required","Сначала войдите в аккаунт Нерии."],
+        ["Active citizenship required","Это действие доступно только действующим гражданам Нерии."],
+        ["Sender citizenship is not active","Переводы недоступны: ваше гражданство сейчас не активно."],
+        ["Recipient citizenship is not active","Получатель сейчас не является действующим гражданином Нерии."],
+        ["Economy access required","У вас нет полномочий Министерства экономики для этого действия."],
+        ["MVD access required","У вас нет полномочий МВД для этого действия."],
+        ["Founder access required","Это действие доступно только Основателю."],
+        ["Access denied","У вас нет доступа к этому разделу или действию."],
+        ["Insufficient treasury balance","В государственной казне недостаточно NR."],
+        ["Insufficient citizen balance","На счёте гражданина недостаточно NR."],
+        ["Insufficient balance","Недостаточно NR на вашем кошельке."],
+        ["Citizen not found","Гражданин не найден."],
+        ["Recipient citizen not found","Получатель не найден."],
+        ["Sender citizen not found","Ваш гражданский профиль не найден."],
+        ["Wallet not found","Кошелёк не найден."],
+        ["Cannot transfer NR to yourself","Нельзя переводить NR самому себе."],
+        ["Listing unavailable","Объявление уже недоступно или его статус изменился."],
+        ["Request listing unavailable","Это объявление уже недоступно для отклика."],
+        ["Response unavailable","Этот отклик уже обработан или больше недоступен."],
+        ["Only listing author can accept","Только автор объявления может выбрать исполнителя."],
+        ["Only listing author can reject","Только автор объявления может отклонить отклик."],
+        ["Cannot respond to yourself","Нельзя откликнуться на собственное объявление."],
+        ["Deal unavailable","Сделка уже недоступна для этого действия."],
+        ["Deal is not in dispute","По этой сделке сейчас нет открытого спора."],
+        ["Deal already resolved","Сделка уже была завершена."],
+        ["Dispute unavailable","Спор уже закрыт или недоступен."],
+        ["Open dispute not found","Открытый спор не найден. Возможно, он уже разрешён."],
+        ["Dispute already resolved","Спор уже был разрешён."],
+        ["Minister cannot resolve own dispute","Министр экономики не может рассматривать собственный спор."],
+        ["Minister cannot issue NR to self","Министр экономики не может начислять NR самому себе."],
+        ["Minister cannot transfer treasury funds to self","Министр экономики не может переводить деньги из казны самому себе."],
+        ["Minister cannot include self in a treasury reward","Министр экономики не может включить себя в государственную награду."],
+        ["MVD cannot block self","Сотрудник МВД не может заблокировать самого себя."],
+        ["MVD cannot block Founder","МВД не может заблокировать Основателя."],
+        ["MVD cannot revoke own citizenship","Сотрудник МВД не может лишить гражданства самого себя."],
+        ["MVD cannot revoke Founder citizenship","МВД не может лишить Основателя гражданства."],
+        ["Chat is closed","Этот чат уже закрыт."],
+        ["Thread not found","Обращение не найдено."],
+        ["Message required","Введите сообщение."],
+        ["Reason required","Укажите причину."],
+        ["Reason is required","Укажите причину."],
+        ["Amount required","Укажите сумму NR."],
+        ["Amount must be positive","Сумма должна быть положительным целым числом NR."],
+        ["Invalid amount","Указана некорректная сумма NR."],
+        ["Invalid split","Некорректно указано распределение NR."],
+        ["Invalid price","Указана некорректная цена."],
+        ["Title and description required","Заполните заголовок и описание."],
+        ["Citizen already exists","У этого аккаунта уже есть гражданство Нерии."],
+        ["Telegram identity required","Не удалось подтвердить вход через Telegram. Войдите ещё раз."],
+        ["Telegram account is blocked","Этот Telegram-аккаунт заблокирован в Нерии."],
+        ["Nickname required","Введите ник."],
+        ["duplicate key value violates unique constraint","Такое действие уже было выполнено или эти данные уже заняты."]
+    ];
+    for(const [key,text] of rules){
+        if(raw.includes(key)) return text;
+    }
+    return "Не удалось выполнить действие. Попробуйте ещё раз. Если ошибка повторится, обратитесь к Основателю.";
+}
+</script>
 <script>
 const sb=window.supabase.createClient("https://rictvznkxkeygbrlcymn.supabase.co","sb_publishable_SVwKto14tbMtsmcDOagvCw_TVqg7he7");
 const app=document.getElementById("app");
@@ -43,7 +106,7 @@ async function init(){
  const {data:{user}}=await sb.auth.getUser();
  if(!user){location.href="registration.html";return}
  const {data:f,error}=await sb.rpc("is_founder");
- if(error){app.innerHTML='<div class="box">'+esc(error.message)+'</div>';return}
+ if(error){app.innerHTML='<div class="box">'+esc(friendlyError(error))+'</div>';return}
  isFounder=!!f;
  if(isFounder){document.getElementById("pageTitle").textContent="Обращения к Основателю";document.getElementById("pageLead").textContent="Личные обращения граждан. Каждый чат отделён от остальных и доступен только Основателю и его автору.";await loadFounderThreads()}
  else await loadUserThread();
@@ -51,7 +114,7 @@ async function init(){
 
 async function loadUserThread(){
  const {data,error}=await sb.rpc("my_founder_appeal");
- if(error){app.innerHTML='<div class="box">'+esc(error.message)+'</div>';return}
+ if(error){app.innerHTML='<div class="box">'+esc(friendlyError(error))+'</div>';return}
  const t=data?.[0];
  if(!t){renderNewAppeal();return}
  currentThread=t.thread_id;
@@ -67,7 +130,7 @@ function renderNewAppeal(){
 async function createAppeal(){
  const el=document.getElementById("firstMessage");const msg=el?.value.trim();if(!msg)return;
  const {data,error}=await sb.rpc("create_founder_appeal",{p_message:msg});
- if(error){alert(error.message);return}
+ if(error){alert(friendlyError(error));return}
  currentThread=data;await loadUserThread();
 }
 
@@ -79,7 +142,7 @@ async function renderUserChat(t){
 
 async function loadFounderThreads(){
  const {data,error}=await sb.rpc("founder_appeal_threads_list");
- if(error){app.innerHTML='<div class="box">'+esc(error.message)+'</div>';return}
+ if(error){app.innerHTML='<div class="box">'+esc(friendlyError(error))+'</div>';return}
  threads=data||[];
  renderFounderShell();
  const visible=threads.filter(x=>x.status===filter);
@@ -108,13 +171,13 @@ async function openFounderThread(id){
  scrollChat();subscribe(id);
 }
 
-function renderMessages(msgs,error){if(error)return '<div class="empty">'+esc(error.message)+'</div>';if(!msgs.length)return '<div class="empty">Сообщений пока нет.</div>';return msgs.map(x=>'<div class="msg '+(x.is_mine?"mine ":"")+(x.author_kind==="founder"?"founder":"")+'"><div class="meta">'+esc(x.author_name)+' · '+dt(x.created_at)+'</div><div class="text">'+esc(x.message)+'</div></div>').join("")}
+function renderMessages(msgs,error){if(error)return '<div class="empty">'+esc(friendlyError(error))+'</div>';if(!msgs.length)return '<div class="empty">Сообщений пока нет.</div>';return msgs.map(x=>'<div class="msg '+(x.is_mine?"mine ":"")+(x.author_kind==="founder"?"founder":"")+'"><div class="meta">'+esc(x.author_name)+' · '+dt(x.created_at)+'</div><div class="text">'+esc(x.message)+'</div></div>').join("")}
 
 async function refreshMessages(){if(!currentThread)return;const {data,error}=await sb.rpc("founder_appeal_messages_list",{p_thread_id:currentThread});const chat=document.getElementById("chat");if(chat){chat.innerHTML=renderMessages(data||[],error);scrollChat()}if(isFounder){const {data:t}=await sb.rpc("founder_appeal_threads_list");if(t){threads=t;renderThreadList()}}}
 
-async function sendMessage(){const el=document.getElementById("message");const msg=el?.value.trim();if(!msg||!currentThread)return;const {error}=await sb.rpc("send_founder_appeal_message",{p_thread_id:currentThread,p_message:msg});if(error){alert(error.message);return}el.value=""}
+async function sendMessage(){const el=document.getElementById("message");const msg=el?.value.trim();if(!msg||!currentThread)return;const {error}=await sb.rpc("send_founder_appeal_message",{p_thread_id:currentThread,p_message:msg});if(error){alert(friendlyError(error));return}el.value=""}
 
-async function closeThread(id){if(!confirm("Закрыть этот чат? Пользователь больше не сможет писать в него, но история сохранится."))return;const {error}=await sb.rpc("close_founder_appeal",{p_thread_id:id});if(error){alert(error.message);return}if(channel){await sb.removeChannel(channel);channel=null}await loadFounderThreads()}
+async function closeThread(id){if(!confirm("Закрыть этот чат? Пользователь больше не сможет писать в него, но история сохранится."))return;const {error}=await sb.rpc("close_founder_appeal",{p_thread_id:id});if(error){alert(friendlyError(error));return}if(channel){await sb.removeChannel(channel);channel=null}await loadFounderThreads()}
 
 function subscribe(id){if(channel)sb.removeChannel(channel);channel=sb.channel("founder-appeal-"+id).on("postgres_changes",{event:"INSERT",schema:"public",table:"founder_appeal_messages",filter:"thread_id=eq."+id},()=>refreshMessages()).subscribe()}
 function scrollChat(){requestAnimationFrame(()=>{const c=document.getElementById("chat");if(c)c.scrollTop=c.scrollHeight})}
