@@ -764,6 +764,7 @@ function friendlyError(error){
             jobs.push(loadStateAnnouncementAdminList());
             jobs.push(loadAllianceProposals());
             jobs.push(loadStateServiceOffers());
+            jobs.push(loadCommunityLinksAdmin());
         }
 
         await Promise.all(jobs);
@@ -794,6 +795,16 @@ function friendlyError(error){
                     <p>Личные обращения к Основателю. Каждый диалог изолирован от остальных.</p>
                     <div class="reward-actions" style="margin-bottom:14px">
                         <a href="founder-chat.html" class="secondary" style="display:inline-block;text-decoration:none;padding:10px 14px;border-radius:7px">Открыть обращения</a>
+                    </div>
+                </div>
+
+                <div class="reward-panel">
+                    <h2>Telegram Нерии</h2>
+                    <p>После создания отдельного Telegram-чата и канала вставьте сюда ссылки. Они появятся на странице «Сообщество».</p>
+                    <div class="reward-controls" style="grid-template-columns:1fr 1fr auto">
+                        <input id="telegramChatUrl" type="url" placeholder="Ссылка на Telegram-чат">
+                        <input id="telegramChannelUrl" type="url" placeholder="Ссылка на Telegram-канал">
+                        <button type="button" class="primary" onclick="saveCommunityLinks()">Сохранить</button>
                     </div>
                 </div>
 
@@ -1166,6 +1177,27 @@ function showAdminSection(section, button) {
     }
 
 
+
+    async function loadCommunityLinksAdmin(){
+        const chat=document.getElementById("telegramChatUrl");
+        const channel=document.getElementById("telegramChannelUrl");
+        if(!chat||!channel)return;
+        const {data,error}=await supabaseClient.rpc("get_community_links");
+        if(error)return;
+        chat.value=data?.[0]?.telegram_chat_url||"";
+        channel.value=data?.[0]?.telegram_channel_url||"";
+    }
+
+    async function saveCommunityLinks(){
+        const chat=document.getElementById("telegramChatUrl")?.value?.trim()||"";
+        const channel=document.getElementById("telegramChannelUrl")?.value?.trim()||"";
+        const valid=x=>!x||/^https:\/\/t\.me\//i.test(x);
+        if(!valid(chat)||!valid(channel)){alert("Используйте ссылки Telegram вида https://t.me/...");return;}
+        const {error}=await supabaseClient.rpc("founder_set_community_links",{p_chat_url:chat,p_channel_url:channel});
+        if(error){alert("Не удалось сохранить ссылки.");return;}
+        alert("Ссылки Telegram сохранены.");
+    }
+
     async function loadGovernmentRoles() {
         const el = document.getElementById("governmentRoleList");
         if (!el) return;
@@ -1205,6 +1237,11 @@ function showAdminSection(section, button) {
                         Number(c.internal_id) + ',\'mvd\',' + (!c.mvd) +
                     ')">' +
                         (c.mvd ? 'Снять роль МВД' : 'Назначить МВД') +
+                    '</button>' +
+                    '<button class="' + (c.journalist ? 'danger' : 'success') + '" onclick="setGovernmentRole(' +
+                        Number(c.internal_id) + ',\'journalist\',' + (!c.journalist) +
+                    ')">' +
+                        (c.journalist ? 'Снять роль журналиста' : 'Назначить журналистом') +
                     '</button>' +
                 '</div>' +
             '</div>';
