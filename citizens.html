@@ -98,7 +98,7 @@
 
         .citizen {
             display: grid;
-            grid-template-columns: 100px 1.5fr 1fr 1fr 1fr;
+            grid-template-columns: 72px 100px 1.5fr 1fr 1fr 1fr;
             gap: 20px;
             padding: 18px 22px;
             border-bottom: 1px solid #eeeeF1;
@@ -125,6 +125,35 @@
 
         .nickname {
             font-weight: 600;
+        }
+
+        .avatar-cell {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .citizen-avatar,
+        .citizen-avatar-fallback {
+            width: 38px;
+            height: 38px;
+            border-radius: 50%;
+            border: 1px solid #ded7f0;
+            background: #f2eef9;
+        }
+
+        .citizen-avatar {
+            object-fit: cover;
+            display: block;
+        }
+
+        .citizen-avatar-fallback {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #6d3fc0;
+            font-size: 14px;
+            font-weight: 700;
         }
 
         .empty {
@@ -376,6 +405,7 @@ async function loadCitizens() {
 
             <div class="citizen header">
 
+                <div>Аватар</div>
                 <div>ID</div>
                 <div>Никнейм</div>
                 <div>Имя</div>
@@ -425,6 +455,21 @@ async function loadCitizens() {
     html += `</div>`;
 
     content.innerHTML = html;
+}
+
+
+function getAvatarUrl(path) {
+
+    if (!path) {
+        return "";
+    }
+
+    const { data } =
+        supabaseClient.storage
+            .from("avatars")
+            .getPublicUrl(path);
+
+    return data.publicUrl;
 }
 
 
