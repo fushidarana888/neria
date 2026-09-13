@@ -107,6 +107,51 @@
             overflow: hidden;
         }
 
+        .money-panel {
+            margin-bottom: 22px;
+            padding: 22px;
+            background: #ffffff;
+            border: 1px solid #e5e5e8;
+            border-radius: 14px;
+        }
+
+        .money-panel h2 {
+            font-size: 20px;
+            margin-bottom: 8px;
+        }
+
+        .money-panel p {
+            color: #777780;
+            font-size: 13px;
+            line-height: 1.5;
+            margin-bottom: 16px;
+        }
+
+        .money-form {
+            display: grid;
+            grid-template-columns: 180px 1fr auto;
+            gap: 10px;
+        }
+
+        .money-form input {
+            width: 100%;
+            padding: 11px 12px;
+            border: 1px solid #dcdce1;
+            border-radius: 7px;
+            font: inherit;
+            font-size: 13px;
+        }
+
+        .money-form input:focus {
+            outline: none;
+            border-color: #6d3fc0;
+        }
+
+        .primary {
+            background: #6d3fc0;
+            color: #ffffff;
+        }
+
         .toolbar {
             padding: 18px 20px;
             border-bottom: 1px solid #e5e5e8;
@@ -279,6 +324,10 @@
         }
 
         @media (max-width: 700px) {
+            .money-form {
+                grid-template-columns: 1fr;
+            }
+
             header {
                 padding: 14px 20px;
             }
@@ -499,6 +548,39 @@
     function renderShell() {
 
         adminContent.innerHTML = `
+            <div class="money-panel">
+                <h2>Экономика NR</h2>
+                <p>
+                    Эмиссия в государственную казну увеличивает общее количество NR в системе.
+                    Прямое начисление гражданину используется отдельно и также создаёт новые NR.
+                </p>
+
+                <div class="money-form">
+                    <input
+                        type="number"
+                        id="treasuryMintAmount"
+                        min="1"
+                        step="1"
+                        placeholder="Сумма NR"
+                    >
+
+                    <input
+                        type="text"
+                        id="treasuryMintReason"
+                        maxlength="250"
+                        placeholder="Причина, например: плановое пополнение казны"
+                    >
+
+                    <button
+                        type="button"
+                        class="primary"
+                        onclick="mintToTreasury()"
+                    >
+                        Пополнить казну
+                    </button>
+                </div>
+            </div>
+
             <div class="panel">
 
                 <div class="toolbar">
@@ -638,6 +720,7 @@
                             <th>Имя</th>
                             <th>Дата рождения</th>
                             <th>Статус</th>
+                            <th>Баланс NR</th>
                             <th>Изменён</th>
                             <th>Регистрация</th>
                             <th>Действия</th>
@@ -721,6 +804,15 @@
                         ${reasonHtml}
                     </td>
 
+                    <td>
+                        <strong>
+                            ${escapeHtml(
+                                new Intl.NumberFormat("ru-RU")
+                                    .format(Number(citizen.wallet_balance || 0))
+                            )} NR
+                        </strong>
+                    </td>
+
                     <td class="muted">
                         ${escapeHtml(
                             formatDate(
@@ -762,6 +854,16 @@
                                 )"
                             >
                                 ${citizen.can_upload_avatar ? "Убрать VIP" : "Выдать VIP"}
+                            </button>
+
+                            <button
+                                type="button"
+                                class="success"
+                                onclick="mintToCitizen(
+                                    ${Number(citizen.internal_id)}
+                                )"
+                            >
+                                Начислить NR
                             </button>
 
                         </div>
@@ -858,6 +960,133 @@
                     </button>
                 `;
         }
+    }
+
+
+    async function mintToTreasury() {
+
+        const amountInput =
+            document.getElementById("treasuryMintAmount");
+
+        const reasonInput =
+            document.getElementById("treasuryMintReason");
+
+        const amount =
+            Number(amountInput?.value);
+
+        const reason =
+            reasonInput?.value?.trim();
+
+        if (!Number.isSafeInteger(amount) || amount <= 0) {
+            alert("Введите положительное целое количество NR.");
+            return;
+        }
+
+        if (!reason) {
+            alert("Укажите причину пополнения казны.");
+            return;
+        }
+
+        if (!confirm(
+            "Создать " +
+            new Intl.NumberFormat("ru-RU").format(amount) +
+            " NR и зачислить их в государственную казну?"
+        )) {
+            return;
+        }
+
+        const { error } =
+            await supabaseClient.rpc(
+                "admin_mint_to_treasury",
+                {
+                    p_amount: amount,
+                    p_reason: reason
+                }
+            );
+
+        if (error) {
+            console.error(error);
+            alert(
+                "Не удалось пополнить казну:\n" +
+                error.message
+            );
+            return;
+        }
+
+        amountInput.value = "";
+        reasonInput.value = "";
+
+        alert("Казна пополнена.");
+    }
+
+
+    async function mintToCitizen(internalId) {
+
+        const citizen =
+            getCitizen(internalId);
+
+        if (!citizen) return;
+
+        const amountRaw =
+            prompt(
+                "Сколько NR создать и начислить гражданину " +
+                formatCitizenNumber(citizen.citizen_number) +
+                " (" + citizen.nickname + ")?"
+            );
+
+        if (amountRaw === null) return;
+
+        const amount =
+            Number(amountRaw.trim());
+
+        if (!Number.isSafeInteger(amount) || amount <= 0) {
+            alert("Введите положительное целое количество NR.");
+            return;
+        }
+
+        const reason =
+            prompt(
+                "Причина начисления:",
+                "Тестовое начисление"
+            );
+
+        if (reason === null) return;
+
+        if (!reason.trim()) {
+            alert("Причина обязательна.");
+            return;
+        }
+
+        if (!confirm(
+            "Создать и начислить " +
+            new Intl.NumberFormat("ru-RU").format(amount) +
+            " NR гражданину " +
+            formatCitizenNumber(citizen.citizen_number) +
+            "?"
+        )) {
+            return;
+        }
+
+        const { error } =
+            await supabaseClient.rpc(
+                "admin_mint_to_citizen",
+                {
+                    p_citizen_id: internalId,
+                    p_amount: amount,
+                    p_reason: reason.trim()
+                }
+            );
+
+        if (error) {
+            console.error(error);
+            alert(
+                "Не удалось начислить NR:\n" +
+                error.message
+            );
+            return;
+        }
+
+        await loadCitizens();
     }
 
 
