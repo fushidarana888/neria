@@ -6,8 +6,8 @@
 <main><h1>Доска объявлений</h1><p class="lead">Частные предложения и запросы граждан Нерии. Для сделок используется удержание NR.</p>
 <section class="box"><h2>Новое объявление</h2><div class="form">
 <select id="type"><option value="offer">Предлагаю</option><option value="request">Ищу</option></select>
-<input id="title" maxlength="100" placeholder="Заголовок"><input id="price" type="number" min="1" step="1" placeholder="Цена NR (можно пусто)">
-<textarea id="description" maxlength="2000" placeholder="Описание"></textarea></div><button class="btn" onclick="createListing()">Опубликовать</button></section>
+<input id="title" maxlength="100" placeholder="Заголовок"><input id="price" type="number" min="1" step="1" placeholder="Цена в NR">
+<textarea id="description" maxlength="2000" placeholder="Описание"></textarea></div><div class="note" style="margin:9px 0 13px">Цена необязательна. Если оставить поле «Цена в NR» пустым, в объявлении будет указано <strong>«Цена договорная»</strong>.</div><button class="btn" onclick="createListing()">Опубликовать</button></section>
 <section class="box"><h2>Объявления</h2><div class="tabs"><button id="allTab" class="on" onclick="setFilter('all')">Все</button><button id="offerTab" onclick="setFilter('offer')">Предлагают</button><button id="requestTab" onclick="setFilter('request')">Ищут</button></div><div id="list" class="grid"><div class="empty">Загрузка…</div></div></section>
 <section class="box"><h2>Отклики на мои запросы</h2><div id="responses"><div class="empty">Загрузка…</div></div></section>
 <section class="box"><h2>Мои сделки</h2><div id="deals"><div class="empty">Загрузка…</div></div><div class="note">После выполнения обязательств обе стороны подтверждают завершение. При споре NR остаются замороженными.</div></section>
