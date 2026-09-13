@@ -1245,14 +1245,14 @@ function showAdminSection(section, button) {
                         (c.journalist ? 'Снять роль журналиста' : 'Назначить журналистом') +
                     '</button>' +
                     '<button class="secondary" onclick="setCitizenPrefix(' +
-                        Number(c.internal_id) + ',\'' + escapeHtml((c.prefix || '').replace(/'/g,"&#39;")) + '\')">Префикс</button>' +
+                        Number(c.internal_id) + ')">Префикс</button>' +
                 '</div>' +
             '</div>';
         }).join("");
     }
 
-    async function setCitizenPrefix(citizenId,currentPrefix) {
-        const value=prompt("Префикс гражданина (до 40 символов). Оставьте пустым, чтобы убрать:", currentPrefix || "");
+    async function setCitizenPrefix(citizenId) {
+        const value=prompt("Новый префикс гражданина (до 40 символов). Оставьте пустым, чтобы убрать:", "");
         if(value===null)return;
         if(value.trim().length>40){alert("Префикс не может быть длиннее 40 символов.");return;}
         const {error}=await supabaseClient.rpc("founder_set_citizen_prefix",{p_citizen_id:citizenId,p_prefix:value.trim()||null});
