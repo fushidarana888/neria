@@ -80,7 +80,7 @@ const esc=v=>String(v??"").replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>
 const dt=v=>v?new Date(v).toLocaleString("ru-RU"):"—";
 function setFilter(v){filter=v;["all","economy_minister","mvd"].forEach(x=>document.getElementById(x).classList.toggle("on",x===v));render()}
 function render(){const list=document.getElementById("list");const data=rows.filter(x=>filter==="all"||x.role===filter);if(!data.length){list.innerHTML='<div class="empty">Записей пока нет.</div>';return}list.innerHTML=data.map(x=>'<div class="row"><div class="top"><div><div class="name">'+esc(x.minister_nickname||"Неизвестно")+' · #'+String(x.minister_number||"").padStart(6,"0")+'</div><div class="role">'+(x.role==="economy_minister"?"Министр экономики":"МВД")+'</div></div><div class="meta">'+esc(dt(x.created_at))+'</div></div><div class="action">'+esc(x.action)+'</div>'+(x.target?'<div class="meta">Объект: '+esc(x.target)+'</div>':'')+(x.details?'<div class="details">'+esc(x.details)+'</div>':'')+'</div>').join("")}
-async function load(){const {data:{user}}=await sb.auth.getUser();if(!user){location.href="login.html";return}const {data,error}=await sb.rpc("founder_get_minister_actions");if(error){document.getElementById("list").innerHTML='<div class="empty">'+esc(error.message)+'</div>';return}rows=data||[];render()}
+async function load(){const {data:{user}}=await sb.auth.getUser();if(!user){location.href="registration.html";return}const {data,error}=await sb.rpc("founder_get_minister_actions");if(error){document.getElementById("list").innerHTML='<div class="empty">'+esc(error.message)+'</div>';return}rows=data||[];render()}
 load();
 </script>
 </body>
