@@ -1784,6 +1784,14 @@ function showAdminSection(section, button) {
                                 >
                                     ${citizen.can_upload_avatar ? "Убрать VIP" : "Выдать VIP"}
                                 </button>
+
+                                <button
+                                    type="button"
+                                    class="secondary"
+                                    onclick="setCitizenPrefix(${Number(citizen.internal_id)})"
+                                >
+                                    Префикс
+                                </button>
                             ` : ""}
 
                             ${actionButtons}
