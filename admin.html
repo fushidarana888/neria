@@ -100,6 +100,16 @@
             line-height: 1.5;
         }
 
+        .admin-menu{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:24px}
+        .admin-menu button{background:#fff;border:1px solid #e5e5e8;border-radius:12px;padding:16px;text-align:left;font-size:14px;color:#333;transition:.15s}
+        .admin-menu button:hover{border-color:#bca7df;transform:translateY(-1px)}
+        .admin-menu button.active{background:#f7f3fc;border-color:#6d3fc0;color:#6d3fc0}
+        .admin-menu strong{display:block;font-size:16px;margin-bottom:5px}.admin-menu span{display:block;font-size:12px;color:#85858e;font-weight:400;line-height:1.35}
+        .admin-section{display:none}.admin-section.active{display:block}
+        .section-heading{margin:0 0 15px}.section-heading h2{font-size:25px;margin-bottom:5px}.section-heading p{color:#777780;font-size:13px;line-height:1.5}
+        @media(max-width:850px){.admin-menu{grid-template-columns:repeat(2,1fr)}}
+        @media(max-width:500px){.admin-menu{grid-template-columns:1fr}}
+
         .panel {
             background: #ffffff;
             border: 1px solid #e5e5e8;
@@ -633,135 +643,115 @@
 
 
     function renderShell() {
-
-        const economyHtml = governmentRoles.economy_minister ? `
-            <div class="money-panel">
-                <h2>Экономика NR</h2>
-                <p>
-                    Эмиссия в государственную казну увеличивает общее количество NR в системе.
-                    Прямое начисление гражданину используется отдельно и также создаёт новые NR.
-                </p>
-
-                <div class="money-form">
-                    <input type="number" id="treasuryMintAmount" min="1" step="1" placeholder="Сумма NR">
-                    <input type="text" id="treasuryMintReason" maxlength="250" placeholder="Причина, например: плановое пополнение казны">
-                    <button type="button" class="primary" onclick="mintToTreasury()">Пополнить казну</button>
-                    ${governmentRoles.is_founder ? '<button type="button" class="danger" onclick="burnFromTreasury()">Удалить NR из казны</button>' : ''}
-                </div>
-            </div>
-
-            <div class="reward-panel">
-                <h2>Массовая награда из казны</h2>
-                <p>
-                    Выберите участников мероприятия. Каждому будет выплачена одинаковая сумма
-                    из существующего баланса государственной казны.
-                </p>
-
-                <div class="reward-controls">
-                    <input type="number" id="rewardAmount" min="1" step="1" placeholder="NR каждому">
-                    <input type="text" id="rewardReason" maxlength="250" placeholder="Причина, например: награда за мероприятие">
-                    <button type="button" class="secondary" onclick="toggleAllRewardRecipients(true)">Выбрать всех</button>
-                </div>
-
-                <div class="reward-list" id="rewardRecipientList">
-                    <span class="muted">Список появится после загрузки граждан.</span>
-                </div>
-
-                <div class="reward-actions">
-                    <button type="button" class="primary" onclick="payBulkReward()">Выплатить награду</button>
-                    <button type="button" class="secondary" onclick="toggleAllRewardRecipients(false)">Снять выбор</button>
-                    <span class="reward-count" id="rewardCount">Выбрано: 0</span>
-                </div>
-            </div>
-
-            <div class="dispute-panel">
-                <h2>Активные сделки</h2>
-                <p>
-                    Все текущие сделки без спора. Здесь можно открыть сделку и прочитать переписку.
-                </p>
-                <div id="activeMarketDeals">
-                    <div class="loading">Загрузка активных сделок...</div>
-                </div>
-            </div>
-
-            <div class="dispute-panel">
-                <h2>Споры по сделкам</h2>
-                <p>
-                    Здесь находятся сделки, по которым одна из сторон открыла спор.
-                    Средства остаются в удержании до решения.
-                </p>
-                <div id="marketDisputes">
-                    <div class="loading">Загрузка споров...</div>
-                </div>
-            </div>
-        ` : "";
-
-        const allDealsHtml = governmentRoles.is_founder ? `
-            <div class="dispute-panel">
-                <h2>Все сделки граждан</h2>
-                <p>
-                    Полный журнал сделок Нерии: активные, спорные, завершённые и возвращённые.
-                    Основатель может открыть любую сделку и прочитать её переписку.
-                </p>
-                <div id="allMarketDeals">
-                    <div class="loading">Загрузка всех сделок...</div>
-                </div>
-            </div>
-        ` : "";
-
-        const rolesHtml = governmentRoles.is_founder ? `
-            <div class="reward-panel">
-                <h2>Государственные роли</h2>
-                <p>
-                    Основатель может назначать и снимать Министра экономики и сотрудников МВД.
-                    Эти роли получают только свои административные полномочия.
-                </p>
-                <div class="reward-actions" style="margin-bottom:14px">
-                    <a href="minister-actions.html" class="secondary" style="display:inline-block;text-decoration:none;padding:10px 14px;border-radius:7px">
-                        Действия министров
-                    </a>
-                </div>
-                <div id="governmentRoleList">
-                    <div class="loading">Загрузка ролей...</div>
-                </div>
-            </div>
-
-            <div class="dispute-panel">
-                <h2>Открытые объявления</h2>
-                <p>
-                    Объявления, которые сейчас ждут вторую сторону. Просмотр только для Основателя:
-                    нельзя писать, выбирать исполнителя или завершать сделку.
-                </p>
-                <div id="openMarketListings">
-                    <div class="loading">Загрузка открытых объявлений...</div>
-                </div>
-            </div>
-        ` : "";
+        const menu = [
+            governmentRoles.is_founder ? ["overview","Управление","Роли и контроль министров"] : null,
+            governmentRoles.economy_minister ? ["economy","Экономика","Казна, NR и выплаты"] : null,
+            governmentRoles.economy_minister ? ["deals","Сделки","Сделки, объявления и споры"] : null,
+            ["citizens","Граждане",governmentRoles.mvd ? "Гражданство и управление" : "Список и кошельки"]
+        ].filter(Boolean);
 
         adminContent.innerHTML = `
-            ${rolesHtml}
-            ${allDealsHtml}
-            ${economyHtml}
-
-            <div class="panel">
-                <div class="toolbar">
-                    <div class="toolbar-info" id="citizenSummary">
-                        Загружаем граждан...
-                    </div>
-                    <button type="button" class="secondary" onclick="loadCitizens()">Обновить</button>
-                </div>
-
-                <div id="citizenList">
-                    <div class="loading">
-                        Загрузка списка граждан...
-                    </div>
-                </div>
+            <div class="admin-menu">
+                ${menu.map((x,i)=>'<button type="button" class="'+(i===0?'active':'')+'" data-section="'+x[0]+'" onclick="showAdminSection(\''+x[0]+'\',this)"><strong>'+x[1]+'</strong><span>'+x[2]+'</span></button>').join("")}
             </div>
+
+            ${governmentRoles.is_founder ? `
+            <section class="admin-section" id="section-overview">
+                <div class="section-heading"><h2>Управление государством</h2><p>Государственные должности и контроль действий назначенных министров.</p></div>
+                <div class="reward-panel">
+                    <h2>Государственные роли</h2>
+                    <p>Назначение и снятие Министра экономики и МВД.</p>
+                    <div class="reward-actions" style="margin-bottom:14px">
+                        <a href="minister-actions.html" class="secondary" style="display:inline-block;text-decoration:none;padding:10px 14px;border-radius:7px">Действия министров</a>
+                    </div>
+                    <div id="governmentRoleList"><div class="loading">Загрузка ролей...</div></div>
+                </div>
+            </section>` : ""}
+
+            ${governmentRoles.economy_minister ? `
+            <section class="admin-section" id="section-economy">
+                <div class="section-heading"><h2>Экономика</h2><p>Операции с NR и выплаты из государственной казны.</p></div>
+                <div class="money-panel">
+                    <h2>Экономика NR</h2>
+                    <p>Эмиссия в казну и административные операции с NR.</p>
+                    <div class="money-form">
+                        <input type="number" id="treasuryMintAmount" min="1" step="1" placeholder="Сумма NR">
+                        <input type="text" id="treasuryMintReason" maxlength="250" placeholder="Причина">
+                        <button type="button" class="primary" onclick="mintToTreasury()">Пополнить казну</button>
+                        ${governmentRoles.is_founder ? '<button type="button" class="danger" onclick="burnFromTreasury()">Удалить NR из казны</button>' : ''}
+                    </div>
+                </div>
+                <div class="reward-panel">
+                    <h2>Массовая награда из казны</h2>
+                    <p>Одинаковая выплата выбранным гражданам из существующего баланса казны.</p>
+                    <div class="reward-controls">
+                        <input type="number" id="rewardAmount" min="1" step="1" placeholder="NR каждому">
+                        <input type="text" id="rewardReason" maxlength="250" placeholder="Причина выплаты">
+                        <button type="button" class="secondary" onclick="toggleAllRewardRecipients(true)">Выбрать всех</button>
+                    </div>
+                    <div class="reward-list" id="rewardRecipientList"><span class="muted">Список появится после загрузки граждан.</span></div>
+                    <div class="reward-actions">
+                        <button type="button" class="primary" onclick="payBulkReward()">Выплатить награду</button>
+                        <button type="button" class="secondary" onclick="toggleAllRewardRecipients(false)">Снять выбор</button>
+                        <span class="reward-count" id="rewardCount">Выбрано: 0</span>
+                    </div>
+                </div>
+            </section>
+
+            <section class="admin-section" id="section-deals">
+                <div class="section-heading"><h2>Сделки</h2><p>Вся торговая активность и разрешение экономических споров.</p></div>
+                ${governmentRoles.is_founder ? `
+                <div class="dispute-panel">
+                    <h2>Открытые объявления</h2>
+                    <p>Объявления, которые ждут вторую сторону. Только просмотр.</p>
+                    <div id="openMarketListings"><div class="loading">Загрузка...</div></div>
+                </div>
+                <div class="dispute-panel">
+                    <h2>Все сделки граждан</h2>
+                    <p>Активные, спорные, завершённые и возвращённые сделки.</p>
+                    <div id="allMarketDeals"><div class="loading">Загрузка...</div></div>
+                </div>` : ""}
+                <div class="dispute-panel">
+                    <h2>Активные сделки</h2>
+                    <p>Текущие сделки без открытого спора.</p>
+                    <div id="activeMarketDeals"><div class="loading">Загрузка...</div></div>
+                </div>
+                <div class="dispute-panel">
+                    <h2>Споры по сделкам</h2>
+                    <p>Сделки, по которым одна из сторон открыла спор.</p>
+                    <div id="marketDisputes"><div class="loading">Загрузка...</div></div>
+                </div>
+            </section>` : ""}
+
+            <section class="admin-section" id="section-citizens">
+                <div class="section-heading"><h2>Граждане</h2><p>Список граждан и доступные вашей должности действия.</p></div>
+                <div class="panel">
+                    <div class="toolbar">
+                        <div class="toolbar-info" id="citizenSummary">Загружаем граждан...</div>
+                        <button type="button" class="secondary" onclick="loadCitizens()">Обновить</button>
+                    </div>
+                    <div id="citizenList"><div class="loading">Загрузка списка граждан...</div></div>
+                </div>
+            </section>
         `;
+
+        const first = menu[0]?.[0];
+        if (first) {
+            const firstSection = document.getElementById("section-" + first);
+            if (firstSection) firstSection.classList.add("active");
+        }
+    }
+
+    function showAdminSection(section, button) {
+        document.querySelectorAll(".admin-section").forEach(x=>x.classList.remove("active"));
+        document.querySelectorAll(".admin-menu button").forEach(x=>x.classList.remove("active"));
+        const target=document.getElementById("section-"+section);
+        if(target) target.classList.add("active");
+        if(button) button.classList.add("active");
     }
 
 
-    async function loadOpenMarketListings() {
+        async function loadOpenMarketListings() {
         const el = document.getElementById("openMarketListings");
         if (!el) return;
 
