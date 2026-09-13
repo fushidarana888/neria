@@ -81,8 +81,8 @@ async function initFounderControls(){
     const {data:{session}}=await supabaseClient.auth.getSession();
     if(!session)return;
 
-    const {data:isAdmin,error:adminError}=await supabaseClient.rpc("is_admin");
-    if(adminError||!isAdmin)return;
+    const {data:isFounder,error:founderError}=await supabaseClient.rpc("is_founder");
+    if(founderError||!isFounder)return;
 
     const panel=document.getElementById("founderPanel");
     panel.style.display="block";
