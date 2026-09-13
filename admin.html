@@ -625,6 +625,7 @@
         if (governmentRoles.is_founder) {
             jobs.push(loadGovernmentRoles());
             jobs.push(loadAllMarketDeals());
+            jobs.push(loadOpenMarketListings());
         }
 
         await Promise.all(jobs);
@@ -645,7 +646,7 @@
                     <input type="number" id="treasuryMintAmount" min="1" step="1" placeholder="Сумма NR">
                     <input type="text" id="treasuryMintReason" maxlength="250" placeholder="Причина, например: плановое пополнение казны">
                     <button type="button" class="primary" onclick="mintToTreasury()">Пополнить казну</button>
-                    <button type="button" class="danger" onclick="burnFromTreasury()">Удалить NR из казны</button>
+                    ${governmentRoles.is_founder ? '<button type="button" class="danger" onclick="burnFromTreasury()">Удалить NR из казны</button>' : ''}
                 </div>
             </div>
 
@@ -715,8 +716,24 @@
                     Основатель может назначать и снимать Министра экономики и сотрудников МВД.
                     Эти роли получают только свои административные полномочия.
                 </p>
+                <div class="reward-actions" style="margin-bottom:14px">
+                    <a href="minister-actions.html" class="secondary" style="display:inline-block;text-decoration:none;padding:10px 14px;border-radius:7px">
+                        Действия министров
+                    </a>
+                </div>
                 <div id="governmentRoleList">
                     <div class="loading">Загрузка ролей...</div>
+                </div>
+            </div>
+
+            <div class="dispute-panel">
+                <h2>Открытые объявления</h2>
+                <p>
+                    Объявления, которые сейчас ждут вторую сторону. Просмотр только для Основателя:
+                    нельзя писать, выбирать исполнителя или завершать сделку.
+                </p>
+                <div id="openMarketListings">
+                    <div class="loading">Загрузка открытых объявлений...</div>
                 </div>
             </div>
         ` : "";
@@ -741,6 +758,65 @@
                 </div>
             </div>
         `;
+    }
+
+
+    async function loadOpenMarketListings() {
+        const el = document.getElementById("openMarketListings");
+        if (!el) return;
+
+        const { data, error } =
+            await supabaseClient.rpc("founder_get_open_market_listings");
+
+        if (error) {
+            el.innerHTML =
+                '<div class="error">' +
+                escapeHtml(error.message) +
+                '</div>';
+            return;
+        }
+
+        const rows = data || [];
+
+        if (!rows.length) {
+            el.innerHTML = '<div class="muted">Открытых объявлений нет.</div>';
+            return;
+        }
+
+        el.innerHTML = rows.map(item => {
+            const responses = Array.isArray(item.responses) ? item.responses : [];
+            const responseHtml = responses.length
+                ? '<div style="margin-top:10px"><strong>Отклики и сообщения:</strong>' +
+                  responses.map(r =>
+                    '<div class="dispute-reason" style="margin-top:8px">' +
+                        '<strong>' + escapeHtml(r.responder_nickname || "Гражданин") +
+                        ' · #' + String(r.responder_number || "").padStart(6,"0") + '</strong>' +
+                        (r.proposed_amount ? '<br>Предложение: ' + new Intl.NumberFormat("ru-RU").format(Number(r.proposed_amount)) + ' NR' : '') +
+                        (r.message ? '<br>' + escapeHtml(r.message) : '') +
+                    '</div>'
+                  ).join("") +
+                  '</div>'
+                : '<div class="muted" style="margin-top:8px">Откликов и переписки пока нет.</div>';
+
+            return '<div class="deal-admin-card">' +
+                '<div class="deal-admin-title">' +
+                    escapeHtml(item.title) +
+                    ' · ' +
+                    (item.listing_type === "offer" ? "Предлагаю" : "Ищу") +
+                    ' · ' +
+                    (item.price
+                        ? new Intl.NumberFormat("ru-RU").format(Number(item.price)) + " NR"
+                        : "Цена договорная") +
+                '</div>' +
+                '<div class="deal-admin-meta">' +
+                    'Автор: ' + escapeHtml(item.author_nickname) +
+                    ' · #' + String(item.author_number).padStart(6,"0") +
+                    '<br>Создано: ' + escapeHtml(formatDate(item.created_at)) +
+                '</div>' +
+                '<div class="dispute-reason">' + escapeHtml(item.description) + '</div>' +
+                responseHtml +
+            '</div>';
+        }).join("");
     }
 
 
