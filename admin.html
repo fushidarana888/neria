@@ -636,6 +636,7 @@
             jobs.push(loadGovernmentRoles());
             jobs.push(loadAllMarketDeals());
             jobs.push(loadOpenMarketListings());
+            jobs.push(loadStateAnnouncementAdminList());
         }
 
         await Promise.all(jobs);
@@ -701,8 +702,21 @@
             <section class="admin-section" id="section-deals">
                 <div class="section-heading"><h2>Сделки</h2><p>Вся торговая активность и разрешение экономических споров.</p></div>
                 ${governmentRoles.is_founder ? `
+                <div class="reward-panel">
+                    <h2>Государственные объявления</h2>
+                    <p>Публикации от имени государства показываются на Доске объявлений отдельно от частных предложений граждан.</p>
+                    <div class="reward-controls" style="grid-template-columns:1fr 180px">
+                        <input type="text" id="stateAnnouncementTitle" maxlength="120" placeholder="Заголовок государственного объявления">
+                        <input type="number" id="stateAnnouncementPrice" min="1" step="1" placeholder="Цена NR (необязательно)">
+                    </div>
+                    <textarea id="stateAnnouncementDescription" maxlength="2500" placeholder="Текст государственного объявления" style="width:100%;min-height:105px;resize:vertical;padding:11px 12px;border:1px solid #dcdce1;border-radius:7px;font:inherit"></textarea>
+                    <div class="reward-actions">
+                        <button type="button" class="primary" onclick="publishStateAnnouncement()">Опубликовать от имени государства</button>
+                    </div>
+                    <div id="stateAnnouncementAdminList" style="margin-top:16px"><div class="loading">Загрузка государственных объявлений...</div></div>
+                </div>
                 <div class="dispute-panel">
-                    <h2>Открытые объявления</h2>
+                    <h2>Открытые объявления граждан</h2>
                     <p>Объявления, которые ждут вторую сторону. Только просмотр.</p>
                     <div id="openMarketListings"><div class="loading">Загрузка...</div></div>
                 </div>
@@ -751,7 +765,42 @@
     }
 
 
-        async function loadOpenMarketListings() {
+        async function loadStateAnnouncementAdminList() {
+        const el = document.getElementById("stateAnnouncementAdminList");
+        if (!el) return;
+        const { data, error } = await supabaseClient.rpc("state_market_announcements_list");
+        if (error) { el.innerHTML = '<div class="error">' + escapeHtml(error.message) + '</div>'; return; }
+        const rows = data || [];
+        if (!rows.length) { el.innerHTML = '<div class="muted">Активных государственных объявлений нет.</div>'; return; }
+        el.innerHTML = rows.map(x => '<div class="deal-admin-card"><div class="deal-admin-title">' + escapeHtml(x.title) + (x.price ? ' · ' + new Intl.NumberFormat("ru-RU").format(Number(x.price)) + ' NR' : '') + '</div><div class="deal-admin-meta">Опубликовано: ' + escapeHtml(formatDate(x.created_at)) + '</div><div class="dispute-reason">' + escapeHtml(x.description) + '</div><button type="button" class="danger" onclick="deleteStateAnnouncement(' + Number(x.id) + ')">Снять объявление</button></div>').join("");
+    }
+
+    async function publishStateAnnouncement() {
+        const title = document.getElementById("stateAnnouncementTitle")?.value?.trim();
+        const description = document.getElementById("stateAnnouncementDescription")?.value?.trim();
+        const rawPrice = document.getElementById("stateAnnouncementPrice")?.value?.trim();
+        const price = rawPrice ? Number(rawPrice) : null;
+        if (!title || title.length < 3) { alert("Укажите заголовок объявления."); return; }
+        if (!description || description.length < 3) { alert("Укажите текст объявления."); return; }
+        if (price !== null && (!Number.isSafeInteger(price) || price <= 0)) { alert("Цена должна быть положительным целым числом NR."); return; }
+        const { error } = await supabaseClient.rpc("founder_create_state_market_announcement",{p_title:title,p_description:description,p_price:price});
+        if (error) { alert("Не удалось опубликовать объявление:\n" + error.message); return; }
+        document.getElementById("stateAnnouncementTitle").value="";
+        document.getElementById("stateAnnouncementDescription").value="";
+        document.getElementById("stateAnnouncementPrice").value="";
+        await loadStateAnnouncementAdminList();
+        alert("Государственное объявление опубликовано.");
+    }
+
+    async function deleteStateAnnouncement(id) {
+        if (!confirm("Снять это государственное объявление с публикации?")) return;
+        const { error } = await supabaseClient.rpc("founder_delete_state_market_announcement",{p_id:id});
+        if (error) { alert("Не удалось снять объявление:\n" + error.message); return; }
+        await loadStateAnnouncementAdminList();
+    }
+
+
+    async function loadOpenMarketListings() {
         const el = document.getElementById("openMarketListings");
         if (!el) return;
 
