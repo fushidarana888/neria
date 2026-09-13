@@ -280,6 +280,59 @@ async function loadCitizens() {
     }
 
 
+    // Проверяем статус гражданства
+    const {
+        data: citizenshipStatus,
+        error: statusError
+    } = await supabaseClient.rpc(
+        "get_my_citizenship_status"
+    );
+
+
+    if (statusError) {
+
+        console.error(statusError);
+
+        content.innerHTML = `
+            <div class="error">
+                Не удалось проверить статус гражданства.
+            </div>
+        `;
+
+        return;
+    }
+
+
+    if (citizenshipStatus !== "active") {
+
+        let message =
+            "Список граждан доступен только действующим гражданам Нерии.";
+
+        if (citizenshipStatus === "banned") {
+            message =
+                "Ваш аккаунт заблокирован. Доступ к реестру граждан закрыт.";
+        }
+
+        if (citizenshipStatus === "revoked") {
+            message =
+                "Ваше гражданство отозвано. Доступ к реестру граждан закрыт.";
+        }
+
+        if (citizenshipStatus === "resigned") {
+            message =
+                "Вы больше не являетесь гражданином Нерии. Доступ к реестру закрыт.";
+        }
+
+        content.innerHTML = `
+            <div class="error">
+                ${message}
+            </div>
+        `;
+
+        return;
+    }
+
+
     // Получаем список через защищённую функцию
     const {
         data,
