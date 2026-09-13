@@ -692,6 +692,10 @@ function friendlyError(error){
 
         const jobs = [loadCitizens()];
 
+        if (governmentRoles.mvd || governmentRoles.is_founder) {
+            jobs.push(loadCitizenshipApplicationsPanel());
+        }
+
         if (governmentRoles.economy_minister) {
             jobs.push(loadMarketDisputes());
             jobs.push(loadActiveMarketDeals());
@@ -812,6 +816,25 @@ function friendlyError(error){
 
             <section class="admin-section" id="section-citizens">
                 <div class="section-heading"><h2>Граждане</h2><p>Список граждан и доступные вашей должности действия.</p></div>
+
+                ${(governmentRoles.mvd || governmentRoles.is_founder) ? `
+                <div class="reward-panel">
+                    <h2>Заявки на гражданство</h2>
+                    <p>
+                        Система подготовлена заранее. Пока заявочный режим выключен,
+                        гражданство выдаётся сразу после регистрации. После включения
+                        новые граждане будут сначала попадать сюда на рассмотрение МВД.
+                    </p>
+                    <div id="citizenshipApplicationMode" class="muted">Проверяем режим...</div>
+                    ${governmentRoles.is_founder ? `
+                    <div class="reward-actions" style="margin:12px 0">
+                        <button type="button" class="secondary" id="citizenshipModeButton" onclick="toggleCitizenshipApplicationMode()">Изменить режим</button>
+                    </div>` : ""}
+                    <div id="citizenshipApplicationList" style="margin-top:14px">
+                        <div class="loading">Загрузка заявок...</div>
+                    </div>
+                </div>` : ""}
+
                 <div class="panel">
                     <div class="toolbar">
                         <div class="toolbar-info" id="citizenSummary">Загружаем граждан...</div>
@@ -1056,6 +1079,139 @@ function friendlyError(error){
         }
 
         await loadGovernmentRoles();
+    }
+
+
+    let citizenshipApplicationsEnabled = false;
+
+    async function loadCitizenshipApplicationsPanel() {
+        const modeEl = document.getElementById("citizenshipApplicationMode");
+        const listEl = document.getElementById("citizenshipApplicationList");
+        const buttonEl = document.getElementById("citizenshipModeButton");
+        if (!modeEl || !listEl) return;
+
+        const { data: enabled, error: modeError } =
+            await supabaseClient.rpc("citizenship_applications_enabled");
+
+        if (modeError) {
+            modeEl.innerHTML = '<span class="error">' + escapeHtml(friendlyError(modeError)) + '</span>';
+            listEl.innerHTML = "";
+            return;
+        }
+
+        citizenshipApplicationsEnabled = !!enabled;
+        modeEl.innerHTML =
+            '<strong>Текущий режим:</strong> ' +
+            (citizenshipApplicationsEnabled
+                ? '<span style="color:#15803d">заявки через МВД включены</span>'
+                : '<span style="color:#777780">заявки выключены — действует мгновенная регистрация</span>');
+
+        if (buttonEl) {
+            buttonEl.textContent = citizenshipApplicationsEnabled
+                ? "Выключить заявки"
+                : "Включить заявки";
+        }
+
+        if (!citizenshipApplicationsEnabled) {
+            listEl.innerHTML =
+                '<div class="muted">Система готова, но сейчас выключена. Заявок на рассмотрение нет.</div>';
+            return;
+        }
+
+        const { data, error } =
+            await supabaseClient.rpc("mvd_citizenship_applications");
+
+        if (error) {
+            listEl.innerHTML = '<div class="error">' + escapeHtml(friendlyError(error)) + '</div>';
+            return;
+        }
+
+        const rows = data || [];
+        if (!rows.length) {
+            listEl.innerHTML = '<div class="muted">Ожидающих заявок нет.</div>';
+            return;
+        }
+
+        listEl.innerHTML = rows.map(a => {
+            const fullName = [a.first_name,a.surname].filter(Boolean).join(" ") || "—";
+            const birth = String(a.birth_day).padStart(2,"0") + "." +
+                String(a.birth_month).padStart(2,"0") +
+                (a.birth_year ? "." + a.birth_year : "");
+
+            return '<div class="deal-admin-card">' +
+                '<div class="deal-admin-title">' + escapeHtml(a.nickname) + '</div>' +
+                '<div class="deal-admin-meta">' +
+                    'Telegram: ' + escapeHtml(a.telegram_username ? "@" + a.telegram_username.replace(/^@/,"") : "—") +
+                    ' · Имя: ' + escapeHtml(fullName) +
+                    ' · Дата рождения: ' + escapeHtml(birth) +
+                    '<br>Подана: ' + escapeHtml(formatDate(a.created_at)) +
+                '</div>' +
+                '<div class="reward-actions" style="margin-top:10px">' +
+                    '<button type="button" class="success" onclick="reviewCitizenshipApplication(' + Number(a.application_id) + ',true)">Одобрить</button>' +
+                    '<button type="button" class="danger" onclick="reviewCitizenshipApplication(' + Number(a.application_id) + ',false)">Отклонить</button>' +
+                '</div>' +
+            '</div>';
+        }).join("");
+    }
+
+    async function toggleCitizenshipApplicationMode() {
+        if (!governmentRoles.is_founder) return;
+
+        const next = !citizenshipApplicationsEnabled;
+        const text = next
+            ? "Включить заявочный порядок гражданства? После этого новые пользователи не будут становиться гражданами автоматически: их заявки должны будет одобрить Основатель или МВД."
+            : "Выключить заявочный порядок и снова выдавать гражданство сразу после регистрации?";
+
+        if (!confirm(text)) return;
+
+        const { error } = await supabaseClient.rpc(
+            "founder_set_citizenship_applications_enabled",
+            { p_enabled: next }
+        );
+
+        if (error) {
+            alert("Не удалось изменить режим:\n" + friendlyError(error));
+            return;
+        }
+
+        await loadCitizenshipApplicationsPanel();
+    }
+
+    async function reviewCitizenshipApplication(applicationId, approve) {
+        let reason = null;
+
+        if (!approve) {
+            reason = prompt("Причина отклонения заявки:");
+            if (reason === null) return;
+            if (!reason.trim()) {
+                alert("Укажите причину отклонения.");
+                return;
+            }
+        } else {
+            reason = prompt("Комментарий к одобрению (необязательно):", "");
+            if (reason === null) return;
+        }
+
+        if (!confirm(approve ? "Одобрить заявку и выдать гражданство?" : "Отклонить заявку?")) return;
+
+        const { error } = await supabaseClient.rpc(
+            "review_citizenship_application",
+            {
+                p_application_id: applicationId,
+                p_approve: approve,
+                p_reason: reason?.trim() || null
+            }
+        );
+
+        if (error) {
+            alert("Не удалось обработать заявку:\n" + friendlyError(error));
+            return;
+        }
+
+        await Promise.all([
+            loadCitizenshipApplicationsPanel(),
+            loadCitizens()
+        ]);
     }
 
 
