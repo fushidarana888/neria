@@ -874,23 +874,20 @@ if (banned) {
   button.textContent = "Регистрация...";
 
 
-const { data, error } = await supabaseClient
-  .from("citizens")
-  .insert({
-  user_id: session.user.id,
-  nickname: nickname,
-  first_name: firstName || null,
-  surname: lastName || null,
-  birth_day: Number(day),
-  birth_month: Number(month),
-  birth_year: birthYear ? Number(birthYear) : null,
+const { data: registrationData, error } =
+  await supabaseClient.rpc(
+    "register_citizen",
+    {
+      p_nickname: nickname,
+      p_first_name: firstName || "",
+      p_surname: lastName || "",
+      p_birth_day: Number(day),
+      p_birth_month: Number(month),
+      p_birth_year: birthYear ? Number(birthYear) : null
+    }
+  );
 
-  telegram_id: telegramId,
-  telegram_username: telegramUsername,
-  telegram_name: telegramName
-})
-    .select("id, citizen_number, nickname")
-    .single();
+const data = registrationData?.[0] || null;
 
   if (error) {
     button.disabled = false;
@@ -902,6 +899,13 @@ const { data, error } = await supabaseClient
       alert("Ошибка регистрации: " + error.message);
     }
 
+    return;
+  }
+
+  if (!data) {
+    button.disabled = false;
+    button.textContent = "Получить гражданство";
+    alert("Не удалось завершить регистрацию.");
     return;
   }
 
