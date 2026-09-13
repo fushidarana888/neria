@@ -13,8 +13,14 @@ nav{display:flex;gap:26px;flex-wrap:wrap}nav a{font-size:14px;color:#55555d;text
 main{max-width:980px;margin:auto;padding:60px 24px 100px}.back{display:inline-block;margin-bottom:28px;color:#6d3fc0;text-decoration:none;font-size:14px}
 h1{font-size:40px;margin-bottom:10px}.lead{color:#777780;line-height:1.6;margin-bottom:32px}
 .stats{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-bottom:28px}.stat{background:#fff;border:1px solid #e5e5e8;border-radius:14px;padding:25px}.stat-label{font-size:12px;color:#777780;margin-bottom:9px}.stat-value{font-size:28px;font-weight:700}.stat-value.purple{color:#6d3fc0}
-.panel{background:#fff;border:1px solid #e5e5e8;border-radius:14px;overflow:hidden}.panel-head{padding:20px 22px;border-bottom:1px solid #e5e5e8}.panel-head h2{font-size:19px}.history-item{display:grid;grid-template-columns:165px 1fr auto;gap:16px;padding:18px 22px;border-bottom:1px solid #eeeeF1;align-items:center}.history-item:last-child{border-bottom:none}.date{color:#888891;font-size:12px}.reason{font-size:14px;font-weight:600}.type{font-size:12px;color:#777780;margin-top:5px}.amount{font-size:15px;font-weight:700}.positive{color:#15803d}.negative{color:#b91c1c}.empty,.loading{padding:40px 22px;text-align:center;color:#777780}.error{margin:20px;background:#fff3f3;border:1px solid #f0caca;color:#8f3030;border-radius:10px;padding:17px}
-@media(max-width:700px){header{padding:14px 20px;flex-wrap:wrap}.stats{grid-template-columns:1fr}.history-item{grid-template-columns:1fr;gap:7px}.amount{text-align:left}main{padding:40px 15px 75px}h1{font-size:33px}}
+.panel{background:#fff;border:1px solid #e5e5e8;border-radius:14px;overflow:hidden}.panel-head{padding:20px 22px;border-bottom:1px solid #e5e5e8}.panel-head h2{font-size:19px}
+.founder-panel{display:none;margin-bottom:28px;background:#fff;border:1px solid #d9cdef;border-radius:14px;padding:22px}
+.founder-panel h2{font-size:20px;margin-bottom:8px}.founder-panel p{color:#777780;font-size:13px;line-height:1.5;margin-bottom:16px}
+.transfer-form{display:grid;grid-template-columns:1.2fr 160px 1.5fr auto;gap:10px}
+.transfer-form select,.transfer-form input{width:100%;padding:11px 12px;border:1px solid #dcdce1;border-radius:7px;font:inherit;font-size:13px;background:#fff}
+.transfer-form select:focus,.transfer-form input:focus{outline:none;border-color:#6d3fc0}
+.primary-button{border:none;border-radius:7px;background:#6d3fc0;color:#fff;font-weight:700;padding:11px 15px;cursor:pointer}.history-item{display:grid;grid-template-columns:165px 1fr auto;gap:16px;padding:18px 22px;border-bottom:1px solid #eeeeF1;align-items:center}.history-item:last-child{border-bottom:none}.date{color:#888891;font-size:12px}.reason{font-size:14px;font-weight:600}.type{font-size:12px;color:#777780;margin-top:5px}.amount{font-size:15px;font-weight:700}.positive{color:#15803d}.negative{color:#b91c1c}.empty,.loading{padding:40px 22px;text-align:center;color:#777780}.error{margin:20px;background:#fff3f3;border:1px solid #f0caca;color:#8f3030;border-radius:10px;padding:17px}
+@media(max-width:700px){header{padding:14px 20px;flex-wrap:wrap}.stats{grid-template-columns:1fr}.history-item{grid-template-columns:1fr;gap:7px}.amount{text-align:left}main{padding:40px 15px 75px}h1{font-size:33px}.transfer-form{grid-template-columns:1fr}}
 </style>
 </head>
 <body>
@@ -31,6 +37,20 @@ h1{font-size:40px;margin-bottom:10px}.lead{color:#777780;line-height:1.6;margin-
 <div class="stat"><div class="stat-label">В государственной казне</div><div class="stat-value" id="treasuryBalance">—</div></div>
 <div class="stat"><div class="stat-label">На кошельках граждан</div><div class="stat-value" id="citizensBalance">—</div></div>
 </div>
+
+<div class="founder-panel" id="founderPanel">
+<h2>Управление казной</h2>
+<p>Перевод из казны не создаёт новые NR: сумма списывается из государственной казны и зачисляется гражданину.</p>
+<div class="transfer-form">
+<select id="recipientSelect">
+<option value="">Выберите гражданина</option>
+</select>
+<input type="number" id="transferAmount" min="1" step="1" placeholder="Сумма NR">
+<input type="text" id="transferReason" maxlength="250" placeholder="Причина выплаты">
+<button type="button" class="primary-button" onclick="transferFromTreasury()">Передать NR</button>
+</div>
+</div>
+
 <div class="panel">
 <div class="panel-head"><h2>История казны</h2></div>
 <div id="history"><div class="loading">Загрузка истории...</div></div>
@@ -45,6 +65,94 @@ const supabaseClient=window.supabase.createClient(SUPABASE_URL,SUPABASE_PUBLISHA
 function nr(v){return new Intl.NumberFormat("ru-RU").format(Number(v||0))+" NR";}
 function date(v){return new Date(v).toLocaleString("ru-RU");}
 function esc(v){return String(v??"").replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;").replace(/'/g,"&#039;");}
+
+function operationLabel(type){
+    switch(type){
+        case "emission":
+            return "Эмиссия в казну";
+        case "transfer_to_citizen":
+            return "Выплата гражданину";
+        default:
+            return type || "Операция";
+    }
+}
+
+async function initFounderControls(){
+    const {data:{session}}=await supabaseClient.auth.getSession();
+    if(!session)return;
+
+    const {data:isAdmin,error:adminError}=await supabaseClient.rpc("is_admin");
+    if(adminError||!isAdmin)return;
+
+    const panel=document.getElementById("founderPanel");
+    panel.style.display="block";
+
+    const {data,error}=await supabaseClient.rpc("admin_get_citizens");
+    if(error){
+        console.error(error);
+        return;
+    }
+
+    const select=document.getElementById("recipientSelect");
+    const active=(data||[]).filter(c=>c.citizenship_status==="active");
+
+    select.innerHTML='<option value="">Выберите гражданина</option>'+
+        active.map(c=>{
+            const id=String(c.citizen_number).padStart(6,"0");
+            return '<option value="'+Number(c.internal_id)+'">'+
+                esc("#"+id+" · "+(c.nickname||"Без ника"))+
+            '</option>';
+        }).join("");
+}
+
+async function transferFromTreasury(){
+    const citizenId=Number(document.getElementById("recipientSelect").value);
+    const amount=Number(document.getElementById("transferAmount").value);
+    const reason=document.getElementById("transferReason").value.trim();
+
+    if(!Number.isSafeInteger(citizenId)||citizenId<=0){
+        alert("Выберите гражданина.");
+        return;
+    }
+
+    if(!Number.isSafeInteger(amount)||amount<=0){
+        alert("Введите положительное целое количество NR.");
+        return;
+    }
+
+    if(!reason){
+        alert("Укажите причину выплаты.");
+        return;
+    }
+
+    if(!confirm(
+        "Передать из казны "+new Intl.NumberFormat("ru-RU").format(amount)+" NR выбранному гражданину?"
+    )){
+        return;
+    }
+
+    const {error}=await supabaseClient.rpc(
+        "treasury_transfer_to_citizen",
+        {
+            p_citizen_id:citizenId,
+            p_amount:amount,
+            p_reason:reason
+        }
+    );
+
+    if(error){
+        console.error(error);
+        alert("Не удалось выполнить перевод:\n"+error.message);
+        return;
+    }
+
+    document.getElementById("transferAmount").value="";
+    document.getElementById("transferReason").value="";
+
+    await loadStats();
+    await loadHistory();
+    alert("Перевод из казны выполнен.");
+}
 
 async function loadStats(){
     const {data,error}=await supabaseClient.rpc("get_treasury_stats");
@@ -72,13 +180,14 @@ async function loadHistory(){
         const positive=Number(item.amount)>=0;
         return '<div class="history-item">'+
             '<div class="date">'+esc(date(item.created_at))+'</div>'+
-            '<div><div class="reason">'+esc(item.reason)+'</div><div class="type">'+esc(item.operation_type)+'</div></div>'+
+            '<div><div class="reason">'+esc(item.reason)+'</div><div class="type">'+esc(operationLabel(item.operation_type))+'</div></div>'+
             '<div class="amount '+(positive?'positive':'negative')+'">'+(positive?'+':'')+esc(nr(item.amount))+'</div>'+
         '</div>';
     }).join("");
 }
 loadStats();
 loadHistory();
+initFounderControls();
 </script>
 </body>
 </html>
