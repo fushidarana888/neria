@@ -114,6 +114,7 @@ function friendlyError(error){
         ["MVD cannot revoke own citizenship","Сотрудник МВД не может лишить гражданства самого себя."],
         ["MVD cannot revoke Founder citizenship","МВД не может лишить Основателя гражданства."],
         ["Chat is closed","Этот чат уже закрыт."],
+        ["Founder appeals temporarily blocked","Основатель временно ограничил для вас обращения. Попробуйте позже."],
         ["Thread not found","Обращение не найдено."],
         ["Message required","Введите сообщение."],
         ["Reason required","Укажите причину."],
@@ -208,7 +209,7 @@ async function openFounderThread(id){
  const t=threads.find(x=>Number(x.thread_id)===Number(id));
  const {data:m,error}=await sb.rpc("founder_appeal_messages_list",{p_thread_id:id});
  const view=document.getElementById("threadView");if(!view)return;
- view.innerHTML='<div class="chat-head"><div><h2>'+esc(t?.requester_nickname||"Пользователь")+(t?.requester_number?' · #'+String(t.requester_number).padStart(6,"0"):'')+'</h2><div class="thread-meta">Обращение №'+id+'</div></div>'+(t?.status==="open"?'<button class="btn danger" onclick="closeThread('+id+')">Закрыть чат</button>':'<span class="badge closed">ЗАКРЫТО</span>')+'</div><div class="chat" id="chat">'+renderMessages(m||[],error)+'</div>'+(t?.status==="open"?'<div class="form"><textarea id="message" maxlength="3000" placeholder="Ответ гражданину"></textarea><button class="btn" onclick="sendMessage()">Отправить</button></div>':'') ;
+ view.innerHTML='<div class="chat-head"><div><h2>'+esc(t?.requester_nickname||"Пользователь")+(t?.requester_number?' · #'+String(t.requester_number).padStart(6,"0"):'')+'</h2><div class="thread-meta">Обращение №'+id+'</div></div><div style="display:flex;gap:8px;flex-wrap:wrap">'+(t?.requester_citizen_id?'<button class="btn secondary" onclick="blockAppeals('+Number(t.requester_citizen_id)+')">Заблокировать обращения</button>':'')+(t?.status==="open"?'<button class="btn danger" onclick="closeThread('+id+')">Закрыть чат</button>':'<span class="badge closed">ЗАКРЫТО</span>')+'</div></div><div class="chat" id="chat">'+renderMessages(m||[],error)+'</div>'+(t?.status==="open"?'<div class="form"><textarea id="message" maxlength="3000" placeholder="Ответ гражданину"></textarea><button class="btn" onclick="sendMessage()">Отправить</button></div>':'') ;
  scrollChat();subscribe(id);
 }
 
@@ -217,6 +218,22 @@ function renderMessages(msgs,error){if(error)return '<div class="empty">'+esc(fr
 async function refreshMessages(){if(!currentThread)return;const {data,error}=await sb.rpc("founder_appeal_messages_list",{p_thread_id:currentThread});const chat=document.getElementById("chat");if(chat){chat.innerHTML=renderMessages(data||[],error);scrollChat()}if(isFounder){const {data:t}=await sb.rpc("founder_appeal_threads_list");if(t){threads=t;renderThreadList()}}}
 
 async function sendMessage(){const el=document.getElementById("message");const msg=el?.value.trim();if(!msg||!currentThread)return;const {error}=await sb.rpc("send_founder_appeal_message",{p_thread_id:currentThread,p_message:msg});if(error){alert(friendlyError(error));return}el.value=""}
+
+async function blockAppeals(citizenId){
+ const amountRaw=prompt("На сколько заблокировать обращения? Введите число:","24");
+ if(amountRaw===null)return;
+ const amount=Number(amountRaw);
+ if(!Number.isSafeInteger(amount)||amount<=0){alert("Введите положительное целое число.");return}
+ const unit=prompt("Единица времени: минуты, часы или дни","часы");
+ if(unit===null)return;
+ const u=unit.trim().toLowerCase();
+ const minutes=amount*(u.startsWith("д")?1440:u.startsWith("ч")?60:1);
+ const reason=prompt("Причина блокировки обращений:");
+ if(reason===null||!reason.trim())return;
+ const {error}=await sb.rpc("founder_block_user_action",{p_citizen_id:citizenId,p_scope:"founder_appeals",p_minutes:minutes,p_reason:reason.trim()});
+ if(error){alert(friendlyError(error));return}
+ alert("Новые обращения и сообщения этого гражданина временно заблокированы.");
+}
 
 async function closeThread(id){if(!confirm("Закрыть этот чат? Пользователь больше не сможет писать в него, но история сохранится."))return;const {error}=await sb.rpc("close_founder_appeal",{p_thread_id:id});if(error){alert(friendlyError(error));return}if(channel){await sb.removeChannel(channel);channel=null}await loadFounderThreads()}
 
