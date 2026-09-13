@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Выборы и референдумы — Нерия</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:Arial,Helvetica,sans-serif;background:#f5f5f7;color:#17171c}
+header{min-height:72px;background:#fff;border-bottom:1px solid #e5e5e8;display:flex;align-items:center;justify-content:space-between;padding:14px 6%;gap:25px}
+.logo{display:flex;align-items:center;gap:12px;font-size:20px;font-weight:700;letter-spacing:1px;text-decoration:none;color:inherit;flex-shrink:0}
+.flag{width:32px;height:42px;display:flex;flex-direction:column;border-radius:3px;overflow:hidden}.flag-purple{background:#6d3fc0;flex:1}.flag-white{background:#eee8ff;flex:1}
+nav{display:flex;align-items:center;gap:30px;white-space:nowrap}nav a{color:#55555d;text-decoration:none;font-size:14px}nav a:hover,nav a.active{color:#6d3fc0}
+main{max-width:950px;margin:auto;padding:55px 28px 100px}.back{display:inline-block;margin-bottom:28px;color:#6d3fc0;text-decoration:none;font-size:14px}
+.eyebrow{color:#6d3fc0;font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:1.2px;margin-bottom:10px}h1{font-size:40px;margin-bottom:13px}.lead{color:#66666f;line-height:1.7;max-width:760px}
+.notice{margin:26px 0 35px;padding:17px 19px;border:1px solid #ded3ef;background:#f8f5fd;border-radius:10px;color:#5d4b78;font-size:13px;line-height:1.6}
+.section{margin-top:36px}.section h2{font-size:24px;margin-bottom:16px}.section p{color:#66666f;line-height:1.7;margin-bottom:12px}
+.grid{display:grid;grid-template-columns:repeat(2,1fr);gap:14px}.card{background:#fff;border:1px solid #e5e5e8;border-radius:11px;padding:21px}.card h3{font-size:16px;margin-bottom:9px}.card p,.card li{font-size:14px;color:#686870;line-height:1.6}.card ul{padding-left:18px;margin-top:8px}
+.rule{background:#fff;border:1px solid #e5e5e8;border-radius:11px;padding:19px;margin-bottom:10px}.rule strong{display:block;margin-bottom:7px}.rule p{font-size:14px;margin:0}
+@media(max-width:800px){header{padding:14px 20px;flex-wrap:wrap;justify-content:center;gap:14px}.logo{width:100%;justify-content:center}nav{width:100%;justify-content:center;flex-wrap:wrap;gap:14px 24px;white-space:normal}main{padding:42px 20px 75px}h1{font-size:33px}.grid{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<header>
+<a href="index.html" class="logo"><div class="flag"><div class="flag-purple"></div><div class="flag-white"></div><div class="flag-purple"></div></div>НЕРИЯ</a>
+<nav><a href="profile.html">Личный кабинет</a><a href="citizens.html">Граждане Нерии</a><a href="state.html" class="active">Государство</a><a href="#">Экономика</a><a href="#">Законы</a></nav>
+</header>
+<main>
+<a class="back" href="state.html">← Государство</a><div class="eyebrow">Народное волеизъявление</div><h1>Выборы и референдумы</h1>
+<p class="lead">Граждане участвуют в выборе народных депутатов и принимают окончательные решения по спорным и фундаментальным вопросам.</p>
+<section class="section"><h2>Право голоса</h2><div class="grid">
+<div class="card"><h3>Три дня гражданства</h3><p>Голосовать может гражданин, непрерывно обладающий гражданством не менее 3 суток. После восстановления гражданства срок начинается заново.</p></div>
+<div class="card"><h3>Утрата права голоса</h3><p>После более чем 3 блокировок или более чем 3 отзывов гражданства право голоса теряется. Вернуть его может отдельный общий референдум.</p></div>
+</div></section>
+<section class="section"><h2>Общий референдум</h2>
+<div class="rule"><strong>Минимальная явка</strong><p>Не менее 25% граждан, имеющих право голоса.</p></div>
+<div class="rule"><strong>Обычный вопрос</strong><p>Побеждает сторона с большим числом голосов. При точном 50/50 окончательное решение принимает Основатель.</p></div>
+<div class="rule"><strong>Особо важный или конституционный вопрос</strong><p>Для принятия требуется минимум 55% голосов «за». 54% недостаточно.</p></div>
+<div class="rule"><strong>Если явка ниже 25%</strong><p>По обычному вопросу окончательное решение переходит Основателю. По обязательному конституционному или особо важному вопросу решение не принимается и может быть вынесено повторно позднее.</p></div>
+</section>
+<section class="section"><h2>Выборы депутатов</h2>
+<div class="rule"><strong>Календарь</strong><p>Регистрация кандидатов — 16–19 числа каждого месяца. Народное голосование — 20–21 числа.</p></div>
+<div class="rule"><strong>Бюллетень</strong><p>Избиратель может выбрать до количества разыгрываемых народных депутатских мест, но не может отдать несколько голосов одному кандидату.</p></div>
+<div class="rule"><strong>Минимальная поддержка</strong><p>Кандидат должен получить голоса не менее 10% участвовавших избирателей.</p></div>
+<div class="rule"><strong>Равенство за последнее место</strong><p>Проводится второй тур между кандидатами с одинаковым результатом. Если снова ничья — решает Основатель.</p></div>
+<div class="rule"><strong>Явка выборов</strong><p>Минимум 25%. При меньшей явке народная часть выборов считается несостоявшейся; Основатель всё равно может назначить свою законную квоту.</p></div>
+</section></main></body></html>
