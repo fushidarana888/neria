@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Обращение к Основателю — Нерия</title>
+<style>
+*{box-sizing:border-box}body{margin:0;font-family:Arial,Helvetica,sans-serif;background:#f5f5f7;color:#17171c}
+main{max-width:1100px;margin:auto;padding:48px 24px 90px}.back{display:inline-block;margin-bottom:22px;color:#6d3fc0;text-decoration:none}
+h1{font-size:38px;margin:0 0 8px}.lead{color:#777780;line-height:1.5;margin-bottom:22px}
+.layout{display:grid;grid-template-columns:330px 1fr;gap:16px}.box{background:#fff;border:1px solid #e5e5e8;border-radius:14px;padding:20px}.sidebar{padding:12px}.thread{padding:13px;border-radius:10px;cursor:pointer;border:1px solid transparent;margin-bottom:7px}.thread:hover{background:#f8f8fa}.thread.active{background:#f7f3fc;border-color:#cdbce8}.thread-name{font-weight:700}.thread-meta{font-size:11px;color:#85858e;margin-top:4px}.thread-preview{font-size:12px;color:#666670;margin-top:6px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.badge{display:inline-block;padding:5px 8px;border-radius:999px;font-size:10px;font-weight:700}.open{background:#eef9f1;color:#27763a}.closed{background:#f0f0f3;color:#666}
+.chat-head{display:flex;justify-content:space-between;gap:12px;align-items:flex-start;border-bottom:1px solid #eee;padding-bottom:14px;margin-bottom:14px}.chat-head h2{margin:0 0 4px;font-size:20px}
+.chat{display:flex;flex-direction:column;gap:10px;min-height:300px;max-height:520px;overflow:auto;padding:4px}.msg{max-width:78%;padding:11px 13px;border-radius:11px;background:#f1f1f4}.msg.mine{margin-left:auto;background:#eee8ff}.msg.founder{border:1px solid #cdbce8}.meta{font-size:11px;color:#85858e;margin-bottom:5px}.text{white-space:pre-wrap;line-height:1.45}
+.form{display:grid;grid-template-columns:1fr auto;gap:8px;margin-top:14px}.form textarea{min-height:65px;max-height:180px;resize:vertical;padding:10px;border:1px solid #dcdce1;border-radius:8px;font:inherit}.btn{border:0;border-radius:7px;padding:11px 15px;background:#6d3fc0;color:#fff;font-weight:700;cursor:pointer}.danger{background:#fff;color:#b91c1c;border:1px solid #efcaca}.secondary{background:#fff;color:#5d4b78;border:1px solid #d9cdef}.empty{color:#777780;line-height:1.5}.newbox textarea{width:100%;min-height:130px;padding:11px;border:1px solid #ddd;border-radius:8px;resize:vertical;font:inherit;margin:10px 0}
+.tabs{display:flex;gap:7px;margin-bottom:10px}.tabs button{border:1px solid #ddd;background:#fff;border-radius:7px;padding:8px 10px;cursor:pointer}.tabs .on{border-color:#6d3fc0;color:#6d3fc0}
+@media(max-width:760px){main{padding:35px 15px}.layout{grid-template-columns:1fr}h1{font-size:31px}.msg{max-width:90%}}
+</style>
+<style id="neria-global-header-style">
+.neria-global-header{min-height:72px!important;background:#fff!important;border-bottom:1px solid #e5e5e8!important;display:flex!important;align-items:center!important;justify-content:space-between!important;padding:14px 6%!important;gap:25px!important}
+.neria-global-logo{display:flex!important;align-items:center!important;gap:12px!important;color:#17171c!important;text-decoration:none!important;font-size:20px!important;font-weight:700!important;letter-spacing:1px!important;flex-shrink:0!important}
+.neria-global-flag{width:32px!important;height:42px!important;display:flex!important;flex-direction:column!important;border-radius:3px!important;overflow:hidden!important}.neria-global-flag .p{background:#6d3fc0;flex:1}.neria-global-flag .w{background:#eee8ff;flex:1}
+.neria-global-nav{display:flex!important;align-items:center!important;justify-content:flex-end!important;gap:26px!important;flex-wrap:wrap!important}.neria-global-nav a{color:#55555d!important;text-decoration:none!important;font-size:14px!important;white-space:nowrap!important}
+@media(max-width:900px){.neria-global-header{padding:14px 20px!important;flex-wrap:wrap!important;justify-content:center!important}.neria-global-logo{width:100%!important;justify-content:center!important}.neria-global-nav{width:100%!important;justify-content:center!important;gap:12px 20px!important}}
+</style>
+</head>
+<body>
+<header class="neria-global-header"><a href="index.html" class="neria-global-logo"><span class="neria-global-flag"><span class="p"></span><span class="w"></span><span class="p"></span></span>НЕРИЯ</a><nav class="neria-global-nav"><a href="profile.html">Личный кабинет</a><a href="citizens.html">Граждане Нерии</a><a href="state.html">Государство</a><a href="treasury.html">Экономика</a><a href="market.html">Объявления</a><a href="laws.html">Законы</a></nav></header>
+<main>
+<a class="back" href="index.html">← На главную</a>
+<h1 id="pageTitle">Обратиться к Основателю</h1>
+<p class="lead" id="pageLead">Личная переписка. Сообщения видите только вы и Основатель Нерии.</p>
+<div id="app"><div class="box">Загрузка…</div></div>
+</main>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script>
+const sb=window.supabase.createClient("https://rictvznkxkeygbrlcymn.supabase.co","sb_publishable_SVwKto14tbMtsmcDOagvCw_TVqg7he7");
+const app=document.getElementById("app");
+let isFounder=false,threads=[],currentThread=null,filter="open",channel=null;
+const esc=v=>String(v??"").replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;");
+const dt=v=>v?new Date(v).toLocaleString("ru-RU"):"—";
+
+async function init(){
+ const {data:{user}}=await sb.auth.getUser();
+ if(!user){location.href="registration.html";return}
+ const {data:f,error}=await sb.rpc("is_founder");
+ if(error){app.innerHTML='<div class="box">'+esc(error.message)+'</div>';return}
+ isFounder=!!f;
+ if(isFounder){document.getElementById("pageTitle").textContent="Обращения к Основателю";document.getElementById("pageLead").textContent="Личные обращения граждан. Каждый чат отделён от остальных и доступен только Основателю и его автору.";await loadFounderThreads()}
+ else await loadUserThread();
+}
+
+async function loadUserThread(){
+ const {data,error}=await sb.rpc("my_founder_appeal");
+ if(error){app.innerHTML='<div class="box">'+esc(error.message)+'</div>';return}
+ const t=data?.[0];
+ if(!t){renderNewAppeal();return}
+ currentThread=t.thread_id;
+ await renderUserChat(t);
+ subscribe(currentThread);
+}
+
+function renderNewAppeal(){
+ currentThread=null;
+ app.innerHTML='<div class="box newbox"><h2>Новое обращение</h2><p class="empty">Напишите Основателю. Переписка не публикуется и недоступна другим гражданам.</p><textarea id="firstMessage" maxlength="3000" placeholder="Ваше сообщение Основателю"></textarea><button class="btn" onclick="createAppeal()">Отправить обращение</button></div>';
+}
+
+async function createAppeal(){
+ const el=document.getElementById("firstMessage");const msg=el?.value.trim();if(!msg)return;
+ const {data,error}=await sb.rpc("create_founder_appeal",{p_message:msg});
+ if(error){alert(error.message);return}
+ currentThread=data;await loadUserThread();
+}
+
+async function renderUserChat(t){
+ const [{data:m,error:me}]=await Promise.all([sb.rpc("founder_appeal_messages_list",{p_thread_id:t.thread_id})]);
+ app.innerHTML='<div class="box"><div class="chat-head"><div><h2>Личная переписка с Основателем</h2><div class="thread-meta">Обращение №'+t.thread_id+' · '+(t.status==="open"?"открыто":"закрыто")+'</div></div><span class="badge '+(t.status==="open"?"open":"closed")+'">'+(t.status==="open"?"ОТКРЫТО":"ЗАКРЫТО")+'</span></div><div class="chat" id="chat">'+renderMessages(m||[],me)+'</div>'+(t.status==="open"?'<div class="form"><textarea id="message" maxlength="3000" placeholder="Сообщение Основателю"></textarea><button class="btn" onclick="sendMessage()">Отправить</button></div>':'<div class="empty" style="margin-top:14px">Основатель закрыл это обращение как неактуальное.<br><br><button class="btn secondary" onclick="renderNewAppeal()">Создать новое обращение</button></div>')+'</div>';
+ scrollChat();
+}
+
+async function loadFounderThreads(){
+ const {data,error}=await sb.rpc("founder_appeal_threads_list");
+ if(error){app.innerHTML='<div class="box">'+esc(error.message)+'</div>';return}
+ threads=data||[];
+ renderFounderShell();
+ const visible=threads.filter(x=>x.status===filter);
+ if(visible.length){await openFounderThread(visible[0].thread_id)}
+}
+
+function renderFounderShell(){
+ app.innerHTML='<div class="layout"><aside class="box sidebar"><div class="tabs"><button id="openTab" class="'+(filter==="open"?"on":"")+'" onclick="setThreadFilter(\'open\')">Открытые</button><button id="closedTab" class="'+(filter==="closed"?"on":"")+'" onclick="setThreadFilter(\'closed\')">Закрытые</button></div><div id="threadList"></div></aside><section class="box" id="threadView"><div class="empty">Выберите обращение слева.</div></section></div>';
+ renderThreadList();
+}
+
+function renderThreadList(){
+ const el=document.getElementById("threadList");if(!el)return;
+ const rows=threads.filter(x=>x.status===filter);
+ el.innerHTML=rows.length?rows.map(x=>'<div class="thread '+(Number(x.thread_id)===Number(currentThread)?"active":"")+'" onclick="openFounderThread('+x.thread_id+')"><div class="thread-name">'+esc(x.requester_nickname)+' '+(x.requester_number?'· #'+String(x.requester_number).padStart(6,"0"):'')+'</div><div class="thread-meta">'+dt(x.last_message_at||x.created_at)+'</div><div class="thread-preview">'+esc(x.last_message||"Без сообщений")+'</div></div>').join(""):'<div class="empty">Здесь пока пусто.</div>';
+}
+
+async function setThreadFilter(v){filter=v;currentThread=null;if(channel){await sb.removeChannel(channel);channel=null}renderFounderShell();const rows=threads.filter(x=>x.status===filter);if(rows.length)await openFounderThread(rows[0].thread_id)}
+
+async function openFounderThread(id){
+ currentThread=id;renderThreadList();
+ const t=threads.find(x=>Number(x.thread_id)===Number(id));
+ const {data:m,error}=await sb.rpc("founder_appeal_messages_list",{p_thread_id:id});
+ const view=document.getElementById("threadView");if(!view)return;
+ view.innerHTML='<div class="chat-head"><div><h2>'+esc(t?.requester_nickname||"Пользователь")+(t?.requester_number?' · #'+String(t.requester_number).padStart(6,"0"):'')+'</h2><div class="thread-meta">Обращение №'+id+'</div></div>'+(t?.status==="open"?'<button class="btn danger" onclick="closeThread('+id+')">Закрыть чат</button>':'<span class="badge closed">ЗАКРЫТО</span>')+'</div><div class="chat" id="chat">'+renderMessages(m||[],error)+'</div>'+(t?.status==="open"?'<div class="form"><textarea id="message" maxlength="3000" placeholder="Ответ гражданину"></textarea><button class="btn" onclick="sendMessage()">Отправить</button></div>':'') ;
+ scrollChat();subscribe(id);
+}
+
+function renderMessages(msgs,error){if(error)return '<div class="empty">'+esc(error.message)+'</div>';if(!msgs.length)return '<div class="empty">Сообщений пока нет.</div>';return msgs.map(x=>'<div class="msg '+(x.is_mine?"mine ":"")+(x.author_kind==="founder"?"founder":"")+'"><div class="meta">'+esc(x.author_name)+' · '+dt(x.created_at)+'</div><div class="text">'+esc(x.message)+'</div></div>').join("")}
+
+async function refreshMessages(){if(!currentThread)return;const {data,error}=await sb.rpc("founder_appeal_messages_list",{p_thread_id:currentThread});const chat=document.getElementById("chat");if(chat){chat.innerHTML=renderMessages(data||[],error);scrollChat()}if(isFounder){const {data:t}=await sb.rpc("founder_appeal_threads_list");if(t){threads=t;renderThreadList()}}}
+
+async function sendMessage(){const el=document.getElementById("message");const msg=el?.value.trim();if(!msg||!currentThread)return;const {error}=await sb.rpc("send_founder_appeal_message",{p_thread_id:currentThread,p_message:msg});if(error){alert(error.message);return}el.value=""}
+
+async function closeThread(id){if(!confirm("Закрыть этот чат? Пользователь больше не сможет писать в него, но история сохранится."))return;const {error}=await sb.rpc("close_founder_appeal",{p_thread_id:id});if(error){alert(error.message);return}if(channel){await sb.removeChannel(channel);channel=null}await loadFounderThreads()}
+
+function subscribe(id){if(channel)sb.removeChannel(channel);channel=sb.channel("founder-appeal-"+id).on("postgres_changes",{event:"INSERT",schema:"public",table:"founder_appeal_messages",filter:"thread_id=eq."+id},()=>refreshMessages()).subscribe()}
+function scrollChat(){requestAnimationFrame(()=>{const c=document.getElementById("chat");if(c)c.scrollTop=c.scrollHeight})}
+window.addEventListener("beforeunload",()=>{if(channel)sb.removeChannel(channel)});
+init();
+</script>
+</body>
+</html>
