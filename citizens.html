@@ -428,7 +428,7 @@ async function loadCitizens() {
                         citizen.avatar_path
                             ? `<img
                                 class="citizen-avatar"
-                                src="${escapeHtml(getAvatarUrl(citizen.avatar_path))}"
+                                src="${escapeHtml(getAvatarUrl(citizen.avatar_path, citizen.avatar_updated_at))}"
                                 alt="Аватар ${escapeHtml(citizen.nickname)}"
                               >`
                             : `<div class="citizen-avatar-fallback">
@@ -472,7 +472,7 @@ async function loadCitizens() {
 }
 
 
-function getAvatarUrl(path) {
+function getAvatarUrl(path, updatedAt) {
 
     if (!path) {
         return "";
@@ -483,7 +483,12 @@ function getAvatarUrl(path) {
             .from("avatars")
             .getPublicUrl(path);
 
-    return data.publicUrl;
+    const version =
+        updatedAt
+            ? new Date(updatedAt).getTime()
+            : 0;
+
+    return data.publicUrl + "?v=" + version;
 }
 
 
