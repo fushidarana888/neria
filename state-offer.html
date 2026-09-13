@@ -1,5 +1,33 @@
 <!DOCTYPE html><html lang="ru"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Предложение государству — Нерия</title>
-<style>*{box-sizing:border-box}body{margin:0;font-family:Arial,Helvetica,sans-serif;background:#f5f5f7;color:#17171c}.head{background:#fff;border-bottom:1px solid #e5e5e8;padding:18px 6%}.head a{color:#6d3fc0;text-decoration:none;font-weight:700}main{max-width:900px;margin:auto;padding:45px 20px 90px}.card{background:#fff;border:1px solid #e5e5e8;border-radius:14px;padding:22px;margin-bottom:18px}h1{margin:0 0 8px;font-size:34px}.muted{color:#777780}.price{font-size:22px;font-weight:700;margin-top:12px}.status{display:inline-block;padding:6px 9px;border-radius:999px;background:#f5efff;color:#6d3fc0;font-size:11px;font-weight:700}.chat{height:430px;overflow:auto;display:flex;flex-direction:column;gap:9px;padding:4px}.msg{max-width:78%;padding:10px 12px;border-radius:10px;background:#f1f1f4}.msg.mine{margin-left:auto;background:#eee8ff}.msg.founder{border-left:4px solid #6d3fc0}.meta{font-size:11px;color:#85858e;margin-bottom:4px}.form{display:grid;grid-template-columns:1fr auto;gap:9px;margin-top:12px}textarea{min-height:70px;resize:vertical;border:1px solid #dcdce1;border-radius:8px;padding:10px;font:inherit}button{border:0;border-radius:8px;background:#6d3fc0;color:#fff;font-weight:700;padding:10px 14px;cursor:pointer}.empty{text-align:center;color:#777780;padding:30px}@media(max-width:650px){.form{grid-template-columns:1fr}.msg{max-width:92%}}</style></head><body>
+<style>*{box-sizing:border-box}body{margin:0;font-family:Arial,Helvetica,sans-serif;background:#f5f5f7;color:#17171c}.head{background:#fff;border-bottom:1px solid #e5e5e8;padding:18px 6%}.head a{color:#6d3fc0;text-decoration:none;font-weight:700}main{max-width:900px;margin:auto;padding:45px 20px 90px}.card{background:#fff;border:1px solid #e5e5e8;border-radius:14px;padding:22px;margin-bottom:18px}h1{margin:0 0 8px;font-size:34px}.muted{color:#777780}.price{font-size:22px;font-weight:700;margin-top:12px}.status{display:inline-block;padding:6px 9px;border-radius:999px;background:#f5efff;color:#6d3fc0;font-size:11px;font-weight:700}.chat{height:430px;overflow:auto;display:flex;flex-direction:column;gap:9px;padding:4px}.msg{max-width:78%;padding:10px 12px;border-radius:10px;background:#f1f1f4}.msg.mine{margin-left:auto;background:#eee8ff}.msg.founder{border-left:4px solid #6d3fc0}.meta{font-size:11px;color:#85858e;margin-bottom:4px}.form{display:grid;grid-template-columns:1fr auto;gap:9px;margin-top:12px}textarea{min-height:70px;resize:vertical;border:1px solid #dcdce1;border-radius:8px;padding:10px;font:inherit}button{border:0;border-radius:8px;background:#6d3fc0;color:#fff;font-weight:700;padding:10px 14px;cursor:pointer}.empty{text-align:center;color:#777780;padding:30px}@media(max-width:650px){.form{grid-template-columns:1fr}.msg{max-width:92%}}</style><style id="neria-mobile-hardening">
+html,body{max-width:100%;overflow-x:hidden}
+img,svg,video,canvas{max-width:100%;height:auto}
+input,select,textarea,button{max-width:100%}
+table{max-width:100%}
+@media(max-width:700px){
+  .neria-global-header,header,.head{padding:12px 14px!important;gap:10px!important;flex-wrap:wrap!important;justify-content:center!important}
+  .neria-global-logo,.logo{width:100%!important;justify-content:center!important}
+  .neria-global-nav,nav{width:100%!important;justify-content:center!important;gap:10px 14px!important;white-space:normal!important;flex-wrap:wrap!important}
+  .neria-global-nav a,nav a{font-size:13px!important;white-space:normal!important;text-align:center}
+  main{width:100%!important;max-width:100%!important;padding-left:14px!important;padding-right:14px!important}
+  h1{font-size:30px!important;line-height:1.08!important;word-break:break-word}
+  h2{word-break:break-word}
+  .buttons,.actions,.reward-actions,.dispute-actions,.toolbar{flex-wrap:wrap!important}
+  .buttons>a,.buttons>button{width:100%!important;text-align:center!important}
+  .grid,.cards,.folders,.state-grid,.reward-controls,.money-form,.form{grid-template-columns:1fr!important}
+  .card,.box,.panel,.reward-panel,.money-panel,.dispute-panel{min-width:0!important}
+  .table-wrap{width:100%!important;overflow-x:auto!important;-webkit-overflow-scrolling:touch}
+  table{min-width:720px}
+  textarea{width:100%!important}
+  .chat{height:min(62vh,520px)!important}
+  .msg{max-width:92%!important}
+}
+@media(max-width:430px){
+  main{padding-left:11px!important;padding-right:11px!important}
+  h1{font-size:27px!important}
+  .btn,button,.primary,.secondary{min-height:42px}
+}
+</style></head><body>
 <div class="head"><a href="market.html">← Доска объявлений</a></div><main><div id="details" class="card"><div class="empty">Загрузка…</div></div><div class="card"><h2>Переписка с государством</h2><div id="chat" class="chat"><div class="empty">Загрузка…</div></div><div class="form"><textarea id="message" maxlength="2000" placeholder="Написать сообщение"></textarea><button id="send" onclick="sendMessage()">Отправить</button></div></div></main>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script><script>
 const sb=supabase.createClient("https://rictvznkxkeygbrlcymn.supabase.co","sb_publishable_SVwKto14tbMtsmcDOagvCw_TVqg7he7");
