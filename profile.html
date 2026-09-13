@@ -699,7 +699,8 @@
                 show_surname,
                 show_birth_date,
                 telegram_username,
-                avatar_path
+                avatar_path,
+                can_upload_avatar
             `)
 
             .eq("user_id", session.user.id)
@@ -807,12 +808,21 @@
 
                 <div class="avatar-controls">
                     <h3>Аватар профиля</h3>
-                    <p>JPG, PNG или WebP. Максимальный размер — 3 МБ.</p>
-                    <input type="file" id="avatarFile" accept="image/jpeg,image/png,image/webp">
-                    <div class="avatar-buttons">
-                        <button type="button" class="avatar-button avatar-button-primary" onclick="uploadAvatar()">Загрузить аватар</button>
-                        ${data.avatar_path ? `<button type="button" class="avatar-button avatar-button-secondary" onclick="removeAvatar()">Удалить аватар</button>` : ""}
-                    </div>
+
+                    ${
+                        data.can_upload_avatar
+                            ? `
+                                <p>VIP-возможность активна. JPG, PNG или WebP, максимум 3 МБ.</p>
+                                <input type="file" id="avatarFile" accept="image/jpeg,image/png,image/webp">
+                                <div class="avatar-buttons">
+                                    <button type="button" class="avatar-button avatar-button-primary" onclick="uploadAvatar()">Загрузить аватар</button>
+                                    ${data.avatar_path ? `<button type="button" class="avatar-button avatar-button-secondary" onclick="removeAvatar()">Удалить аватар</button>` : ""}
+                                </div>
+                              `
+                            : `
+                                <p>Загрузка собственного аватара доступна только гражданам, которым администрация выдала VIP-доступ.</p>
+                              `
+                    }
                 </div>
             </div>
 
