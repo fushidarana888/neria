@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Действия министров — Нерия</title>
+<style>
+*{box-sizing:border-box}body{margin:0;font-family:Arial,Helvetica,sans-serif;background:#f5f5f7;color:#17171c}
+main{max-width:1100px;margin:auto;padding:48px 24px 90px}.back{display:inline-block;margin-bottom:24px;color:#6d3fc0;text-decoration:none}
+h1{font-size:38px;margin:0 0 8px}.lead{color:#777780;margin-bottom:22px;line-height:1.5}
+.box{background:#fff;border:1px solid #e5e5e8;border-radius:14px;padding:22px}.row{padding:15px 0;border-bottom:1px solid #eee}.row:last-child{border-bottom:0}
+.top{display:flex;justify-content:space-between;gap:15px;align-items:flex-start}.name{font-weight:700}.role{font-size:11px;font-weight:700;color:#6d3fc0;text-transform:uppercase}
+.meta{font-size:12px;color:#85858e;margin-top:5px}.action{margin-top:8px;font-weight:700}.details{margin-top:6px;color:#666670;line-height:1.5;white-space:pre-wrap}
+.empty{color:#777780}.filters{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:15px}.filters button{padding:9px 12px;border:1px solid #ddd;border-radius:7px;background:#fff;cursor:pointer}.filters .on{border-color:#6d3fc0;color:#6d3fc0}
+@media(max-width:700px){main{padding:35px 15px}.top{flex-direction:column}h1{font-size:31px}}
+</style>
+<style id="neria-global-header-style">
+.neria-global-header{min-height:72px!important;background:#fff!important;border-bottom:1px solid #e5e5e8!important;display:flex!important;align-items:center!important;justify-content:space-between!important;padding:14px 6%!important;gap:25px!important}
+.neria-global-logo{display:flex!important;align-items:center!important;gap:12px!important;color:#17171c!important;text-decoration:none!important;font-size:20px!important;font-weight:700!important;letter-spacing:1px!important;flex-shrink:0!important}
+.neria-global-flag{width:32px!important;height:42px!important;display:flex!important;flex-direction:column!important;border-radius:3px!important;overflow:hidden!important}.neria-global-flag .p{background:#6d3fc0;flex:1}.neria-global-flag .w{background:#eee8ff;flex:1}
+.neria-global-nav{display:flex!important;align-items:center!important;justify-content:flex-end!important;gap:26px!important;flex-wrap:wrap!important}.neria-global-nav a{color:#55555d!important;text-decoration:none!important;font-size:14px!important;white-space:nowrap!important}.neria-global-nav a:hover{color:#6d3fc0!important}
+@media(max-width:900px){.neria-global-header{padding:14px 20px!important;flex-wrap:wrap!important;justify-content:center!important}.neria-global-logo{width:100%!important;justify-content:center!important}.neria-global-nav{width:100%!important;justify-content:center!important;gap:12px 20px!important}}
+</style>
+</head>
+<body>
+<header class="neria-global-header"><a href="index.html" class="neria-global-logo"><span class="neria-global-flag"><span class="p"></span><span class="w"></span><span class="p"></span></span>НЕРИЯ</a><nav class="neria-global-nav"><a href="profile.html">Личный кабинет</a><a href="citizens.html">Граждане Нерии</a><a href="state.html">Государство</a><a href="treasury.html">Экономика</a><a href="market.html">Объявления</a><a href="laws.html">Законы</a></nav></header>
+<main>
+<a class="back" href="admin.html">← Панель Основателя</a>
+<h1>Действия министров</h1>
+<p class="lead">Журнал действий Министра экономики и МВД. Записи создаются автоматически при выполнении административных действий.</p>
+<div class="box">
+<div class="filters"><button id="all" class="on" onclick="setFilter('all')">Все</button><button id="economy_minister" onclick="setFilter('economy_minister')">Министр экономики</button><button id="mvd" onclick="setFilter('mvd')">МВД</button></div>
+<div id="list"><div class="empty">Загрузка…</div></div>
+</div>
+</main>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script>
+const sb=window.supabase.createClient("https://rictvznkxkeygbrlcymn.supabase.co","sb_publishable_SVwKto14tbMtsmcDOagvCw_TVqg7he7");
+let rows=[],filter="all";
+const esc=v=>String(v??"").replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;");
+const dt=v=>v?new Date(v).toLocaleString("ru-RU"):"—";
+function setFilter(v){filter=v;["all","economy_minister","mvd"].forEach(x=>document.getElementById(x).classList.toggle("on",x===v));render()}
+function render(){const list=document.getElementById("list");const data=rows.filter(x=>filter==="all"||x.role===filter);if(!data.length){list.innerHTML='<div class="empty">Записей пока нет.</div>';return}list.innerHTML=data.map(x=>'<div class="row"><div class="top"><div><div class="name">'+esc(x.minister_nickname||"Неизвестно")+' · #'+String(x.minister_number||"").padStart(6,"0")+'</div><div class="role">'+(x.role==="economy_minister"?"Министр экономики":"МВД")+'</div></div><div class="meta">'+esc(dt(x.created_at))+'</div></div><div class="action">'+esc(x.action)+'</div>'+(x.target?'<div class="meta">Объект: '+esc(x.target)+'</div>':'')+(x.details?'<div class="details">'+esc(x.details)+'</div>':'')+'</div>').join("")}
+async function load(){const {data:{user}}=await sb.auth.getUser();if(!user){location.href="login.html";return}const {data,error}=await sb.rpc("founder_get_minister_actions");if(error){document.getElementById("list").innerHTML='<div class="empty">'+esc(error.message)+'</div>';return}rows=data||[];render()}
+load();
+</script>
+</body>
+</html>
