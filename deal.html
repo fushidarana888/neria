@@ -194,7 +194,7 @@ function statusLabel(v){return {active:"Активна",dispute:"Спор",compl
 function eventLabel(v){return {created:"Сделка создана",party_done:"Подтверждение обязательств",completed:"Сделка завершена",dispute_opened:"Открыт спор",dispute_resolved:"Спор разрешён"}[v]||v}
 async function load(){
  if(!Number.isSafeInteger(dealId)||dealId<=0){page.innerHTML='<div class="box">Некорректный номер сделки.</div>';return}
- const {data:{user}}=await sb.auth.getUser();if(!user){location.href="login.html";return}
+ const {data:{user}}=await sb.auth.getUser();if(!user){location.href="registration.html";return}
  const [{data:d,error:de},{data:m,error:me},{data:e,error:ee}]=await Promise.all([
   sb.rpc("market_deal_details",{p_deal_id:dealId}),
   sb.rpc("market_deal_messages_list",{p_deal_id:dealId}),
