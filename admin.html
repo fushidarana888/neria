@@ -578,6 +578,9 @@
                     >
                         Пополнить казну
                     </button>
+                    <button type="button" class="danger" onclick="burnFromTreasury()">
+                        Удалить NR из казны
+                    </button>
                 </div>
             </div>
 
@@ -865,6 +868,13 @@
                             >
                                 Начислить NR
                             </button>
+                            <button
+                                type="button"
+                                class="danger"
+                                onclick="burnFromCitizen(${Number(citizen.internal_id)})"
+                            >
+                                Удалить NR
+                            </button>
 
                         </div>
                     </td>
@@ -960,6 +970,37 @@
                     </button>
                 `;
         }
+    }
+
+
+    async function burnFromTreasury() {
+        const amountRaw=prompt("Сколько NR удалить из государственной казны?");
+        if(amountRaw===null)return;
+        const amount=Number(amountRaw.trim());
+        if(!Number.isSafeInteger(amount)||amount<=0){alert("Введите положительное целое количество NR.");return;}
+        const reason=prompt("Причина удаления NR:","Исправление / тест");
+        if(reason===null)return;
+        if(!reason.trim()){alert("Причина обязательна.");return;}
+        if(!confirm("Безвозвратно удалить "+new Intl.NumberFormat("ru-RU").format(amount)+" NR из казны?"))return;
+        const {error}=await supabaseClient.rpc("admin_burn_from_treasury",{p_amount:amount,p_reason:reason.trim()});
+        if(error){console.error(error);alert("Не удалось удалить NR:\n"+error.message);return;}
+        alert("NR удалены из казны.");
+    }
+
+    async function burnFromCitizen(internalId) {
+        const citizen=getCitizen(internalId);
+        if(!citizen)return;
+        const amountRaw=prompt("Сколько NR удалить со счёта гражданина "+formatCitizenNumber(citizen.citizen_number)+" ("+citizen.nickname+")?");
+        if(amountRaw===null)return;
+        const amount=Number(amountRaw.trim());
+        if(!Number.isSafeInteger(amount)||amount<=0){alert("Введите положительное целое количество NR.");return;}
+        const reason=prompt("Причина удаления NR:","Исправление / тест");
+        if(reason===null)return;
+        if(!reason.trim()){alert("Причина обязательна.");return;}
+        if(!confirm("Безвозвратно удалить "+new Intl.NumberFormat("ru-RU").format(amount)+" NR со счёта гражданина?"))return;
+        const {error}=await supabaseClient.rpc("admin_burn_from_citizen",{p_citizen_id:internalId,p_amount:amount,p_reason:reason.trim()});
+        if(error){console.error(error);alert("Не удалось удалить NR:\n"+error.message);return;}
+        await loadCitizens();
     }
 
 
