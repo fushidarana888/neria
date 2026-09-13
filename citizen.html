@@ -653,6 +653,7 @@
                         class="name"
                         style="color: ${getNicknameColor(citizen.nickname_color)}"
                     >
+                        ${citizen.prefix ? '<span style="color:#6d3fc0">[' + escapeHtml(citizen.prefix) + ']</span> ' : ''}
                         ${escapeHtml(
                             citizen.nickname
                         )}
