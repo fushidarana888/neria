@@ -72,7 +72,7 @@
         }
 
         main {
-            max-width: 1150px;
+            max-width: 1200px;
             margin: 0 auto;
             padding: 55px 25px 100px;
         }
@@ -136,11 +136,6 @@
             cursor: wait;
         }
 
-        .primary {
-            background: #6d3fc0;
-            color: #ffffff;
-        }
-
         .secondary {
             background: #ffffff;
             color: #333333;
@@ -151,6 +146,12 @@
             background: #fff0f0;
             color: #a92f2f;
             border: 1px solid #efcaca;
+        }
+
+        .warning {
+            background: #fff8e8;
+            color: #8a641a;
+            border: 1px solid #ead7a4;
         }
 
         .success {
@@ -166,7 +167,7 @@
         table {
             width: 100%;
             border-collapse: collapse;
-            min-width: 1000px;
+            min-width: 1180px;
         }
 
         th,
@@ -226,6 +227,30 @@
             color: #a92f2f;
         }
 
+        .status-revoked {
+            background: #fff8e8;
+            color: #8a641a;
+        }
+
+        .status-resigned {
+            background: #f0f0f3;
+            color: #64646d;
+        }
+
+        .status-unknown {
+            background: #f0f0f3;
+            color: #64646d;
+        }
+
+        .reason {
+            display: block;
+            margin-top: 5px;
+            max-width: 260px;
+            color: #8b6a6a;
+            font-size: 12px;
+            line-height: 1.35;
+        }
+
         .actions {
             display: flex;
             gap: 7px;
@@ -251,15 +276,6 @@
             padding: 45px 25px;
             text-align: center;
             color: #777780;
-        }
-
-        .ban-reason {
-            display: block;
-            margin-top: 5px;
-            max-width: 250px;
-            color: #9b5656;
-            font-size: 12px;
-            line-height: 1.35;
         }
 
         @media (max-width: 700px) {
@@ -299,7 +315,7 @@
 
     <div class="title">
         <h1>Админ-панель</h1>
-        <p>Управление гражданами Нерии.</p>
+        <p>Управление гражданами и статусами гражданства Нерии.</p>
     </div>
 
     <div id="adminContent">
@@ -374,6 +390,43 @@
         }
 
         return result;
+    }
+
+
+    function statusLabel(status) {
+
+        switch (status) {
+
+            case "active":
+                return {
+                    text: "АКТИВЕН",
+                    className: "status-active"
+                };
+
+            case "banned":
+                return {
+                    text: "ЗАБЛОКИРОВАН",
+                    className: "status-banned"
+                };
+
+            case "revoked":
+                return {
+                    text: "ГРАЖДАНСТВО ОТОЗВАНО",
+                    className: "status-revoked"
+                };
+
+            case "resigned":
+                return {
+                    text: "ОТКАЗАЛСЯ ОТ ГРАЖДАНСТВА",
+                    className: "status-resigned"
+                };
+
+            default:
+                return {
+                    text: status || "НЕИЗВЕСТНО",
+                    className: "status-unknown"
+                };
+        }
     }
 
 
@@ -521,22 +574,37 @@
         const summary =
             document.getElementById("citizenSummary");
 
-
         if (!list) return;
 
 
-        const bannedCount =
-            citizens.filter(c => c.is_banned).length;
-
         const activeCount =
-            citizens.length - bannedCount;
+            citizens.filter(
+                c => c.citizenship_status === "active"
+            ).length;
+
+        const bannedCount =
+            citizens.filter(
+                c => c.citizenship_status === "banned"
+            ).length;
+
+        const revokedCount =
+            citizens.filter(
+                c => c.citizenship_status === "revoked"
+            ).length;
+
+        const resignedCount =
+            citizens.filter(
+                c => c.citizenship_status === "resigned"
+            ).length;
 
 
         if (summary) {
             summary.textContent =
-                `Всего: ${citizens.length} · ` +
+                `Всего записей: ${citizens.length} · ` +
                 `Активных: ${activeCount} · ` +
-                `Заблокированных: ${bannedCount}`;
+                `Заблокированных: ${bannedCount} · ` +
+                `Отозвано: ${revokedCount} · ` +
+                `Отказались: ${resignedCount}`;
         }
 
 
@@ -565,6 +633,7 @@
                             <th>Имя</th>
                             <th>Дата рождения</th>
                             <th>Статус</th>
+                            <th>Изменён</th>
                             <th>Регистрация</th>
                             <th>Действия</th>
                         </tr>
@@ -596,57 +665,22 @@
                 .filter(Boolean)
                 .join(" ") || "—";
 
+            const statusInfo =
+                statusLabel(
+                    citizen.citizenship_status
+                );
 
-            let statusHtml;
-
-            if (citizen.is_banned) {
-
-                statusHtml = `
-                    <span class="status status-banned">
-                        ЗАБЛОКИРОВАН
-                    </span>
-
-                    ${
-                        citizen.ban_reason
-                            ? `
-                                <span class="ban-reason">
-                                    ${escapeHtml(citizen.ban_reason)}
-                                </span>
-                              `
-                            : ""
-                    }
-                `;
-
-            } else {
-
-                statusHtml = `
-                    <span class="status status-active">
-                        АКТИВЕН
-                    </span>
-                `;
-            }
-
-
-            const banButton =
-                citizen.is_banned
+            const reasonHtml =
+                citizen.status_reason
                     ? `
-                        <button
-                            type="button"
-                            class="success"
-                            onclick="unbanCitizen(${Number(citizen.internal_id)})"
-                        >
-                            Разблокировать
-                        </button>
+                        <span class="reason">
+                            ${escapeHtml(citizen.status_reason)}
+                        </span>
                       `
-                    : `
-                        <button
-                            type="button"
-                            class="danger"
-                            onclick="banCitizen(${Number(citizen.internal_id)})"
-                        >
-                            Заблокировать
-                        </button>
-                      `;
+                    : "";
+
+            const actionButtons =
+                buildActionButtons(citizen);
 
 
             html += `
@@ -675,11 +709,27 @@
                     </td>
 
                     <td>
-                        ${statusHtml}
+                        <span class="status ${statusInfo.className}">
+                            ${escapeHtml(statusInfo.text)}
+                        </span>
+
+                        ${reasonHtml}
                     </td>
 
                     <td class="muted">
-                        ${escapeHtml(formatDate(citizen.created_at))}
+                        ${escapeHtml(
+                            formatDate(
+                                citizen.status_changed_at
+                            )
+                        )}
+                    </td>
+
+                    <td class="muted">
+                        ${escapeHtml(
+                            formatDate(
+                                citizen.created_at
+                            )
+                        )}
                     </td>
 
                     <td>
@@ -696,7 +746,7 @@
                                 Изменить ID
                             </button>
 
-                            ${banButton}
+                            ${actionButtons}
 
                         </div>
                     </td>
@@ -717,6 +767,94 @@
     }
 
 
+    function buildActionButtons(citizen) {
+
+        const id =
+            Number(citizen.internal_id);
+
+        switch (citizen.citizenship_status) {
+
+            case "active":
+
+                return `
+                    <button
+                        type="button"
+                        class="danger"
+                        onclick="banCitizen(${id})"
+                    >
+                        Заблокировать
+                    </button>
+
+                    <button
+                        type="button"
+                        class="warning"
+                        onclick="revokeCitizenship(${id})"
+                    >
+                        Лишить гражданства
+                    </button>
+                `;
+
+
+            case "banned":
+
+                return `
+                    <button
+                        type="button"
+                        class="success"
+                        onclick="unbanCitizen(${id})"
+                    >
+                        Разблокировать
+                    </button>
+
+                    <button
+                        type="button"
+                        class="warning"
+                        onclick="revokeCitizenship(${id})"
+                    >
+                        Лишить гражданства
+                    </button>
+                `;
+
+
+            case "revoked":
+            case "resigned":
+
+                return `
+                    <button
+                        type="button"
+                        class="success"
+                        onclick="restoreCitizenship(${id})"
+                    >
+                        Восстановить гражданство
+                    </button>
+                `;
+
+
+            default:
+
+                return `
+                    <button
+                        type="button"
+                        class="success"
+                        onclick="restoreCitizenship(${id})"
+                    >
+                        Восстановить
+                    </button>
+                `;
+        }
+    }
+
+
+    function getCitizen(internalId) {
+
+        return citizens.find(
+            c =>
+                Number(c.internal_id) ===
+                Number(internalId)
+        );
+    }
+
+
     async function changeCitizenNumber(
         internalId,
         currentNumber
@@ -729,9 +867,7 @@
                     .padStart(6, "0")
             );
 
-        if (input === null) {
-            return;
-        }
+        if (input === null) return;
 
 
         const normalized =
@@ -766,9 +902,7 @@
                 "?"
             );
 
-        if (!confirmed) {
-            return;
-        }
+        if (!confirmed) return;
 
 
         const { error } =
@@ -801,16 +935,9 @@
     async function banCitizen(internalId) {
 
         const citizen =
-            citizens.find(
-                c =>
-                    Number(c.internal_id) ===
-                    Number(internalId)
-            );
+            getCitizen(internalId);
 
-
-        if (!citizen) {
-            return;
-        }
+        if (!citizen) return;
 
 
         const reason =
@@ -825,9 +952,7 @@
             );
 
 
-        if (reason === null) {
-            return;
-        }
+        if (reason === null) return;
 
 
         if (!reason.trim()) {
@@ -838,17 +963,15 @@
         }
 
 
-        const confirmed =
-            confirm(
+        if (
+            !confirm(
                 "Заблокировать гражданина " +
                 formatCitizenNumber(
                     citizen.citizen_number
                 ) +
                 "?"
-            );
-
-
-        if (!confirmed) {
+            )
+        ) {
             return;
         }
 
@@ -883,20 +1006,13 @@
     async function unbanCitizen(internalId) {
 
         const citizen =
-            citizens.find(
-                c =>
-                    Number(c.internal_id) ===
-                    Number(internalId)
-            );
+            getCitizen(internalId);
+
+        if (!citizen) return;
 
 
-        if (!citizen) {
-            return;
-        }
-
-
-        const confirmed =
-            confirm(
+        if (
+            !confirm(
                 "Разблокировать гражданина " +
                 formatCitizenNumber(
                     citizen.citizen_number
@@ -904,10 +1020,8 @@
                 " (" +
                 citizen.nickname +
                 ")?"
-            );
-
-
-        if (!confirmed) {
+            )
+        ) {
             return;
         }
 
@@ -927,6 +1041,126 @@
 
             alert(
                 "Не удалось разблокировать гражданина:\n" +
+                error.message
+            );
+
+            return;
+        }
+
+
+        await loadCitizens();
+    }
+
+
+    async function revokeCitizenship(internalId) {
+
+        const citizen =
+            getCitizen(internalId);
+
+        if (!citizen) return;
+
+
+        const reason =
+            prompt(
+                "Причина лишения гражданства " +
+                formatCitizenNumber(
+                    citizen.citizen_number
+                ) +
+                " (" +
+                citizen.nickname +
+                "):"
+            );
+
+
+        if (reason === null) return;
+
+
+        if (!reason.trim()) {
+            alert(
+                "Укажите причину лишения гражданства."
+            );
+            return;
+        }
+
+
+        if (
+            !confirm(
+                "Лишить гражданства " +
+                formatCitizenNumber(
+                    citizen.citizen_number
+                ) +
+                "?\n\nЗапись и ID сохранятся."
+            )
+        ) {
+            return;
+        }
+
+
+        const { error } =
+            await supabaseClient.rpc(
+                "admin_revoke_citizenship",
+                {
+                    p_citizen_id: internalId,
+                    p_reason: reason.trim()
+                }
+            );
+
+
+        if (error) {
+
+            console.error(error);
+
+            alert(
+                "Не удалось лишить гражданства:\n" +
+                error.message
+            );
+
+            return;
+        }
+
+
+        await loadCitizens();
+    }
+
+
+    async function restoreCitizenship(internalId) {
+
+        const citizen =
+            getCitizen(internalId);
+
+        if (!citizen) return;
+
+
+        if (
+            !confirm(
+                "Восстановить гражданство " +
+                formatCitizenNumber(
+                    citizen.citizen_number
+                ) +
+                " (" +
+                citizen.nickname +
+                ")?\n\nГражданский ID сохранится."
+            )
+        ) {
+            return;
+        }
+
+
+        const { error } =
+            await supabaseClient.rpc(
+                "admin_restore_citizenship",
+                {
+                    p_citizen_id: internalId
+                }
+            );
+
+
+        if (error) {
+
+            console.error(error);
+
+            alert(
+                "Не удалось восстановить гражданство:\n" +
                 error.message
             );
 
