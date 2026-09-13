@@ -186,7 +186,6 @@
 }
 
 .nickname a:hover {
-    color: #6d3fc0;
     text-decoration: underline;
 }
         @media (max-width: 700px) {
@@ -442,7 +441,10 @@ async function loadCitizens() {
                 </div>
 
                 <div class="nickname">
-                    <a href="citizen.html?id=${encodeURIComponent(citizen.citizen_id)}">
+                    <a
+                        href="citizen.html?id=${encodeURIComponent(citizen.citizen_id)}"
+                        style="color: ${getNicknameColor(citizen.nickname_color)}"
+                    >
                 ${escapeHtml(citizen.nickname)}
                 </a>
 </div>
@@ -471,6 +473,22 @@ async function loadCitizens() {
     content.innerHTML = html;
 }
 
+
+const NICKNAME_COLORS = {
+    purple: "#6d3fc0",
+    blue: "#2563eb",
+    cyan: "#0891b2",
+    green: "#15803d",
+    orange: "#c2410c",
+    red: "#b91c1c",
+    pink: "#be185d",
+    gold: "#a16207",
+    gray: "#6b7280"
+};
+
+function getNicknameColor(color) {
+    return NICKNAME_COLORS[color] || "#17171c";
+}
 
 function getAvatarUrl(path, updatedAt) {
 
