@@ -28,10 +28,10 @@ main{max-width:1000px;margin:auto;padding:65px 28px 100px}
 .neria-global-flag{width:32px!important;height:42px!important;display:flex!important;flex-direction:column!important;border-radius:3px!important;overflow:hidden!important}.neria-global-flag .p{background:#6d3fc0;flex:1}.neria-global-flag .w{background:#eee8ff;flex:1}
 .neria-global-nav{display:flex!important;align-items:center!important;justify-content:flex-end!important;gap:26px!important;flex-wrap:wrap!important}.neria-global-nav a{color:#55555d!important;text-decoration:none!important;font-size:14px!important;white-space:nowrap!important}.neria-global-nav a:hover{color:#6d3fc0!important}
 @media(max-width:900px){.neria-global-header{padding:14px 20px!important;flex-wrap:wrap!important;justify-content:center!important}.neria-global-logo{width:100%!important;justify-content:center!important}.neria-global-nav{width:100%!important;justify-content:center!important;gap:12px 20px!important}}
-</style><style>.neria-notification-link{position:relative!important}.neria-notification-count{display:inline-flex;align-items:center;justify-content:center;min-width:19px;height:19px;margin-left:4px;padding:0 5px;border-radius:999px;background:#6d3fc0;color:#fff!important;font-size:10px!important;font-weight:700;vertical-align:middle}</style><style id="neria-notification-purple">
-.neria-notification-link,#notificationButton{background:#6d3fc0!important;color:#fff!important;border:1px solid #6d3fc0!important;border-radius:8px!important;padding:9px 13px!important;font-weight:700!important}
-.neria-notification-link:hover,#notificationButton:hover{background:#5d34aa!important;color:#fff!important}
-.neria-notification-link .neria-notification-count{background:#fff!important;color:#6d3fc0!important}
+</style><style>.neria-notification-link{position:relative!important}.neria-notification-count{display:inline-flex;align-items:center;justify-content:center;min-width:19px;height:19px;margin-left:4px;padding:0 5px;border-radius:999px;background:#6d3fc0;color:#fff!important;font-size:10px!important;font-weight:700;vertical-align:middle}</style><style id="neria-notification-unread-text">
+.neria-notification-link{background:transparent!important;border:0!important;padding:0!important;border-radius:0!important;color:inherit!important;font-weight:inherit!important}
+.neria-notification-link .neria-notification-count{display:none!important}
+.neria-notification-link.has-unread,.neria-notification-link.has-unread .neria-notification-text{color:#6d3fc0!important;font-weight:700!important}
 </style></head>
 <body>
 <header class="neria-global-header"><a href="index.html" class="neria-global-logo"><span class="neria-global-flag" aria-label="Флаг Нерии"><span class="p"></span><span class="w"></span><span class="p"></span></span>НЕРИЯ</a><nav class="neria-global-nav"><a href="profile.html">Личный кабинет</a><a href="citizens.html">Граждане Нерии</a><a href="state.html">Государство</a><a href="treasury.html">Экономика</a><a href="market.html">Объявления</a><a href="laws.html">Законы</a><a href="notifications.html" class="neria-notification-link">🔔 <span class="neria-notification-text">Уведомления</span><span class="neria-notification-count" style="display:none">0</span></a></nav></header>
@@ -56,7 +56,7 @@ async function neriaLoadNotificationBadge(){
   if(!client||!client.auth)return;
   const {data:{user}}=await client.auth.getUser();
   if(!user)return;
-  const paint=async()=>{const {data,error}=await client.rpc("my_unread_notification_count");if(error)return;const n=Number(data||0);document.querySelectorAll(".neria-notification-count").forEach(el=>{el.textContent=n>99?"99+":String(n);el.style.display=n>0?"inline-flex":"none"})};
+  const paint=async()=>{const {data,error}=await client.rpc("my_unread_notification_count");if(error)return;const n=Number(data||0);document.querySelectorAll(".neria-notification-count").forEach(el=>{el.textContent=n>99?"99+":String(n);el.style.display="none";const link=el.closest(".neria-notification-link");if(link)link.classList.toggle("has-unread",n>0)})};
   await paint();
   client.channel("notification-badge-"+location.pathname).on("postgres_changes",{event:"INSERT",schema:"public",table:"notifications",filter:"user_id=eq."+user.id},paint).subscribe();
  }catch(e){}
