@@ -375,7 +375,7 @@
 
         НЕРИЯ
 
-    </div>
+    </a>
 
 </header>
 
@@ -439,16 +439,31 @@
         /* Проверяем авторизацию */
 
         const {
-            data: { session }
+            data: { session },
+            error: sessionError
         } = await supabaseClient.auth.getSession();
+
+
+        if (sessionError) {
+
+            console.error(sessionError);
+
+            profileCard.innerHTML = `
+                <div class="error">
+                    Не удалось проверить авторизацию.
+                    <br><br>
+                    ${sessionError.message}
+                </div>
+            `;
+
+            return;
+        }
 
 
         if (!session) {
 
             profileCard.innerHTML = `
-
                 <div class="error">
-
                     Вы не вошли в аккаунт Нерии.
 
                     <br><br>
@@ -460,9 +475,50 @@
                     <a href="registration.html">
                         Перейти к регистрации
                     </a>
-
                 </div>
+            `;
 
+            return;
+        }
+
+
+        /* Проверяем блокировку */
+
+        const {
+            data: banned,
+            error: banCheckError
+        } = await supabaseClient.rpc(
+            "is_current_user_banned"
+        );
+
+
+        if (banCheckError) {
+
+            console.error(
+                "Ошибка проверки блокировки:",
+                banCheckError
+            );
+
+            profileCard.innerHTML = `
+                <div class="error">
+                    Не удалось проверить статус аккаунта.
+
+                    <br><br>
+
+                    Ошибка: ${banCheckError.message}
+                </div>
+            `;
+
+            return;
+        }
+
+
+        if (banned) {
+
+            profileCard.innerHTML = `
+                <div class="error">
+                    Доступ к Нерии для этого аккаунта заблокирован.
+                </div>
             `;
 
             return;
@@ -475,38 +531,12 @@
             data,
             error
         } = await supabaseClient
-const {
-    data: banned,
-    error: banCheckError
-} = await supabaseClient.rpc(
-    "is_current_user_banned"
-);
 
-if (banCheckError) {
-    console.error(banCheckError);
-
-    profileCard.innerHTML = `
-        <div class="error">
-            Не удалось проверить статус аккаунта.
-        </div>
-    `;
-
-    return;
-}
-
-if (banned) {
-    profileCard.innerHTML = `
-        <div class="error">
-            Доступ к Нерии для этого аккаунта заблокирован.
-        </div>
-    `;
-
-    return;
-}
             .from("citizens")
 
             .select(`
                 id,
+                citizen_number,
                 nickname,
                 first_name,
                 surname,
@@ -529,9 +559,7 @@ if (banned) {
             console.error(error);
 
             profileCard.innerHTML = `
-
                 <div class="error">
-
                     Не удалось загрузить профиль.
 
                     <br><br>
@@ -542,9 +570,7 @@ if (banned) {
                     <br><br>
 
                     Ошибка: ${error.message}
-
                 </div>
-
             `;
 
             return;
@@ -554,13 +580,12 @@ if (banned) {
         /* Формируем ID */
 
         const citizenId =
-            String(data.id).padStart(6, "0");
+            String(data.citizen_number).padStart(6, "0");
 
 
         /* Формируем дату рождения */
 
         const months = [
-
             "",
             "января",
             "февраля",
@@ -574,7 +599,6 @@ if (banned) {
             "октября",
             "ноября",
             "декабря"
-
         ];
 
 
@@ -596,7 +620,7 @@ if (banned) {
 
             <div class="status">
 
-                🇳🇪 Гражданин Нерии
+                Гражданин Нерии
 
             </div>
 
@@ -625,7 +649,7 @@ if (banned) {
         <input
             type="text"
             id="editNickname"
-            value="${data.nickname}"
+            value="${escapeAttribute(data.nickname || "")}"
             maxlength="30"
         >
     </div>
@@ -641,7 +665,7 @@ if (banned) {
         <input
             type="text"
             id="editTelegramUsername"
-            value="${data.telegram_username ? "@" + data.telegram_username.replace(/^@/, "") : ""}"
+            value="${escapeAttribute(data.telegram_username ? "@" + data.telegram_username.replace(/^@/, "") : "")}"
             placeholder="@username"
             maxlength="32"
         >
@@ -658,7 +682,7 @@ if (banned) {
         <input
             type="text"
             id="editFirstName"
-            value="${data.first_name || ""}"
+            value="${escapeAttribute(data.first_name || "")}"
             maxlength="50"
         >
     </div>
@@ -674,11 +698,12 @@ if (banned) {
         <input
             type="text"
             id="editSurname"
-            value="${data.surname || ""}"
+            value="${escapeAttribute(data.surname || "")}"
             maxlength="50"
         >
     </div>
 </div>
+
                 <div class="row">
 
                     <div class="label">
@@ -687,7 +712,7 @@ if (banned) {
 
                     <div class="value">
 
-                        ${birthDate}
+                        ${escapeHtml(birthDate)}
 
                     </div>
 
@@ -697,14 +722,16 @@ if (banned) {
 
 
             <div class="actions">
-            
+
             <div class="privacy">
+
             <button
                 class="save-profile"
                 onclick="saveProfileData()"
             >
                 Сохранить изменения
             </button>
+
                 <h2>Приватность</h2>
 
                 <p class="privacy-description">
@@ -746,7 +773,7 @@ if (banned) {
                 </button>
 
             </div>
-            
+
                 <button
                     class="logout"
                     onclick="logout()"
@@ -758,6 +785,24 @@ if (banned) {
 
         `;
 
+    }
+
+
+    function escapeHtml(value) {
+
+        return String(value ?? "")
+            .replace(/&/g, "&amp;")
+            .replace(/</g, "&lt;")
+            .replace(/>/g, "&gt;")
+            .replace(/"/g, "&quot;")
+            .replace(/'/g, "&#039;");
+    }
+
+
+    function escapeAttribute(value) {
+
+        return escapeHtml(value)
+            .replace(/`/g, "&#096;");
     }
 
 
