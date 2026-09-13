@@ -744,7 +744,8 @@ table{max-width:100%}
                 avatar_updated_at,
                 can_upload_avatar,
                 nickname_color,
-                prefix
+                prefix,
+                prefix_color
             `)
 
             .eq("user_id", session.user.id)
@@ -819,7 +820,7 @@ table{max-width:100%}
             <div class="status">
 
                 Гражданин Нерии
-                ${data.prefix ? ' · <strong>[' + escapeHtml(data.prefix) + ']</strong>' : ''}
+                ${data.prefix ? ' · <span style="display:inline-block;color:' + escapeHtml(data.prefix_color || "#6d3fc0") + ';border:1px solid ' + escapeHtml(data.prefix_color || "#6d3fc0") + ';border-radius:999px;padding:2px 7px;font-weight:800">[' + escapeHtml(data.prefix) + ']</span>' : ''}
 
             </div>
 
