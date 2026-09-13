@@ -774,6 +774,7 @@ function friendlyError(error){
             jobs.push(loadAllianceProposals());
             jobs.push(loadStateServiceOffers());
             jobs.push(loadCommunityLinksAdmin());
+            jobs.push(loadGovernmentRoleApplications());
         }
 
         await Promise.all(jobs);
@@ -783,6 +784,7 @@ function friendlyError(error){
     function renderShell() {
         const menu = [
             governmentRoles.is_founder ? ["overview","Управление","Роли и контроль министров"] : null,
+            governmentRoles.is_founder ? ["roleapps","Заявки на роли","Министры и журналисты"] : null,
             governmentRoles.is_founder ? ["alliances","Союзы","Предложения от сообществ"] : null,
             governmentRoles.is_founder ? ["stateoffers","Услуги государству","Предложения граждан"] : null,
             governmentRoles.economy_minister ? ["economy","Экономика","Казна, NR и выплаты"] : null,
@@ -824,6 +826,20 @@ function friendlyError(error){
                         <a href="minister-actions.html" class="secondary" style="display:inline-block;text-decoration:none;padding:10px 14px;border-radius:7px">Действия министров</a>
                     </div>
                     <div id="governmentRoleList"><div class="loading">Загрузка ролей...</div></div>
+                </div>
+            </section>` : ""}
+
+            ${governmentRoles.is_founder ? `
+            <section class="admin-section" id="section-roleapps">
+                <div class="section-heading"><h2>Заявки на государственные роли</h2><p>Самовыдвижение граждан на должности Министра экономики, МВД и журналиста.</p></div>
+                <div class="reward-panel">
+                    <h2>Заявки</h2>
+                    <div id="governmentRoleApplicationList"><div class="loading">Загрузка заявок...</div></div>
+                </div>
+                <div class="reward-panel">
+                    <h2>Блокировки заявок</h2>
+                    <p>Можно временно запретить конкретному гражданину подавать новые заявки на роли.</p>
+                    <div id="roleApplicationBlockList"><div class="loading">Загрузка блокировок...</div></div>
                 </div>
             </section>` : ""}
 
@@ -1186,6 +1202,72 @@ function showAdminSection(section, button) {
     }
 
 
+
+
+    const governmentRoleLabels={economy_minister:"Министр экономики",mvd:"Министр МВД",journalist:"Журналист"};
+
+    async function loadGovernmentRoleApplications(){
+        const list=document.getElementById("governmentRoleApplicationList");
+        const blockList=document.getElementById("roleApplicationBlockList");
+        if(!list||!blockList)return;
+
+        const [{data,error},{data:blocks,error:blockError}]=await Promise.all([
+            supabaseClient.rpc("founder_government_role_applications"),
+            supabaseClient.rpc("founder_action_blocks")
+        ]);
+
+        if(error){
+            list.innerHTML='<div class="error">'+escapeHtml(friendlyError(error))+'</div>';
+        }else{
+            const rows=data||[];
+            list.innerHTML=rows.length?rows.map(a=>{
+                const actions=a.status==="pending"
+                    ? '<div class="reward-actions"><button class="success" onclick="reviewGovernmentRoleApplication('+Number(a.application_id)+',true)">Принять</button><button class="danger" onclick="reviewGovernmentRoleApplication('+Number(a.application_id)+',false)">Отклонить</button><button class="secondary" onclick="blockCitizenAction('+Number(a.citizen_id)+',\\'role_applications\\')">Заблокировать новые заявки</button></div>'
+                    : '';
+                return '<div class="deal-admin-card"><div class="deal-admin-title">'+escapeHtml(a.nickname)+' · '+escapeHtml(formatCitizenNumber(a.citizen_number))+' · '+escapeHtml(governmentRoleLabels[a.requested_role]||a.requested_role)+'</div><div class="deal-admin-meta">'+escapeHtml(a.status==="pending"?"На рассмотрении":a.status==="accepted"?"Принята":"Отклонена")+' · '+escapeHtml(formatDate(a.created_at))+'</div><div class="dispute-reason">'+escapeHtml(a.statement)+'</div>'+actions+'</div>';
+            }).join(""):'<div class="empty">Заявок на роли пока нет.</div>';
+        }
+
+        if(blockError){
+            blockList.innerHTML='<div class="error">'+escapeHtml(friendlyError(blockError))+'</div>';
+        }else{
+            const rows=(blocks||[]).filter(x=>x.scope==="role_applications");
+            blockList.innerHTML=rows.length?rows.map(b=>'<div class="deal-admin-card"><div class="deal-admin-title">'+escapeHtml(b.nickname)+' · '+escapeHtml(formatCitizenNumber(b.citizen_number))+'</div><div class="deal-admin-meta">'+(b.is_active?'Активна до '+escapeHtml(formatDate(b.expires_at)):'Завершена')+'</div><div class="dispute-reason">'+escapeHtml(b.reason)+'</div>'+(b.is_active?'<button class="success" onclick="unblockCitizenAction('+Number(b.block_id)+')">Снять блокировку</button>':'')+'</div>').join(""):'<div class="empty">Блокировок заявок пока нет.</div>';
+        }
+    }
+
+    async function reviewGovernmentRoleApplication(id,accept){
+        const note=prompt(accept?"Комментарий к принятию (необязательно):":"Причина/комментарий к отклонению (необязательно):","");
+        if(note===null)return;
+        if(!confirm(accept?"Принять заявку и сразу выдать эту роль?":"Отклонить заявку?"))return;
+        const {error}=await supabaseClient.rpc("founder_review_government_role_application",{p_application_id:id,p_accept:accept,p_note:note.trim()||null});
+        if(error){alert("Не удалось обработать заявку:\n"+friendlyError(error));return}
+        await Promise.all([loadGovernmentRoleApplications(),loadGovernmentRoles()]);
+    }
+
+    async function blockCitizenAction(citizenId,scope){
+        const amountRaw=prompt("Срок блокировки (целое число):","24");
+        if(amountRaw===null)return;
+        const amount=Number(amountRaw);
+        if(!Number.isSafeInteger(amount)||amount<=0){alert("Введите положительное целое число.");return}
+        const unit=prompt("Единица времени: минуты, часы или дни","часы");
+        if(unit===null)return;
+        const u=unit.trim().toLowerCase();
+        const mul=u.startsWith("д")?1440:u.startsWith("ч")?60:1;
+        const minutes=amount*mul;
+        const reason=prompt("Причина блокировки:");
+        if(reason===null||!reason.trim())return;
+        const {error}=await supabaseClient.rpc("founder_block_user_action",{p_citizen_id:citizenId,p_scope:scope,p_minutes:minutes,p_reason:reason.trim()});
+        if(error){alert("Не удалось установить блокировку:\n"+friendlyError(error));return}
+        if(scope==="role_applications")await loadGovernmentRoleApplications();
+    }
+
+    async function unblockCitizenAction(blockId){
+        if(!confirm("Снять эту блокировку досрочно?"))return;
+        const {error}=await supabaseClient.rpc("founder_unblock_user_action",{p_block_id:blockId});
+        if(error){alert("Не удалось снять блокировку:\n"+friendlyError(error));return}
+        await loadGovernmentRoleApplications();
+    }
 
     async function loadCommunityLinksAdmin(){
         const chat=document.getElementById("telegramChatUrl");
