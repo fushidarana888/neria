@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Сделка — Нерия</title>
+<style>
+*{box-sizing:border-box}body{margin:0;font-family:Arial,Helvetica,sans-serif;background:#f5f5f7;color:#17171c}
+header{min-height:72px;background:#fff;border-bottom:1px solid #e5e5e8;display:flex;align-items:center;justify-content:space-between;padding:14px 6%;gap:20px}
+.logo{font-size:20px;font-weight:700;text-decoration:none;color:#17171c}nav{display:flex;gap:24px;flex-wrap:wrap}nav a{font-size:14px;color:#55555d;text-decoration:none}
+main{max-width:1050px;margin:auto;padding:48px 24px 90px}.back{display:inline-block;margin-bottom:24px;color:#6d3fc0;text-decoration:none;font-size:14px}
+.hero{background:#fff;border:1px solid #e5e5e8;border-radius:14px;padding:24px;margin-bottom:18px}.hero-top{display:flex;justify-content:space-between;gap:15px;align-items:flex-start}.hero h1{margin:0 0 8px;font-size:32px}.desc{color:#666670;line-height:1.55;white-space:pre-wrap}.status{font-size:12px;font-weight:700;color:#6d3fc0;text-transform:uppercase}.amount{font-size:28px;font-weight:700;color:#6d3fc0;white-space:nowrap}
+.grid{display:grid;grid-template-columns:1.25fr .75fr;gap:18px}.box{background:#fff;border:1px solid #e5e5e8;border-radius:14px;padding:22px;margin-bottom:18px}.box h2{margin:0 0 14px;font-size:20px}
+.party{display:flex;justify-content:space-between;gap:14px;padding:12px 0;border-bottom:1px solid #eee}.party:last-child{border-bottom:0}.muted{color:#777780;font-size:13px}
+.badge{display:inline-block;padding:6px 9px;border-radius:999px;font-size:11px;font-weight:700;background:#f7f3fc;color:#6d3fc0}.done{background:#eef9f1;color:#27763a}
+.actions{display:flex;gap:9px;flex-wrap:wrap}.btn{border:0;border-radius:7px;padding:11px 15px;background:#6d3fc0;color:#fff;font-weight:700;cursor:pointer}.danger{background:#fff;color:#b91c1c;border:1px solid #efcaca}.secondary{background:#fff;color:#5d4b78;border:1px solid #d9cdef}
+.chat{display:flex;flex-direction:column;gap:10px;max-height:430px;overflow:auto;padding:4px}.msg{max-width:78%;padding:11px 13px;border-radius:11px;background:#f1f1f4}.msg.mine{margin-left:auto;background:#eee8ff}.msg-meta{font-size:11px;color:#85858e;margin-bottom:5px}.msg-text{white-space:pre-wrap;line-height:1.45}
+.chat-form{display:grid;grid-template-columns:1fr auto;gap:8px;margin-top:14px}.chat-form textarea{resize:vertical;min-height:55px;max-height:150px;padding:10px;border:1px solid #dcdce1;border-radius:8px;font:inherit}
+.event{padding:12px 0;border-bottom:1px solid #eee}.event:last-child{border-bottom:0}.event-title{font-size:13px;font-weight:700}.event-meta{font-size:11px;color:#85858e;margin-top:4px}.event-details{font-size:13px;color:#666670;margin-top:4px;line-height:1.45}
+.dispute{background:#fff8e8;border:1px solid #ead7a4;border-radius:10px;padding:14px;line-height:1.5}.empty{color:#777780}
+@media(max-width:750px){header{justify-content:center;flex-wrap:wrap}nav{justify-content:center}.grid{grid-template-columns:1fr}.hero-top{flex-direction:column}.amount{font-size:24px}.msg{max-width:90%}main{padding:35px 15px}}
+</style>
+</head>
+<body>
+<header><a class="logo" href="index.html">НЕРИЯ</a><nav><a href="profile.html">Личный кабинет</a><a href="treasury.html">Экономика</a><a href="market.html">Объявления</a><a href="laws.html">Законы</a></nav></header>
+<main>
+<a class="back" href="market.html">← К доске объявлений</a>
+<div id="page"><div class="box">Загрузка сделки…</div></div>
+</main>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script>
+const sb=window.supabase.createClient("https://rictvznkxkeygbrlcymn.supabase.co","sb_publishable_SVwKto14tbMtsmcDOagvCw_TVqg7he7");
+const qs=new URLSearchParams(location.search);
+const dealId=Number(qs.get("id"));
+const page=document.getElementById("page");
+const esc=v=>String(v??"").replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;");
+const nr=v=>new Intl.NumberFormat("ru-RU").format(Number(v||0));
+const dt=v=>v?new Date(v).toLocaleString("ru-RU"):"—";
+function statusLabel(v){return {active:"Активна",dispute:"Спор",completed:"Завершена",refunded:"Возврат"}[v]||v}
+function eventLabel(v){return {created:"Сделка создана",party_done:"Подтверждение обязательств",completed:"Сделка завершена",dispute_opened:"Открыт спор",dispute_resolved:"Спор разрешён"}[v]||v}
+async function load(){
+ if(!Number.isSafeInteger(dealId)||dealId<=0){page.innerHTML='<div class="box">Некорректный номер сделки.</div>';return}
+ const {data:{user}}=await sb.auth.getUser();if(!user){location.href="login.html";return}
+ const [{data:d,error:de},{data:m,error:me},{data:e,error:ee}]=await Promise.all([
+  sb.rpc("market_deal_details",{p_deal_id:dealId}),
+  sb.rpc("market_deal_messages_list",{p_deal_id:dealId}),
+  sb.rpc("market_deal_events_list",{p_deal_id:dealId})
+ ]);
+ if(de||!d||!d[0]){page.innerHTML='<div class="box">Не удалось открыть сделку: '+esc(de?.message||"не найдена")+'</div>';return}
+ render(d[0],m||[],e||[],me,ee)
+}
+function render(d,msgs,events,me,ee){
+ const canAct=d.my_role!=="admin";
+ const active=d.status==="active";
+ page.innerHTML=
+ '<section class="hero"><div class="hero-top"><div><div class="status">'+esc(statusLabel(d.status))+'</div><h1>'+esc(d.listing_title)+'</h1><div class="desc">'+esc(d.listing_description)+'</div></div><div class="amount">'+nr(d.amount)+' NR</div></div></section>'+
+ '<div class="grid"><div>'+
+ '<section class="box"><h2>Участники</h2>'+
+ '<div class="party"><div><strong>'+esc(d.payer_nickname)+'</strong><div class="muted">#'+String(d.payer_number).padStart(6,"0")+' · плательщик</div></div><span class="badge '+(d.payer_done?"done":"")+'">'+(d.payer_done?"Подтвердил":"Не подтвердил")+'</span></div>'+
+ '<div class="party"><div><strong>'+esc(d.payee_nickname)+'</strong><div class="muted">#'+String(d.payee_number).padStart(6,"0")+' · получатель</div></div><span class="badge '+(d.payee_done?"done":"")+'">'+(d.payee_done?"Подтвердил":"Не подтвердил")+'</span></div>'+
+ (active&&canAct?'<div class="actions" style="margin-top:15px"><button class="btn" onclick="markDone()">Я выполнил обязательства</button><button class="btn danger" onclick="openDispute()">Открыть спор</button></div>':'')+
+ (d.status==="dispute"?'<div class="dispute" style="margin-top:15px"><strong>Спор открыт.</strong><br>'+esc(d.dispute_reason||"")+(d.dispute_resolution?'<br><br><strong>Решение:</strong> '+esc(d.dispute_resolution):'')+'</div>':'')+
+ '</section>'+
+ '<section class="box"><h2>Переписка</h2><div class="chat" id="chat">'+renderMessages(msgs,me)+'</div>'+
+ (canAct?'<div class="chat-form"><textarea id="message" maxlength="2000" placeholder="Сообщение второй стороне"></textarea><button class="btn" onclick="sendMessage()">Отправить</button></div>':'')+
+ '</section></div>'+
+ '<aside><section class="box"><h2>Детали</h2><div class="muted">Сделка №'+dealId+'</div><div class="muted" style="margin-top:7px">Создана: '+esc(dt(d.created_at))+'</div><div class="muted" style="margin-top:7px">Тип объявления: '+(d.listing_type==="offer"?"Предложение":"Запрос")+'</div><div class="muted" style="margin-top:7px">Ваша роль: '+(d.my_role==="payer"?"плательщик":d.my_role==="payee"?"получатель":"администратор")+'</div></section>'+
+ '<section class="box"><h2>История сделки</h2><div id="events">'+renderEvents(events,ee)+'</div></section></aside></div>';
+ requestAnimationFrame(()=>{const chat=document.getElementById("chat");if(chat)chat.scrollTop=chat.scrollHeight})
+}
+function renderMessages(msgs,err){if(err)return '<div class="empty">'+esc(err.message)+'</div>';if(!msgs.length)return '<div class="empty">Сообщений пока нет.</div>';return msgs.map(x=>'<div class="msg '+(x.is_mine?"mine":"")+'"><div class="msg-meta">'+esc(x.author_nickname)+' · #'+String(x.author_number).padStart(6,"0")+' · '+esc(dt(x.created_at))+'</div><div class="msg-text">'+esc(x.message)+'</div></div>').join("")}
+function renderEvents(events,err){if(err)return '<div class="empty">'+esc(err.message)+'</div>';if(!events.length)return '<div class="empty">История пока пуста.</div>';return events.map(x=>'<div class="event"><div class="event-title">'+esc(eventLabel(x.event_type))+'</div><div class="event-meta">'+(x.actor_nickname?esc(x.actor_nickname)+' · ':'')+esc(dt(x.created_at))+'</div>'+(x.details?'<div class="event-details">'+esc(x.details)+'</div>':'')+'</div>').join("")}
+async function sendMessage(){const el=document.getElementById("message");const text=el.value.trim();if(!text)return;const {error}=await sb.rpc("market_deal_send_message",{p_deal_id:dealId,p_message:text});if(error){alert(error.message);return}el.value="";await load()}
+async function markDone(){if(!confirm("Подтвердить выполнение своих обязательств?"))return;const {error}=await sb.rpc("market_mark_done",{p_deal_id:dealId});if(error)alert(error.message);else await load()}
+async function openDispute(){const reason=prompt("Опишите причину спора:");if(reason===null||!reason.trim())return;const {error}=await sb.rpc("market_open_dispute",{p_deal_id:dealId,p_reason:reason.trim()});if(error)alert(error.message);else await load()}
+load();
+</script>
+</body>
+</html>
