@@ -124,7 +124,7 @@
         /* ОСНОВА */
 
         main {
-            max-width: 650px;
+            max-width: 980px;
 
             margin: 0 auto;
 
@@ -165,13 +165,7 @@
         /* КАРТОЧКА */
 
         .profile-card {
-            background: white;
-
-            border: 1px solid #e5e5e8;
-
-            border-radius: 14px;
-
-            padding: 35px;
+            background: transparent;
         }
 
         .status {
@@ -192,8 +186,11 @@
 
         .citizen-id {
             text-align: center;
-
-            margin-bottom: 35px;
+            margin-bottom: 24px;
+            padding: 32px;
+            background: linear-gradient(135deg, #ffffff 0%, #f7f3fc 100%);
+            border: 1px solid #e5e5e8;
+            border-radius: 16px;
         }
 
         .citizen-id-label {
@@ -214,8 +211,44 @@
             color: #6d3fc0;
         }
 
+        .dashboard-grid {
+            display: grid;
+            grid-template-columns: minmax(0, 1.35fr) minmax(300px, .85fr);
+            gap: 22px;
+            align-items: start;
+        }
+
+        .panel {
+            background: white;
+            border: 1px solid #e5e5e8;
+            border-radius: 14px;
+            padding: 26px;
+        }
+
+        .panel-title {
+            font-size: 20px;
+            margin-bottom: 6px;
+        }
+
+        .panel-description {
+            color: #777780;
+            font-size: 13px;
+            line-height: 1.5;
+            margin-bottom: 18px;
+        }
+
         .data {
             border-top: 1px solid #e5e5e8;
+        }
+
+        .account-panel {
+            margin-top: 22px;
+        }
+
+        .privacy {
+            margin-top: 0;
+            padding-top: 0;
+            border-top: none;
         }
 
         .row {
@@ -284,12 +317,6 @@
 
             line-height: 1.5;
         }
-.privacy {
-    margin-top: 35px;
-    padding-top: 25px;
-    border-top: 1px solid #e5e5e8;
-}
-
 .privacy h2 {
     font-size: 20px;
     margin-bottom: 8px;
@@ -351,8 +378,16 @@
                 font-size: 32px;
             }
 
-            .profile-card {
-                padding: 25px 20px;
+            .dashboard-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .citizen-id {
+                padding: 26px 20px;
+            }
+
+            .panel {
+                padding: 22px 20px;
             }
 
             .row {
@@ -733,148 +768,153 @@
             </div>
 
 
-            <div class="data">
+            <div class="dashboard-grid">
 
-<div class="row">
-    <div class="label">
-        Ник
-    </div>
+                <section class="panel">
 
-    <div class="value">
-        <input
-            type="text"
-            id="editNickname"
-            value="${escapeAttribute(data.nickname || "")}"
-            maxlength="30"
-        >
-    </div>
-</div>
+                    <h2 class="panel-title">Основные данные</h2>
 
-<div class="row">
+                    <p class="panel-description">
+                        Эти данные относятся к вашему гражданскому профилю.
+                    </p>
 
-    <div class="label">
-        Telegram
-    </div>
+                    <div class="data">
 
-    <div class="value">
-        <input
-            type="text"
-            id="editTelegramUsername"
-            value="${escapeAttribute(data.telegram_username ? "@" + data.telegram_username.replace(/^@/, "") : "")}"
-            placeholder="@username"
-            maxlength="32"
-        >
-    </div>
+                        <div class="row">
+                            <div class="label">Ник</div>
+                            <div class="value">
+                                <input
+                                    type="text"
+                                    id="editNickname"
+                                    value="${escapeAttribute(data.nickname || "")}"
+                                    maxlength="30"
+                                >
+                            </div>
+                        </div>
 
-</div>
+                        <div class="row">
+                            <div class="label">Telegram</div>
+                            <div class="value">
+                                <input
+                                    type="text"
+                                    id="editTelegramUsername"
+                                    value="${escapeAttribute(data.telegram_username ? "@" + data.telegram_username.replace(/^@/, "") : "")}"
+                                    placeholder="@username"
+                                    maxlength="32"
+                                >
+                            </div>
+                        </div>
 
-<div class="row">
-    <div class="label">
-        Имя
-    </div>
+                        <div class="row">
+                            <div class="label">Имя</div>
+                            <div class="value">
+                                <input
+                                    type="text"
+                                    id="editFirstName"
+                                    value="${escapeAttribute(data.first_name || "")}"
+                                    maxlength="50"
+                                >
+                            </div>
+                        </div>
 
-    <div class="value">
-        <input
-            type="text"
-            id="editFirstName"
-            value="${escapeAttribute(data.first_name || "")}"
-            maxlength="50"
-        >
-    </div>
-</div>
+                        <div class="row">
+                            <div class="label">Фамилия</div>
+                            <div class="value">
+                                <input
+                                    type="text"
+                                    id="editSurname"
+                                    value="${escapeAttribute(data.surname || "")}"
+                                    maxlength="50"
+                                >
+                            </div>
+                        </div>
 
-
-<div class="row">
-    <div class="label">
-        Фамилия
-    </div>
-
-    <div class="value">
-        <input
-            type="text"
-            id="editSurname"
-            value="${escapeAttribute(data.surname || "")}"
-            maxlength="50"
-        >
-    </div>
-</div>
-
-                <div class="row">
-
-                    <div class="label">
-                        Дата рождения
-                    </div>
-
-                    <div class="value">
-
-                        ${escapeHtml(birthDate)}
+                        <div class="row">
+                            <div class="label">Дата рождения</div>
+                            <div class="value">
+                                ${escapeHtml(birthDate)}
+                            </div>
+                        </div>
 
                     </div>
+
+                    <button
+                        class="save-profile"
+                        onclick="saveProfileData()"
+                    >
+                        Сохранить изменения
+                    </button>
+
+                </section>
+
+
+                <div>
+
+                    <section class="panel privacy">
+
+                        <h2 class="panel-title">Приватность</h2>
+
+                        <p class="privacy-description">
+                            Выберите, какие данные будут видны другим гражданам Нерии.
+                        </p>
+
+                        <label class="privacy-option">
+                            <input
+                                type="checkbox"
+                                id="showFirstName"
+                                ${data.show_first_name ? "checked" : ""}
+                            >
+                            <span>Показывать имя</span>
+                        </label>
+
+                        <label class="privacy-option">
+                            <input
+                                type="checkbox"
+                                id="showSurname"
+                                ${data.show_surname ? "checked" : ""}
+                            >
+                            <span>Показывать фамилию</span>
+                        </label>
+
+                        <label class="privacy-option">
+                            <input
+                                type="checkbox"
+                                id="showBirthDate"
+                                ${data.show_birth_date ? "checked" : ""}
+                            >
+                            <span>Показывать дату рождения</span>
+                        </label>
+
+                        <button
+                            class="save-privacy"
+                            onclick="savePrivacy()"
+                        >
+                            Сохранить приватность
+                        </button>
+
+                    </section>
+
+
+                    <section class="panel account-panel">
+
+                        <h2 class="panel-title">Аккаунт</h2>
+
+                        <p class="panel-description">
+                            Управление текущей сессией Нерии.
+                        </p>
+
+                        <button
+                            class="logout"
+                            onclick="logout()"
+                        >
+                            Выйти из аккаунта
+                        </button>
+
+                    </section>
 
                 </div>
 
             </div>
-
-
-            <div class="actions">
-
-            <div class="privacy">
-
-            <button
-                class="save-profile"
-                onclick="saveProfileData()"
-            >
-                Сохранить изменения
-            </button>
-
-                <h2>Приватность</h2>
-
-                <p class="privacy-description">
-                    Выберите, какие данные будут видны другим гражданам Нерии.
-                </p>
-
-                <label class="privacy-option">
-                    <input
-                        type="checkbox"
-                        id="showFirstName"
-                        ${data.show_first_name ? "checked" : ""}
-                    >
-                    <span>Показывать имя</span>
-                </label>
-
-                <label class="privacy-option">
-                    <input
-                        type="checkbox"
-                        id="showSurname"
-                        ${data.show_surname ? "checked" : ""}
-                    >
-                    <span>Показывать фамилию</span>
-                </label>
-
-                <label class="privacy-option">
-                    <input
-                        type="checkbox"
-                        id="showBirthDate"
-                        ${data.show_birth_date ? "checked" : ""}
-                    >
-                    <span>Показывать дату рождения</span>
-                </label>
-
-                <button
-                    class="save-privacy"
-                    onclick="savePrivacy()"
-                >
-                    Сохранить настройки
-                </button>
-
-            </div>
-
-                <button
-                    class="logout"
-                    onclick="logout()"
-                >
-                    Выйти из аккаунта
-                </button>
 
             </div>
 
