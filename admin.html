@@ -708,6 +708,7 @@ function friendlyError(error){
             jobs.push(loadOpenMarketListings());
             jobs.push(loadStateAnnouncementAdminList());
             jobs.push(loadAllianceProposals());
+            jobs.push(loadStateServiceOffers());
         }
 
         await Promise.all(jobs);
@@ -718,6 +719,7 @@ function friendlyError(error){
         const menu = [
             governmentRoles.is_founder ? ["overview","Управление","Роли и контроль министров"] : null,
             governmentRoles.is_founder ? ["alliances","Союзы","Предложения от сообществ"] : null,
+            governmentRoles.is_founder ? ["stateoffers","Услуги государству","Предложения граждан"] : null,
             governmentRoles.economy_minister ? ["economy","Экономика","Казна, NR и выплаты"] : null,
             governmentRoles.economy_minister ? ["deals","Сделки","Сделки, объявления и споры"] : null,
             (governmentRoles.mvd || governmentRoles.is_founder) ? ["chatmod","Чат","Спамблоки и муты"] : null,
@@ -752,6 +754,16 @@ function friendlyError(error){
 
             ${governmentRoles.is_founder ? `
             <section class="admin-section" id="section-alliances"><div class="section-heading"><h2>Союзы и партнёрства</h2><p>Предложения от флудов, РП, игровых чатов и других интернет-сообществ.</p></div><div class="reward-panel"><h2>Предложения союза</h2><p>Название, контакт, описание и статус предложения. Конкретные условия после принятия согласовываются с представителем сообщества.</p><div id="allianceProposalList"><div class="loading">Загрузка предложений...</div></div></div></section>` : ""}
+
+            ${governmentRoles.is_founder ? `
+            <section class="admin-section" id="section-stateoffers">
+                <div class="section-heading"><h2>Предложения услуг государству</h2><p>Приватные предложения граждан. Другие граждане их не видят.</p></div>
+                <div class="reward-panel">
+                    <h2>Входящие предложения</h2>
+                    <p>Можно принять, отклонить или открыть личную переписку с автором предложения.</p>
+                    <div id="stateServiceOfferList"><div class="loading">Загрузка предложений...</div></div>
+                </div>
+            </section>` : ""}
 
             ${governmentRoles.economy_minister ? `
             <section class="admin-section" id="section-economy">
@@ -893,6 +905,31 @@ function friendlyError(error){
     }
 
     
+    
+    async function loadStateServiceOffers(){
+        const el=document.getElementById("stateServiceOfferList");
+        if(!el)return;
+        const {data,error}=await supabaseClient.rpc("founder_state_service_offers");
+        if(error){el.innerHTML='<div class="error">'+escapeHtml(friendlyError(error))+'</div>';return}
+        const rows=data||[];
+        if(!rows.length){el.innerHTML='<div class="empty">Предложений государству пока нет.</div>';return}
+        const labels={pending:"Ожидает решения",accepted:"Принято",rejected:"Отклонено",closed:"Закрыто"};
+        el.innerHTML=rows.map(x=>{
+            const buttons=x.state_offer_status==="pending"
+              ? '<div class="dispute-actions"><button type="button" class="success" onclick="setStateServiceOfferStatus('+Number(x.listing_id)+',\'accepted\')">Принять</button><button type="button" class="danger" onclick="setStateServiceOfferStatus('+Number(x.listing_id)+',\'rejected\')">Отклонить</button><a class="secondary" style="display:inline-block;text-decoration:none;padding:10px 14px;border-radius:7px" href="state-offer.html?id='+Number(x.listing_id)+'">Открыть переписку</a></div>'
+              : '<div class="dispute-actions"><a class="secondary" style="display:inline-block;text-decoration:none;padding:10px 14px;border-radius:7px" href="state-offer.html?id='+Number(x.listing_id)+'">Открыть переписку</a>'+(x.state_offer_status==="accepted"?'<button type="button" class="secondary" onclick="setStateServiceOfferStatus('+Number(x.listing_id)+',\'closed\')">Закрыть</button>':'')+'</div>';
+            return '<div class="deal-admin-card"><div class="deal-admin-title">'+escapeHtml(x.title)+' · '+escapeHtml(labels[x.state_offer_status]||x.state_offer_status)+'</div><div class="deal-admin-meta">'+escapeHtml(x.author_nickname)+' · '+escapeHtml(formatCitizenNumber(x.author_number))+' · '+escapeHtml(formatDate(x.created_at))+'</div><div class="dispute-reason">'+escapeHtml(x.description)+'</div><div class="deal-admin-meta">'+(x.price?new Intl.NumberFormat("ru-RU").format(Number(x.price))+" NR":"Цена договорная")+'</div>'+buttons+'</div>';
+        }).join("");
+    }
+
+    async function setStateServiceOfferStatus(id,status){
+        const labels={accepted:"принять",rejected:"отклонить",closed:"закрыть"};
+        if(!confirm("Вы уверены, что хотите "+(labels[status]||"изменить")+" это предложение?"))return;
+        const {error}=await supabaseClient.rpc("founder_set_state_service_offer_status",{p_listing_id:id,p_status:status});
+        if(error){alert("Не удалось обработать предложение:\n"+friendlyError(error));return}
+        await loadStateServiceOffers();
+    }
+
     async function loadAllianceProposals(){
         const el=document.getElementById("allianceProposalList"); if(!el)return;
         const {data,error}=await supabaseClient.rpc("founder_alliance_proposals");
