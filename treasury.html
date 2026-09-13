@@ -39,7 +39,7 @@ h1{font-size:40px;margin-bottom:10px}.lead{color:#777780;line-height:1.6;margin-
 </div>
 
 <div class="founder-panel" id="founderPanel">
-<h2>Управление казной</h2>
+<h2>Управление казной для администрации</h2>
 <p>Перевод из казны не создаёт новые NR: сумма списывается из государственной казны и зачисляется гражданину.</p>
 <div class="transfer-form">
 <select id="recipientSelect">
@@ -79,12 +79,12 @@ function operationLabel(type){
     }
 }
 
-async function initFounderControls(){
+async function initAdminTreasuryControls(){
     const {data:{session}}=await supabaseClient.auth.getSession();
     if(!session)return;
 
-    const {data:isFounder,error:founderError}=await supabaseClient.rpc("is_founder");
-    if(founderError||!isFounder)return;
+    const {data:isAdmin,error:adminError}=await supabaseClient.rpc("is_admin");
+    if(adminError||!isAdmin)return;
 
     const panel=document.getElementById("founderPanel");
     panel.style.display="block";
@@ -195,7 +195,7 @@ async function loadHistory(){
 }
 loadStats();
 loadHistory();
-initFounderControls();
+initAdminTreasuryControls();
 </script>
 </body>
 </html>
