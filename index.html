@@ -629,6 +629,10 @@ nav a {
                     Обратиться к Основателю
                 </a>
 
+                <a href="notifications.html" class="secondary" id="notificationButton">
+                    🔔 Уведомления <span id="notificationCount" style="display:none;margin-left:6px;background:#6d3fc0;color:#fff;border-radius:999px;padding:2px 7px;font-size:11px">0</span>
+                </a>
+
             </div>
 
             <div class="admin-buttons" id="adminButtons">
@@ -1111,6 +1115,23 @@ supabaseClient.auth.onAuthStateChange(() => {
 
 
 
+
+async function updateNotificationCount() {
+    const countEl = document.getElementById("notificationCount");
+    if (!countEl || typeof supabaseClient === "undefined") return;
+    const { data: { user } } = await supabaseClient.auth.getUser();
+    if (!user) return;
+    const { data, error } = await supabaseClient.rpc("my_unread_notification_count");
+    if (error) return;
+    const count = Number(data || 0);
+    countEl.textContent = count > 99 ? "99+" : String(count);
+    countEl.style.display = count > 0 ? "inline-block" : "none";
+    supabaseClient.channel("home-notifications")
+        .on("postgres_changes",{event:"INSERT",schema:"public",table:"notifications",filter:"user_id=eq."+user.id},updateNotificationCount)
+        .subscribe();
+}
+
+updateNotificationCount();
 </script>
     
 </body>
