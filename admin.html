@@ -142,6 +142,24 @@
             font-size: 13px;
         }
 
+        .reward-panel {
+            margin-bottom: 22px;
+            padding: 22px;
+            background: #ffffff;
+            border: 1px solid #ded7f0;
+            border-radius: 14px;
+        }
+
+        .reward-panel h2 { font-size: 20px; margin-bottom: 8px; }
+        .reward-panel > p { color:#777780; font-size:13px; line-height:1.5; margin-bottom:16px; }
+        .reward-controls { display:grid; grid-template-columns:160px 1fr auto; gap:10px; margin-bottom:16px; }
+        .reward-controls input { width:100%; padding:11px 12px; border:1px solid #dcdce1; border-radius:7px; font:inherit; font-size:13px; }
+        .reward-list { display:grid; grid-template-columns:repeat(3,1fr); gap:8px; max-height:250px; overflow:auto; padding:4px; }
+        .reward-person { display:flex; gap:9px; align-items:center; padding:10px; border:1px solid #ececf0; border-radius:8px; font-size:13px; cursor:pointer; }
+        .reward-person input { accent-color:#6d3fc0; }
+        .reward-actions { display:flex; gap:10px; align-items:center; margin-top:14px; flex-wrap:wrap; }
+        .reward-count { color:#777780; font-size:13px; }
+
         .money-form input:focus {
             outline: none;
             border-color: #6d3fc0;
@@ -325,6 +343,10 @@
 
         @media (max-width: 700px) {
             .money-form {
+                grid-template-columns: 1fr;
+            }
+
+            .reward-controls, .reward-list {
                 grid-template-columns: 1fr;
             }
 
@@ -584,6 +606,30 @@
                 </div>
             </div>
 
+            <div class="reward-panel">
+                <h2>Массовая награда из казны</h2>
+                <p>
+                    Выберите участников мероприятия. Каждому будет выплачена одинаковая сумма
+                    из существующего баланса государственной казны.
+                </p>
+
+                <div class="reward-controls">
+                    <input type="number" id="rewardAmount" min="1" step="1" placeholder="NR каждому">
+                    <input type="text" id="rewardReason" maxlength="250" placeholder="Причина, например: награда за мероприятие">
+                    <button type="button" class="secondary" onclick="toggleAllRewardRecipients(true)">Выбрать всех</button>
+                </div>
+
+                <div class="reward-list" id="rewardRecipientList">
+                    <span class="muted">Список появится после загрузки граждан.</span>
+                </div>
+
+                <div class="reward-actions">
+                    <button type="button" class="primary" onclick="payBulkReward()">Выплатить награду</button>
+                    <button type="button" class="secondary" onclick="toggleAllRewardRecipients(false)">Снять выбор</button>
+                    <span class="reward-count" id="rewardCount">Выбрано: 0</span>
+                </div>
+            </div>
+
             <div class="panel">
 
                 <div class="toolbar">
@@ -653,6 +699,7 @@
         citizens = data || [];
 
         renderCitizenTable();
+        renderRewardRecipients();
     }
 
 
@@ -970,6 +1017,86 @@
                     </button>
                 `;
         }
+    }
+
+
+    function renderRewardRecipients() {
+        const list=document.getElementById("rewardRecipientList");
+        if(!list)return;
+
+        const active=citizens.filter(c=>c.citizenship_status==="active");
+
+        if(active.length===0){
+            list.innerHTML='<span class="muted">Нет активных граждан.</span>';
+            updateRewardCount();
+            return;
+        }
+
+        list.innerHTML=active.map(c=>{
+            return '<label class="reward-person">'+
+                '<input type="checkbox" class="reward-recipient" value="'+Number(c.internal_id)+'" onchange="updateRewardCount()">'+
+                '<span>'+escapeHtml(c.nickname||"Без ника")+' · '+escapeHtml(formatCitizenNumber(c.citizen_number))+'</span>'+
+            '</label>';
+        }).join("");
+
+        updateRewardCount();
+    }
+
+    function updateRewardCount(){
+        const selected=document.querySelectorAll(".reward-recipient:checked").length;
+        const el=document.getElementById("rewardCount");
+        if(el)el.textContent="Выбрано: "+selected;
+    }
+
+    function toggleAllRewardRecipients(checked){
+        document.querySelectorAll(".reward-recipient").forEach(el=>el.checked=checked);
+        updateRewardCount();
+    }
+
+    async function payBulkReward(){
+        const ids=[...document.querySelectorAll(".reward-recipient:checked")]
+            .map(el=>Number(el.value))
+            .filter(Number.isSafeInteger);
+
+        const amount=Number(document.getElementById("rewardAmount")?.value);
+        const reason=document.getElementById("rewardReason")?.value?.trim();
+
+        if(ids.length===0){alert("Выберите хотя бы одного гражданина.");return;}
+        if(!Number.isSafeInteger(amount)||amount<=0){alert("Введите положительное целое количество NR каждому.");return;}
+        if(!reason){alert("Укажите причину выплаты.");return;}
+
+        const total=amount*ids.length;
+        if(!Number.isSafeInteger(total)){alert("Слишком большая сумма.");return;}
+
+        if(!confirm(
+            "Выплатить "+new Intl.NumberFormat("ru-RU").format(amount)+" NR каждому из "+
+            ids.length+" граждан?\n\nВсего из казны будет списано: "+
+            new Intl.NumberFormat("ru-RU").format(total)+" NR."
+        ))return;
+
+        const {data,error}=await supabaseClient.rpc(
+            "admin_bulk_treasury_reward",
+            {p_citizen_ids:ids,p_amount_each:amount,p_reason:reason}
+        );
+
+        if(error){
+            console.error(error);
+            let message=error.message;
+            if(message.includes("Insufficient treasury balance"))message="В казне недостаточно NR для этой выплаты.";
+            alert("Не удалось выплатить награду:\n"+message);
+            return;
+        }
+
+        document.getElementById("rewardAmount").value="";
+        document.getElementById("rewardReason").value="";
+        toggleAllRewardRecipients(false);
+        await loadCitizens();
+
+        const result=data?.[0];
+        alert(
+            "Награда выплачена.\nПолучателей: "+(result?.recipients_count||ids.length)+
+            "\nВсего выплачено: "+new Intl.NumberFormat("ru-RU").format(Number(result?.total_amount||total))+" NR."
+        );
     }
 
 
