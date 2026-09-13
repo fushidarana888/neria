@@ -694,6 +694,7 @@ function friendlyError(error){
 
         if (governmentRoles.mvd || governmentRoles.is_founder) {
             jobs.push(loadCitizenshipApplicationsPanel());
+            jobs.push(loadChatModeration());
         }
 
         if (governmentRoles.economy_minister) {
@@ -717,6 +718,7 @@ function friendlyError(error){
             governmentRoles.is_founder ? ["overview","Управление","Роли и контроль министров"] : null,
             governmentRoles.economy_minister ? ["economy","Экономика","Казна, NR и выплаты"] : null,
             governmentRoles.economy_minister ? ["deals","Сделки","Сделки, объявления и споры"] : null,
+            (governmentRoles.mvd || governmentRoles.is_founder) ? ["chatmod","Чат","Спамблоки и муты"] : null,
             ["citizens","Граждане",governmentRoles.mvd ? "Гражданство и управление" : "Список и кошельки"]
         ].filter(Boolean);
 
@@ -811,6 +813,39 @@ function friendlyError(error){
                     <h2>Споры по сделкам</h2>
                     <p>Сделки, по которым одна из сторон открыла спор.</p>
                     <div id="marketDisputes"><div class="loading">Загрузка...</div></div>
+                </div>
+            </section>` : ""}
+
+            ${(governmentRoles.mvd || governmentRoles.is_founder) ? `
+            <section class="admin-section" id="section-chatmod">
+                <div class="section-heading"><h2>Модерация общего чата</h2><p>Автоматические спамблоки и ручные муты граждан.</p></div>
+
+                <div class="reward-panel">
+                    <h2>Выдать мут</h2>
+                    <p>МВД и Основатель могут запретить выбранному гражданину писать в общий чат на указанный срок.</p>
+                    <div class="reward-controls" style="grid-template-columns:1.3fr 120px 120px">
+                        <select id="chatMuteCitizen" style="padding:11px 12px;border:1px solid #dcdce1;border-radius:7px;font:inherit">
+                            <option value="">Выберите гражданина</option>
+                        </select>
+                        <input id="chatMuteDuration" type="number" min="1" step="1" placeholder="Срок">
+                        <select id="chatMuteUnit" style="padding:11px 12px;border:1px solid #dcdce1;border-radius:7px;font:inherit">
+                            <option value="minutes">Минуты</option>
+                            <option value="hours">Часы</option>
+                            <option value="days">Дни</option>
+                        </select>
+                    </div>
+                    <input id="chatMuteReason" type="text" maxlength="300" placeholder="Причина мута" style="width:100%;padding:11px 12px;border:1px solid #dcdce1;border-radius:7px;font:inherit">
+                    <div class="reward-actions">
+                        <button type="button" class="danger" onclick="muteChatCitizen()">Выдать мут</button>
+                    </div>
+                </div>
+
+                <div class="panel">
+                    <div class="toolbar">
+                        <div class="toolbar-info">История спамблоков и мутов</div>
+                        <button type="button" class="secondary" onclick="loadChatModeration()">Обновить</button>
+                    </div>
+                    <div id="chatModerationList"><div class="loading">Загрузка блокировок чата...</div></div>
                 </div>
             </section>` : ""}
 
@@ -1212,6 +1247,128 @@ function friendlyError(error){
             loadCitizenshipApplicationsPanel(),
             loadCitizens()
         ]);
+    }
+
+
+    async function loadChatModeration() {
+        const list = document.getElementById("chatModerationList");
+        const select = document.getElementById("chatMuteCitizen");
+        if (!list || !select) return;
+
+        const [{data: blocks,error:blockError},{data: people,error:peopleError}] =
+            await Promise.all([
+                supabaseClient.rpc("chat_moderation_blocks"),
+                supabaseClient.rpc("chat_moderation_citizens")
+            ]);
+
+        if (peopleError) {
+            select.innerHTML = '<option value="">Не удалось загрузить граждан</option>';
+        } else {
+            select.innerHTML =
+                '<option value="">Выберите гражданина</option>' +
+                (people || []).map(c =>
+                    '<option value="' + Number(c.citizen_id) + '">' +
+                    escapeHtml(c.nickname) + ' · ' +
+                    escapeHtml(formatCitizenNumber(c.citizen_number)) +
+                    '</option>'
+                ).join("");
+        }
+
+        if (blockError) {
+            list.innerHTML = '<div class="error">' + escapeHtml(friendlyError(blockError)) + '</div>';
+            return;
+        }
+
+        const rows = blocks || [];
+        if (!rows.length) {
+            list.innerHTML = '<div class="empty">Спамблоков и мутов пока не было.</div>';
+            return;
+        }
+
+        list.innerHTML = rows.map(b => {
+            const type = b.block_type === "auto_spam" ? "АВТО-СПАМБЛОК" : "РУЧНОЙ МУТ";
+            const active = !!b.is_active;
+            return '<div class="deal-admin-card">' +
+                '<div class="deal-admin-title">' +
+                    escapeHtml(b.nickname) + ' · ' +
+                    escapeHtml(formatCitizenNumber(b.citizen_number)) +
+                    ' · ' + type +
+                '</div>' +
+                '<div class="deal-admin-meta">' +
+                    'Начало: ' + escapeHtml(formatDate(b.starts_at)) +
+                    ' · До: ' + escapeHtml(formatDate(b.expires_at)) +
+                    ' · Статус: ' + (active ? 'активен' : 'завершён') +
+                '</div>' +
+                '<div class="dispute-reason">' + escapeHtml(b.reason) + '</div>' +
+                (active
+                    ? '<button type="button" class="success" onclick="unmuteChatBlock(' + Number(b.block_id) + ')">Снять блокировку</button>'
+                    : '') +
+            '</div>';
+        }).join("");
+    }
+
+    async function muteChatCitizen() {
+        const citizenId = Number(document.getElementById("chatMuteCitizen")?.value);
+        const duration = Number(document.getElementById("chatMuteDuration")?.value);
+        const unit = document.getElementById("chatMuteUnit")?.value;
+        const reason = document.getElementById("chatMuteReason")?.value?.trim();
+
+        if (!Number.isSafeInteger(citizenId) || citizenId <= 0) {
+            alert("Выберите гражданина.");
+            return;
+        }
+        if (!Number.isSafeInteger(duration) || duration <= 0) {
+            alert("Укажите положительный срок мута.");
+            return;
+        }
+        if (!reason) {
+            alert("Укажите причину мута.");
+            return;
+        }
+
+        const multiplier = unit === "days" ? 1440 : unit === "hours" ? 60 : 1;
+        const minutes = duration * multiplier;
+        if (!Number.isSafeInteger(minutes)) {
+            alert("Слишком большой срок.");
+            return;
+        }
+
+        if (!confirm("Выдать мут в общем чате на " + duration + " " +
+            (unit === "days" ? "дн." : unit === "hours" ? "ч." : "мин.") + "?")) return;
+
+        const {error} = await supabaseClient.rpc(
+            "chat_mute_citizen",
+            {
+                p_citizen_id: citizenId,
+                p_minutes: minutes,
+                p_reason: reason
+            }
+        );
+
+        if (error) {
+            alert("Не удалось выдать мут:\n" + friendlyError(error));
+            return;
+        }
+
+        document.getElementById("chatMuteDuration").value = "";
+        document.getElementById("chatMuteReason").value = "";
+        await loadChatModeration();
+    }
+
+    async function unmuteChatBlock(blockId) {
+        if (!confirm("Снять эту блокировку общего чата досрочно?")) return;
+
+        const {error} = await supabaseClient.rpc(
+            "chat_unmute_block",
+            {p_block_id:blockId}
+        );
+
+        if (error) {
+            alert("Не удалось снять блокировку:\n" + friendlyError(error));
+            return;
+        }
+
+        await loadChatModeration();
     }
 
 
