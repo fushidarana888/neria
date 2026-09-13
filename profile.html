@@ -101,6 +101,25 @@
 .save-profile:hover {
     opacity: 0.9;
 }
+
+.public-profile {
+    display: block;
+    width: 100%;
+    margin-top: 12px;
+    padding: 13px;
+    border: 1px solid #dcdce1;
+    border-radius: 7px;
+    background: white;
+    color: #6d3fc0;
+    text-align: center;
+    text-decoration: none;
+    font-size: 14px;
+    font-weight: 600;
+}
+
+.public-profile:hover {
+    background: #f7f3fc;
+}
         
         /* ОСНОВА */
 
@@ -703,6 +722,13 @@
                 <div class="citizen-id-number">
                     ${citizenId}
                 </div>
+
+                <a
+                    class="public-profile"
+                    href="citizen.html?id=${encodeURIComponent(citizenId)}"
+                >
+                    Открыть публичный профиль
+                </a>
 
             </div>
 
