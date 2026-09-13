@@ -39,6 +39,7 @@ const sb=window.supabase.createClient("https://rictvznkxkeygbrlcymn.supabase.co"
 const qs=new URLSearchParams(location.search);
 const dealId=Number(qs.get("id"));
 const page=document.getElementById("page");
+let realtimeChannel=null;
 const esc=v=>String(v??"").replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;");
 const nr=v=>new Intl.NumberFormat("ru-RU").format(Number(v||0));
 const dt=v=>v?new Date(v).toLocaleString("ru-RU"):"—";
@@ -53,7 +54,8 @@ async function load(){
   sb.rpc("market_deal_events_list",{p_deal_id:dealId})
  ]);
  if(de||!d||!d[0]){page.innerHTML='<div class="box">Не удалось открыть сделку: '+esc(de?.message||"не найдена")+'</div>';return}
- render(d[0],m||[],e||[],me,ee)
+ render(d[0],m||[],e||[],me,ee);
+ subscribeRealtimeChat();
 }
 function render(d,msgs,events,me,ee){
  const canAct=d.my_role!=="admin";
@@ -74,9 +76,38 @@ function render(d,msgs,events,me,ee){
  '<section class="box"><h2>История сделки</h2><div id="events">'+renderEvents(events,ee)+'</div></section></aside></div>';
  requestAnimationFrame(()=>{const chat=document.getElementById("chat");if(chat)chat.scrollTop=chat.scrollHeight})
 }
+async function refreshMessages(){
+ const {data,error}=await sb.rpc("market_deal_messages_list",{p_deal_id:dealId});
+ const chat=document.getElementById("chat");
+ if(!chat)return;
+ chat.innerHTML=renderMessages(data||[],error);
+ requestAnimationFrame(()=>{chat.scrollTop=chat.scrollHeight});
+}
+
+function subscribeRealtimeChat(){
+ if(realtimeChannel)return;
+ realtimeChannel=sb
+  .channel("deal-chat-"+dealId)
+  .on(
+   "postgres_changes",
+   {
+    event:"INSERT",
+    schema:"public",
+    table:"market_deal_messages",
+    filter:"deal_id=eq."+dealId
+   },
+   ()=>refreshMessages()
+  )
+  .subscribe();
+}
+
+window.addEventListener("beforeunload",()=>{
+ if(realtimeChannel)sb.removeChannel(realtimeChannel);
+});
+
 function renderMessages(msgs,err){if(err)return '<div class="empty">'+esc(err.message)+'</div>';if(!msgs.length)return '<div class="empty">Сообщений пока нет.</div>';return msgs.map(x=>'<div class="msg '+(x.is_mine?"mine":"")+'"><div class="msg-meta">'+esc(x.author_nickname)+' · #'+String(x.author_number).padStart(6,"0")+' · '+esc(dt(x.created_at))+'</div><div class="msg-text">'+esc(x.message)+'</div></div>').join("")}
 function renderEvents(events,err){if(err)return '<div class="empty">'+esc(err.message)+'</div>';if(!events.length)return '<div class="empty">История пока пуста.</div>';return events.map(x=>'<div class="event"><div class="event-title">'+esc(eventLabel(x.event_type))+'</div><div class="event-meta">'+(x.actor_nickname?esc(x.actor_nickname)+' · ':'')+esc(dt(x.created_at))+'</div>'+(x.details?'<div class="event-details">'+esc(x.details)+'</div>':'')+'</div>').join("")}
-async function sendMessage(){const el=document.getElementById("message");const text=el.value.trim();if(!text)return;const {error}=await sb.rpc("market_deal_send_message",{p_deal_id:dealId,p_message:text});if(error){alert(error.message);return}el.value="";await load()}
+async function sendMessage(){const el=document.getElementById("message");const text=el.value.trim();if(!text)return;const {error}=await sb.rpc("market_deal_send_message",{p_deal_id:dealId,p_message:text});if(error){alert(error.message);return}el.value=""}
 async function markDone(){if(!confirm("Подтвердить выполнение своих обязательств?"))return;const {error}=await sb.rpc("market_mark_done",{p_deal_id:dealId});if(error)alert(error.message);else await load()}
 async function openDispute(){const reason=prompt("Опишите причину спора:");if(reason===null||!reason.trim())return;const {error}=await sb.rpc("market_open_dispute",{p_deal_id:dealId,p_reason:reason.trim()});if(error)alert(error.message);else await load()}
 load();
