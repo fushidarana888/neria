@@ -624,6 +624,7 @@
 
         if (governmentRoles.is_founder) {
             jobs.push(loadGovernmentRoles());
+            jobs.push(loadAllMarketDeals());
         }
 
         await Promise.all(jobs);
@@ -694,6 +695,19 @@
             </div>
         ` : "";
 
+        const allDealsHtml = governmentRoles.is_founder ? `
+            <div class="dispute-panel">
+                <h2>Все сделки граждан</h2>
+                <p>
+                    Полный журнал сделок Нерии: активные, спорные, завершённые и возвращённые.
+                    Основатель может открыть любую сделку и прочитать её переписку.
+                </p>
+                <div id="allMarketDeals">
+                    <div class="loading">Загрузка всех сделок...</div>
+                </div>
+            </div>
+        ` : "";
+
         const rolesHtml = governmentRoles.is_founder ? `
             <div class="reward-panel">
                 <h2>Государственные роли</h2>
@@ -709,6 +723,7 @@
 
         adminContent.innerHTML = `
             ${rolesHtml}
+            ${allDealsHtml}
             ${economyHtml}
 
             <div class="panel">
@@ -726,6 +741,64 @@
                 </div>
             </div>
         `;
+    }
+
+
+    async function loadAllMarketDeals() {
+        const el = document.getElementById("allMarketDeals");
+        if (!el) return;
+
+        el.innerHTML = '<div class="loading">Загрузка всех сделок...</div>';
+
+        const { data, error } =
+            await supabaseClient.rpc("founder_get_all_market_deals");
+
+        if (error) {
+            console.error(error);
+            el.innerHTML =
+                '<div class="error">Не удалось загрузить сделки.<br><br>' +
+                escapeHtml(error.message) +
+                '</div>';
+            return;
+        }
+
+        const deals = data || [];
+
+        if (!deals.length) {
+            el.innerHTML = '<div class="muted">Сделок пока нет.</div>';
+            return;
+        }
+
+        const statusNames = {
+            active: "Активна",
+            dispute: "Спор",
+            completed: "Завершена",
+            refunded: "Возврат"
+        };
+
+        el.innerHTML = deals.map(d => {
+            return '<div class="deal-admin-card">' +
+                '<div class="deal-admin-title">' +
+                    escapeHtml(d.title) + ' · ' +
+                    new Intl.NumberFormat("ru-RU").format(Number(d.amount)) +
+                    ' NR · ' +
+                    escapeHtml(statusNames[d.status] || d.status) +
+                '</div>' +
+                '<div class="deal-admin-meta">' +
+                    'Плательщик: ' + escapeHtml(d.payer_nickname) +
+                    ' · #' + String(d.payer_number).padStart(6,"0") +
+                    '<br>Получатель: ' + escapeHtml(d.payee_nickname) +
+                    ' · #' + String(d.payee_number).padStart(6,"0") +
+                    '<br>Создана: ' + escapeHtml(formatDate(d.created_at)) +
+                    (d.completed_at
+                        ? '<br>Закрыта: ' + escapeHtml(formatDate(d.completed_at))
+                        : '') +
+                '</div>' +
+                '<a class="secondary" style="display:inline-block;text-decoration:none;padding:10px 14px;border-radius:7px" href="deal.html?id=' +
+                    Number(d.deal_id) +
+                '">Открыть сделку и переписку</a>' +
+            '</div>';
+        }).join("");
     }
 
 
