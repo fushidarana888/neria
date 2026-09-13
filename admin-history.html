@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>История администрации — Нерия</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:Arial,Helvetica,sans-serif;background:#f5f5f7;color:#17171c;min-height:100vh}
+header{min-height:72px;background:#fff;border-bottom:1px solid #e5e5e8;display:flex;align-items:center;justify-content:space-between;padding:14px 6%;gap:20px}
+.logo{display:flex;align-items:center;gap:12px;font-size:20px;font-weight:700;letter-spacing:1px;text-decoration:none;color:inherit}
+.flag{width:32px;height:42px;display:flex;flex-direction:column;border-radius:3px;overflow:hidden}
+.flag-purple{background:#6d3fc0;flex:1}.flag-white{background:#eee8ff;flex:1}
+.badge{padding:7px 11px;background:#f7f3fc;color:#6d3fc0;border-radius:999px;font-size:12px;font-weight:700}
+main{max-width:950px;margin:0 auto;padding:55px 25px 100px}
+.back{display:inline-block;margin-bottom:28px;color:#6d3fc0;text-decoration:none;font-size:14px}
+.title{margin-bottom:30px}.title h1{font-size:38px;margin-bottom:10px}.title p{color:#777780;font-size:16px;line-height:1.5}
+.panel{background:#fff;border:1px solid #e5e5e8;border-radius:14px;overflow:hidden}
+.toolbar{padding:18px 20px;border-bottom:1px solid #e5e5e8;display:flex;align-items:center;justify-content:space-between;gap:12px}
+.toolbar-info{color:#777780;font-size:14px}
+button{border:1px solid #dcdce1;background:#fff;border-radius:7px;padding:10px 14px;font-size:13px;font-weight:600;cursor:pointer}
+.history-list{padding:0 20px}
+.history-item{display:grid;grid-template-columns:170px 1fr;gap:18px;padding:18px 0;border-bottom:1px solid #eeeeF1}
+.history-item:last-child{border-bottom:none}
+.history-date{color:#888891;font-size:12px;line-height:1.5}
+.history-title{font-size:14px;font-weight:700;margin-bottom:6px}
+.history-details{color:#62626b;font-size:13px;line-height:1.5}
+.history-reason{margin-top:6px;color:#8b5656;font-size:12px;line-height:1.45}
+.loading,.empty{padding:45px 25px;text-align:center;color:#777780}
+.error{margin:20px;background:#fff3f3;border:1px solid #f0caca;color:#8f3030;border-radius:10px;padding:18px;line-height:1.5}
+.id{font-family:monospace;color:#6d3fc0;font-weight:700}
+@media(max-width:650px){header{padding:14px 20px}main{padding:40px 15px 80px}.title h1{font-size:31px}.history-item{grid-template-columns:1fr;gap:6px}}
+</style>
+</head>
+<body>
+<header>
+<a href="index.html" class="logo">
+<div class="flag"><div class="flag-purple"></div><div class="flag-white"></div><div class="flag-purple"></div></div>
+НЕРИЯ
+</a>
+<div class="badge">АДМИНИСТРАЦИЯ</div>
+</header>
+
+<main>
+<a class="back" href="admin.html">← Вернуться в админ-панель</a>
+
+<div class="title">
+<h1>История действий</h1>
+<p>Журнал административных изменений гражданства и гражданских ID.</p>
+</div>
+
+<div class="panel">
+<div class="toolbar">
+<div class="toolbar-info">Последние 100 действий</div>
+<button type="button" onclick="loadHistory()">Обновить</button>
+</div>
+<div id="historyList"><div class="loading">Загрузка истории...</div></div>
+</div>
+</main>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script>
+const SUPABASE_URL="https://rictvznkxkeygbrlcymn.supabase.co";
+const SUPABASE_PUBLISHABLE_KEY="sb_publishable_SVwKto14tbMtsmcDOagvCw_TVqg7he7";
+const supabaseClient=window.supabase.createClient(SUPABASE_URL,SUPABASE_PUBLISHABLE_KEY);
+const historyList=document.getElementById("historyList");
+
+function escapeHtml(value){
+return String(value??"").replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;").replace(/'/g,"&#039;");
+}
+
+function formatDate(value){
+if(!value)return "—";
+const d=new Date(value);
+if(Number.isNaN(d.getTime()))return "—";
+return d.toLocaleString("ru-RU");
+}
+
+function formatCitizenNumber(value){
+return String(value??"").padStart(6,"0");
+}
+
+function actionLabel(type){
+switch(type){
+case "citizen_banned": return "Гражданин заблокирован";
+case "citizen_unbanned": return "Гражданин разблокирован";
+case "citizenship_revoked": return "Гражданство отозвано";
+case "citizenship_restored": return "Гражданство восстановлено";
+case "citizenship_resigned": return "Отказ от гражданства";
+case "citizen_number_changed": return "Изменён гражданский ID";
+default: return "Изменён статус гражданина";
+}
+}
+
+function actionDetails(item){
+if(item.action_type==="citizen_number_changed"){
+const oldNumber=item.old_value?.citizen_number;
+const newNumber=item.new_value?.citizen_number;
+return "ID: "+formatCitizenNumber(oldNumber)+" → "+formatCitizenNumber(newNumber);
+}
+const oldStatus=item.old_value?.citizenship_status;
+const newStatus=item.new_value?.citizenship_status;
+if(oldStatus&&newStatus)return "Статус: "+oldStatus+" → "+newStatus;
+return "Административное действие";
+}
+
+async function init(){
+const {data:{session}}=await supabaseClient.auth.getSession();
+if(!session){
+historyList.innerHTML='<div class="error">Сначала войдите через Telegram.</div>';
+return;
+}
+
+const {data:isAdmin,error:adminError}=await supabaseClient.rpc("is_admin");
+if(adminError||!isAdmin){
+historyList.innerHTML='<div class="error">Доступ запрещён. Эта страница доступна только администраторам Нерии.</div>';
+return;
+}
+
+await loadHistory();
+}
+
+async function loadHistory(){
+historyList.innerHTML='<div class="loading">Загрузка истории...</div>';
+
+const {data,error}=await supabaseClient.rpc("admin_get_action_log",{p_limit:100});
+
+if(error){
+console.error(error);
+historyList.innerHTML='<div class="error">Не удалось загрузить историю.<br><br>'+escapeHtml(error.message)+'</div>';
+return;
+}
+
+const items=data||[];
+
+if(items.length===0){
+historyList.innerHTML='<div class="empty">История пока пуста. Новые административные действия будут сохраняться автоматически.</div>';
+return;
+}
+
+let html='<div class="history-list">';
+
+items.forEach(item=>{
+const number=item.citizen_number?formatCitizenNumber(item.citizen_number):"—";
+const actor=item.actor_user_id?"Администратор":"Система / SQL";
+
+html+=
+'<div class="history-item">'+
+'<div class="history-date">'+escapeHtml(formatDate(item.created_at))+'<br>'+escapeHtml(actor)+'</div>'+
+'<div>'+
+'<div class="history-title">'+escapeHtml(actionLabel(item.action_type))+'</div>'+
+'<div class="history-details">Гражданин <span class="id">№'+escapeHtml(number)+'</span> · '+escapeHtml(item.citizen_nickname||"—")+'<br>'+escapeHtml(actionDetails(item))+'</div>'+
+(item.reason?'<div class="history-reason">Причина: '+escapeHtml(item.reason)+'</div>':'')+
+'</div>'+
+'</div>';
+});
+
+html+='</div>';
+historyList.innerHTML=html;
+}
+
+init();
+</script>
+</body>
+</html>
