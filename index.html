@@ -544,7 +544,7 @@ nav a {
 
             НЕРИЯ
 
-        </div>
+        </a>
 
 
         <nav>
@@ -875,7 +875,8 @@ nav a {
  async function updateMainButton() {
 
     const {
-        data: { session }
+        data: { session },
+        error: sessionError
     } = await supabaseClient.auth.getSession();
 
     const button =
@@ -885,42 +886,65 @@ nav a {
         return;
     }
 
-    // Если вообще не вошёл через Telegram
+    if (sessionError) {
+        console.error("Ошибка проверки сессии:", sessionError);
+        button.textContent = "Стать гражданином";
+        button.href = "registration.html";
+        return;
+    }
+
+    // Не вошёл через Telegram
     if (!session) {
         button.textContent = "Стать гражданином";
         button.href = "registration.html";
         return;
     }
 
-    // Проверяем, есть ли гражданство
-    const { data: citizen, error } =
-        await supabaseClient
-            .from("citizens")
-            .select("id")
-            .eq("user_id", session.user.id)
-            .maybeSingle();
+    // Получаем реальный статус гражданства через защищённую функцию
+    const {
+        data: citizenshipStatus,
+        error: statusError
+    } = await supabaseClient.rpc(
+        "get_my_citizenship_status"
+    );
 
-    if (error) {
+    if (statusError) {
         console.error(
-            "Ошибка проверки гражданства:",
-            error
+            "Ошибка проверки статуса гражданства:",
+            statusError
         );
 
-        button.textContent = "Стать гражданином";
-        button.href = "registration.html";
+        button.textContent = "Личный кабинет";
+        button.href = "profile.html";
         return;
     }
 
-    // Гражданство есть
-    if (citizen) {
-        button.textContent = "Личный кабинет";
-        button.href = "profile.html";
-    }
+    switch (citizenshipStatus) {
 
-    // Telegram есть, но гражданства нет
-    else {
-        button.textContent = "Стать гражданином";
-        button.href = "registration.html";
+        case "active":
+            button.textContent = "Личный кабинет";
+            button.href = "profile.html";
+            break;
+
+        case "banned":
+            button.textContent = "Аккаунт заблокирован";
+            button.href = "profile.html";
+            break;
+
+        case "revoked":
+            button.textContent = "Гражданство отозвано";
+            button.href = "profile.html";
+            break;
+
+        case "resigned":
+            button.textContent = "Гражданство прекращено";
+            button.href = "profile.html";
+            break;
+
+        default:
+            button.textContent = "Стать гражданином";
+            button.href = "registration.html";
+            break;
     }
 }
 
