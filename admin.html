@@ -171,6 +171,10 @@
         .dispute-panel h2 { font-size:20px; margin-bottom:8px; }
         .dispute-panel > p { color:#777780; font-size:13px; line-height:1.5; margin-bottom:14px; }
         .dispute-card { padding:16px 0; border-top:1px solid #eeeeF1; }
+        .deal-admin-card { padding:14px 0; border-top:1px solid #eeeeF1; }
+        .deal-admin-card:first-child { border-top:none; }
+        .deal-admin-title { font-weight:700; margin-bottom:5px; }
+        .deal-admin-meta { color:#777780; font-size:12px; line-height:1.5; margin-bottom:9px; }
         .dispute-card:first-child { border-top:none; }
         .dispute-title { font-weight:700; margin-bottom:6px; }
         .dispute-meta { color:#777780; font-size:12px; margin:5px 0; line-height:1.5; }
@@ -577,7 +581,8 @@
         renderShell();
         await Promise.all([
             loadCitizens(),
-            loadMarketDisputes()
+            loadMarketDisputes(),
+            loadActiveMarketDeals()
         ]);
     }
 
@@ -642,6 +647,17 @@
                     <button type="button" class="primary" onclick="payBulkReward()">Выплатить награду</button>
                     <button type="button" class="secondary" onclick="toggleAllRewardRecipients(false)">Снять выбор</button>
                     <span class="reward-count" id="rewardCount">Выбрано: 0</span>
+                </div>
+            </div>
+
+            <div class="dispute-panel">
+                <h2>Активные сделки</h2>
+                <p>
+                    Все текущие сделки без спора. Администратор может открыть любую сделку
+                    и прочитать переписку между её участниками.
+                </p>
+                <div id="activeMarketDeals">
+                    <div class="loading">Загрузка активных сделок...</div>
                 </div>
             </div>
 
@@ -1043,6 +1059,53 @@
                     </button>
                 `;
         }
+    }
+
+
+    async function loadActiveMarketDeals() {
+        const el=document.getElementById("activeMarketDeals");
+        if(!el)return;
+
+        el.innerHTML='<div class="loading">Загрузка активных сделок...</div>';
+
+        const {data,error}=await supabaseClient.rpc(
+            "market_admin_active_deals"
+        );
+
+        if(error){
+            console.error(error);
+            el.innerHTML=
+                '<div class="error">Не удалось загрузить активные сделки.<br><br>'+
+                escapeHtml(error.message)+
+                '</div>';
+            return;
+        }
+
+        const deals=data||[];
+
+        if(deals.length===0){
+            el.innerHTML='<div class="muted">Активных сделок нет.</div>';
+            return;
+        }
+
+        el.innerHTML=deals.map(d=>{
+            return '<div class="deal-admin-card">'+
+                '<div class="deal-admin-title">'+
+                    escapeHtml(d.title)+' · '+
+                    new Intl.NumberFormat("ru-RU").format(Number(d.amount))+
+                    ' NR'+
+                '</div>'+
+                '<div class="deal-admin-meta">'+
+                    'Плательщик: '+escapeHtml(d.payer_nickname)+
+                    ' · #'+String(d.payer_number).padStart(6,"0")+
+                    '<br>Получатель: '+escapeHtml(d.payee_nickname)+
+                    ' · #'+String(d.payee_number).padStart(6,"0")+
+                '</div>'+
+                '<a class="secondary" style="display:inline-block;text-decoration:none;padding:10px 14px;border-radius:7px" href="deal.html?id='+
+                    Number(d.deal_id)+
+                '">Открыть сделку и переписку</a>'+
+            '</div>';
+        }).join("");
     }
 
 
