@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Общий чат — Нерия</title>
+<style>
+*{box-sizing:border-box}body{margin:0;font-family:Arial,Helvetica,sans-serif;background:#f5f5f7;color:#17171c}
+main{max-width:900px;margin:auto;padding:45px 20px 90px}.back{display:inline-block;margin-bottom:20px;color:#6d3fc0;text-decoration:none}
+h1{font-size:38px;margin:0 0 8px}.lead{color:#777780;line-height:1.5;margin-bottom:20px}
+.box{background:#fff;border:1px solid #e5e5e8;border-radius:14px;padding:18px}
+.chat{height:560px;overflow:auto;display:flex;flex-direction:column;gap:9px;padding:4px 3px 12px}
+.msg{max-width:78%;background:#f1f1f4;border-radius:11px;padding:10px 12px}.msg.mine{margin-left:auto;background:#eee8ff}
+.meta{font-size:11px;color:#85858e;margin-bottom:4px}.text{white-space:pre-wrap;line-height:1.45;word-break:break-word}
+.form{display:grid;grid-template-columns:1fr auto;gap:9px;border-top:1px solid #eee;padding-top:14px}
+textarea{min-height:68px;max-height:160px;resize:vertical;border:1px solid #dcdce1;border-radius:8px;padding:10px;font:inherit}
+button{border:0;border-radius:8px;background:#6d3fc0;color:#fff;font-weight:700;padding:11px 16px;cursor:pointer}
+button:disabled{opacity:.55;cursor:not-allowed}.hint{font-size:12px;color:#777780;margin-top:9px}.empty{color:#777780;text-align:center;padding:35px}
+.neria-global-header{min-height:72px;background:#fff;border-bottom:1px solid #e5e5e8;display:flex;align-items:center;justify-content:space-between;padding:14px 6%;gap:25px}
+.logo{display:flex;align-items:center;gap:12px;color:#17171c;text-decoration:none;font-size:20px;font-weight:700;letter-spacing:1px}
+.flag{width:32px;height:42px;display:flex;flex-direction:column;border-radius:3px;overflow:hidden}.p{background:#6d3fc0;flex:1}.w{background:#eee8ff;flex:1}
+nav{display:flex;gap:24px;flex-wrap:wrap;align-items:center}nav a{color:#55555d;text-decoration:none;font-size:14px}nav a:hover{color:#6d3fc0}
+@media(max-width:760px){.neria-global-header{justify-content:center;flex-wrap:wrap}.logo{width:100%;justify-content:center}nav{justify-content:center}.chat{height:480px}.msg{max-width:90%}h1{font-size:32px}.form{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<header class="neria-global-header">
+<a href="index.html" class="logo"><span class="flag"><span class="p"></span><span class="w"></span><span class="p"></span></span>НЕРИЯ</a>
+<nav>
+<a href="profile.html">Личный кабинет</a><a href="citizens.html">Граждане Нерии</a><a href="state.html">Государство</a><a href="treasury.html">Экономика</a><a href="market.html">Объявления</a><a href="chat.html">Общий чат</a><a href="laws.html">Законы</a><a href="notifications.html">🔔 Уведомления</a>
+</nav>
+</header>
+<main>
+<a class="back" href="index.html">← На главную</a>
+<h1>Общий чат Нерии</h1>
+<p class="lead">Общий текстовый чат для действующих граждан. Личных сообщений здесь нет.</p>
+<div class="box">
+<div id="chat" class="chat"><div class="empty">Загрузка сообщений…</div></div>
+<div class="form">
+<textarea id="message" maxlength="1000" placeholder="Сообщение в общий чат"></textarea>
+<button id="sendButton" onclick="sendMessage()">Отправить</button>
+</div>
+<div class="hint" id="cooldownHint">Одно сообщение можно отправлять не чаще одного раза в 20 секунд.</div>
+</div>
+</main>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script>
+const sb=window.supabase.createClient("https://rictvznkxkeygbrlcymn.supabase.co","sb_publishable_SVwKto14tbMtsmcDOagvCw_TVqg7he7");
+const chat=document.getElementById("chat"),btn=document.getElementById("sendButton"),hint=document.getElementById("cooldownHint");
+let channel=null,lastMineAt=0,timer=null;
+const esc=v=>String(v??"").replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;");
+function friendly(error){const m=String(error?.message||error||"");if(m.includes("Active citizenship required"))return"Общий чат доступен только действующим гражданам Нерии.";if(m.includes("Chat cooldown active"))return"Следующее сообщение можно отправить через несколько секунд.";if(m.includes("Message too long"))return"Сообщение слишком длинное.";if(m.includes("Message required"))return"Введите сообщение.";return"Не удалось выполнить действие. Попробуйте ещё раз."}
+function render(rows){const arr=[...(rows||[])].reverse();if(!arr.length){chat.innerHTML='<div class="empty">Сообщений пока нет. Будьте первым.</div>';return}chat.innerHTML=arr.map(x=>'<div class="msg '+(x.is_mine?'mine':'')+'"><div class="meta">'+esc(x.author_nickname)+' · #'+String(x.author_number).padStart(6,"0")+' · '+new Date(x.created_at).toLocaleString("ru-RU")+'</div><div class="text">'+esc(x.message)+'</div></div>').join("");const mine=arr.filter(x=>x.is_mine).at(-1);if(mine)lastMineAt=new Date(mine.created_at).getTime();chat.scrollTop=chat.scrollHeight;updateCooldown()}
+async function load(){const {data:{user}}=await sb.auth.getUser();if(!user){location.href="registration.html";return}const {data,error}=await sb.rpc("public_chat_list",{p_limit:100});if(error){chat.innerHTML='<div class="empty">'+esc(friendly(error))+'</div>';btn.disabled=true;return}render(data||[]);if(!channel)channel=sb.channel("public-chat").on("postgres_changes",{event:"INSERT",schema:"public",table:"public_chat_messages"},()=>load()).subscribe()}
+function updateCooldown(){clearInterval(timer);const tick=()=>{const left=Math.max(0,20000-(Date.now()-lastMineAt));if(left>0){btn.disabled=true;hint.textContent="Следующее сообщение можно отправить через "+Math.ceil(left/1000)+" сек."}else{btn.disabled=false;hint.textContent="Одно сообщение можно отправлять не чаще одного раза в 20 секунд.";clearInterval(timer)}};tick();timer=setInterval(tick,500)}
+async function sendMessage(){const el=document.getElementById("message"),msg=el.value.trim();if(!msg)return;btn.disabled=true;const {error}=await sb.rpc("public_chat_send",{p_message:msg});if(error){alert(friendly(error));updateCooldown();return}el.value="";lastMineAt=Date.now();updateCooldown();await load()}
+load();
+</script>
+</body>
+</html>
