@@ -753,6 +753,17 @@
 
                             ${actionButtons}
 
+                            <button
+                                type="button"
+                                class="secondary"
+                                onclick="setAvatarPermission(
+                                    ${Number(citizen.internal_id)},
+                                    ${citizen.can_upload_avatar ? "false" : "true"}
+                                )"
+                            >
+                                ${citizen.can_upload_avatar ? "Убрать VIP-аватар" : "Разрешить VIP-аватар"}
+                            </button>
+
                         </div>
                     </td>
 
@@ -847,6 +858,42 @@
                     </button>
                 `;
         }
+    }
+
+
+    async function setAvatarPermission(internalId, enabled) {
+
+        const citizen = getCitizen(internalId);
+
+        if (!citizen) return;
+
+        const actionText = enabled
+            ? "разрешить загрузку собственного аватара"
+            : "запретить загрузку собственного аватара";
+
+        if (!confirm(
+            actionText + " для гражданина " +
+            formatCitizenNumber(citizen.citizen_number) +
+            " (" + citizen.nickname + ")?"
+        )) {
+            return;
+        }
+
+        const { error } = await supabaseClient.rpc(
+            "admin_set_avatar_permission",
+            {
+                p_citizen_id: internalId,
+                p_enabled: enabled
+            }
+        );
+
+        if (error) {
+            console.error(error);
+            alert("Не удалось изменить VIP-доступ к аватару:\n" + error.message);
+            return;
+        }
+
+        await loadCitizens();
     }
 
 
