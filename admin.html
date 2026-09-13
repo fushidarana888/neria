@@ -160,6 +160,23 @@
         .reward-actions { display:flex; gap:10px; align-items:center; margin-top:14px; flex-wrap:wrap; }
         .reward-count { color:#777780; font-size:13px; }
 
+        .dispute-panel {
+            margin-bottom: 22px;
+            padding: 22px;
+            background: #ffffff;
+            border: 1px solid #ead7a4;
+            border-radius: 14px;
+        }
+
+        .dispute-panel h2 { font-size:20px; margin-bottom:8px; }
+        .dispute-panel > p { color:#777780; font-size:13px; line-height:1.5; margin-bottom:14px; }
+        .dispute-card { padding:16px 0; border-top:1px solid #eeeeF1; }
+        .dispute-card:first-child { border-top:none; }
+        .dispute-title { font-weight:700; margin-bottom:6px; }
+        .dispute-meta { color:#777780; font-size:12px; margin:5px 0; line-height:1.5; }
+        .dispute-reason { background:#fff8e8; border-radius:8px; padding:11px; font-size:13px; line-height:1.5; margin:10px 0; }
+        .dispute-actions { display:flex; gap:8px; flex-wrap:wrap; }
+
         .money-form input:focus {
             outline: none;
             border-color: #6d3fc0;
@@ -563,7 +580,10 @@
 
 
         renderShell();
-        await loadCitizens();
+        await Promise.all([
+            loadCitizens(),
+            loadMarketDisputes()
+        ]);
     }
 
 
@@ -627,6 +647,17 @@
                     <button type="button" class="primary" onclick="payBulkReward()">Выплатить награду</button>
                     <button type="button" class="secondary" onclick="toggleAllRewardRecipients(false)">Снять выбор</button>
                     <span class="reward-count" id="rewardCount">Выбрано: 0</span>
+                </div>
+            </div>
+
+            <div class="dispute-panel">
+                <h2>Споры по сделкам</h2>
+                <p>
+                    Здесь находятся сделки, по которым одна из сторон открыла спор.
+                    Средства остаются в удержании до решения.
+                </p>
+                <div id="marketDisputes">
+                    <div class="loading">Загрузка споров...</div>
                 </div>
             </div>
 
@@ -1017,6 +1048,108 @@
                     </button>
                 `;
         }
+    }
+
+
+    async function loadMarketDisputes() {
+        const el=document.getElementById("marketDisputes");
+        if(!el)return;
+
+        el.innerHTML='<div class="loading">Загрузка споров...</div>';
+
+        const {data,error}=await supabaseClient.rpc(
+            "market_admin_disputes"
+        );
+
+        if(error){
+            console.error(error);
+            el.innerHTML=
+                '<div class="error">Не удалось загрузить споры.<br><br>'+
+                escapeHtml(error.message)+
+                '</div>';
+            return;
+        }
+
+        const disputes=data||[];
+
+        if(disputes.length===0){
+            el.innerHTML='<div class="muted">Открытых споров нет.</div>';
+            return;
+        }
+
+        el.innerHTML=disputes.map(d=>{
+            return '<div class="dispute-card">'+
+                '<div class="dispute-title">'+escapeHtml(d.title)+' · '+new Intl.NumberFormat("ru-RU").format(Number(d.amount))+' NR</div>'+
+                '<div class="dispute-meta">Плательщик: '+escapeHtml(d.payer_name)+' · Получатель: '+escapeHtml(d.payee_name)+'</div>'+
+                '<div class="dispute-reason"><strong>Причина спора:</strong><br>'+escapeHtml(d.reason)+'</div>'+
+                '<div class="dispute-actions">'+
+                    '<button class="success" onclick="resolveMarketDispute('+Number(d.dispute_id)+','+Number(d.amount)+','+Number(d.amount)+')">Все получателю</button>'+
+                    '<button class="secondary" onclick="resolveMarketDispute('+Number(d.dispute_id)+',0,'+Number(d.amount)+')">Все вернуть плательщику</button>'+
+                    '<button class="warning" onclick="splitMarketDispute('+Number(d.dispute_id)+','+Number(d.amount)+')">Разделить сумму</button>'+
+                '</div>'+
+            '</div>';
+        }).join("");
+    }
+
+    async function resolveMarketDispute(disputeId,toPayee,total) {
+        const resolution=prompt(
+            "Комментарий к решению спора:",
+            toPayee===total
+                ? "Средства полностью переданы получателю"
+                : "Средства полностью возвращены плательщику"
+        );
+
+        if(resolution===null)return;
+        if(!resolution.trim()){
+            alert("Укажите комментарий к решению.");
+            return;
+        }
+
+        if(!confirm(
+            "Подтвердить решение?\n\nПолучателю: "+
+            new Intl.NumberFormat("ru-RU").format(toPayee)+" NR\n"+
+            "Плательщику: "+
+            new Intl.NumberFormat("ru-RU").format(total-toPayee)+" NR"
+        ))return;
+
+        const {error}=await supabaseClient.rpc(
+            "market_resolve_dispute",
+            {
+                p_dispute_id:disputeId,
+                p_to_payee:toPayee,
+                p_resolution:resolution.trim()
+            }
+        );
+
+        if(error){
+            console.error(error);
+            alert("Не удалось разрешить спор:\n"+error.message);
+            return;
+        }
+
+        await loadMarketDisputes();
+    }
+
+    async function splitMarketDispute(disputeId,total) {
+        const raw=prompt(
+            "Сколько NR передать получателю? Остаток вернётся плательщику.",
+            String(Math.floor(total/2))
+        );
+
+        if(raw===null)return;
+
+        const amount=Number(raw.trim());
+
+        if(!Number.isSafeInteger(amount)||amount<0||amount>total){
+            alert("Введите целое число от 0 до "+total+".");
+            return;
+        }
+
+        await resolveMarketDispute(
+            disputeId,
+            amount,
+            total
+        );
     }
 
 
