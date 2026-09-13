@@ -149,6 +149,21 @@
 .avatar-button { border:none; border-radius:7px; padding:10px 13px; font-size:12px; font-weight:600; cursor:pointer; }
 .avatar-button-primary { background:#6d3fc0; color:white; }
 .avatar-button-secondary { background:#fff; color:#55555d; border:1px solid #dcdce1; }
+
+.nickname-color-editor {
+    margin-top: 22px;
+    padding: 20px;
+    background: white;
+    border: 1px solid #e5e5e8;
+    border-radius: 14px;
+}
+.nickname-color-editor h3 { font-size:16px; margin-bottom:6px; }
+.nickname-color-editor p { color:#777780; font-size:12px; line-height:1.45; margin-bottom:14px; }
+.nickname-color-preview { font-size:21px; font-weight:700; margin-bottom:14px; }
+.nickname-color-palette { display:flex; gap:9px; flex-wrap:wrap; }
+.nickname-color-swatch { width:34px; height:34px; border-radius:50%; border:2px solid white; box-shadow:0 0 0 1px #d7d7dc; cursor:pointer; }
+.nickname-color-swatch:hover { transform:scale(1.08); }
+.nickname-color-swatch.active { box-shadow:0 0 0 3px #17171c; }
         
         /* ОСНОВА */
 
@@ -701,7 +716,8 @@
                 telegram_username,
                 avatar_path,
                 avatar_updated_at,
-                can_upload_avatar
+                can_upload_avatar,
+                nickname_color
             `)
 
             .eq("user_id", session.user.id)
@@ -826,6 +842,19 @@
                     }
                 </div>
             </div>
+
+            ${data.can_upload_avatar ? `
+            <div class="nickname-color-editor">
+                <h3>Цвет ника</h3>
+                <p>VIP-возможность. Выберите цвет, который будет виден в реестре и публичном профиле.</p>
+                <div class="nickname-color-preview" style="color: ${getNicknameColor(data.nickname_color)}">
+                    ${escapeHtml(data.nickname)}
+                </div>
+                <div class="nickname-color-palette">
+                    ${buildNicknameColorPalette(data.nickname_color)}
+                </div>
+            </div>
+            ` : ""}
 
 
             <div class="dashboard-grid">
@@ -998,6 +1027,51 @@
             .replace(/`/g, "&#096;");
     }
 
+
+    const NICKNAME_COLORS = {
+        default: "#17171c",
+        purple: "#6d3fc0",
+        blue: "#2563eb",
+        cyan: "#0891b2",
+        green: "#15803d",
+        orange: "#c2410c",
+        red: "#b91c1c",
+        pink: "#be185d",
+        gold: "#a16207",
+        gray: "#6b7280"
+    };
+
+    function getNicknameColor(color) {
+        return NICKNAME_COLORS[color || "default"] || NICKNAME_COLORS.default;
+    }
+
+    function buildNicknameColorPalette(currentColor) {
+        const options = [
+            ["default", "Обычный"], ["purple", "Фиолетовый"],
+            ["blue", "Синий"], ["cyan", "Голубой"],
+            ["green", "Зелёный"], ["orange", "Оранжевый"],
+            ["red", "Красный"], ["pink", "Розовый"],
+            ["gold", "Золотой"], ["gray", "Серый"]
+        ];
+        const selected = currentColor || "default";
+        return options.map(([key, label]) => {
+            const value = key === "default" ? "" : key;
+            const active = key === selected ? " active" : "";
+            return '<button type="button" class="nickname-color-swatch' + active + '" style="background:' + getNicknameColor(key) + '" title="' + label + '" aria-label="' + label + '" onclick="saveNicknameColor(\'' + value + '\')"></button>';
+        }).join("");
+    }
+
+    async function saveNicknameColor(color) {
+        const { error } = await supabaseClient.rpc("update_my_nickname_color", {
+            p_color: color || null
+        });
+        if (error) {
+            console.error(error);
+            alert("Не удалось изменить цвет ника: " + error.message);
+            return;
+        }
+        loadProfile();
+    }
 
     function getAvatarUrl(path, updatedAt) {
         if (!path) return "";
