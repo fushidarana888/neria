@@ -653,7 +653,7 @@
                         class="name"
                         style="color: ${getNicknameColor(citizen.nickname_color)}"
                     >
-                        ${citizen.prefix ? '<span style="color:#6d3fc0">[' + escapeHtml(citizen.prefix) + ']</span> ' : ''}
+                        ${citizen.prefix ? '<span style="display:inline-block;color:' + escapeHtml(citizen.prefix_color || "#6d3fc0") + ';border:1px solid ' + escapeHtml(citizen.prefix_color || "#6d3fc0") + ';border-radius:999px;padding:1px 7px;font-weight:800">[' + escapeHtml(citizen.prefix) + ']</span> ' : ''}
                         ${escapeHtml(
                             citizen.nickname
                         )}
