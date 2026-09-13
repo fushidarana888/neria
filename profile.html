@@ -700,6 +700,7 @@
                 show_birth_date,
                 telegram_username,
                 avatar_path,
+                avatar_updated_at,
                 can_upload_avatar
             `)
 
@@ -802,7 +803,7 @@
             <div class="avatar-editor">
                 ${
                     data.avatar_path
-                        ? `<img class="avatar-preview" src="${escapeAttribute(getAvatarUrl(data.avatar_path))}" alt="Аватар">`
+                        ? `<img class="avatar-preview" src="${escapeAttribute(getAvatarUrl(data.avatar_path, data.avatar_updated_at))}" alt="Аватар">`
                         : `<div class="avatar-fallback">${escapeHtml((data.nickname || "?").charAt(0).toUpperCase())}</div>`
                 }
 
@@ -998,10 +999,20 @@
     }
 
 
-    function getAvatarUrl(path) {
+    function getAvatarUrl(path, updatedAt) {
         if (!path) return "";
-        const { data } = supabaseClient.storage.from("avatars").getPublicUrl(path);
-        return data.publicUrl;
+
+        const { data } =
+            supabaseClient.storage
+                .from("avatars")
+                .getPublicUrl(path);
+
+        const version =
+            updatedAt
+                ? new Date(updatedAt).getTime()
+                : Date.now();
+
+        return data.publicUrl + "?v=" + version;
     }
 
     async function compressAvatar(file) {
