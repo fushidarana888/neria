@@ -1014,48 +1014,53 @@
 
                     <td>
                         <div class="actions">
+                            ${governmentRoles.is_founder ? `
+                                <button
+                                    type="button"
+                                    class="secondary"
+                                    onclick="changeCitizenNumber(
+                                        ${Number(citizen.internal_id)},
+                                        ${Number(citizen.citizen_number)}
+                                    )"
+                                >
+                                    Изменить ID
+                                </button>
 
-                            <button
-                                type="button"
-                                class="secondary"
-                                onclick="changeCitizenNumber(
-                                    ${Number(citizen.internal_id)},
-                                    ${Number(citizen.citizen_number)}
-                                )"
-                            >
-                                Изменить ID
-                            </button>
+                                <button
+                                    type="button"
+                                    class="secondary"
+                                    onclick="setAvatarPermission(
+                                        ${Number(citizen.internal_id)},
+                                        ${citizen.can_upload_avatar ? "false" : "true"}
+                                    )"
+                                >
+                                    ${citizen.can_upload_avatar ? "Убрать VIP" : "Выдать VIP"}
+                                </button>
+                            ` : ""}
 
                             ${actionButtons}
 
-                            <button
-                                type="button"
-                                class="secondary"
-                                onclick="setAvatarPermission(
-                                    ${Number(citizen.internal_id)},
-                                    ${citizen.can_upload_avatar ? "false" : "true"}
-                                )"
-                            >
-                                ${citizen.can_upload_avatar ? "Убрать VIP" : "Выдать VIP"}
-                            </button>
+                            ${governmentRoles.economy_minister ? `
+                                <button
+                                    type="button"
+                                    class="success"
+                                    onclick="mintToCitizen(
+                                        ${Number(citizen.internal_id)}
+                                    )"
+                                >
+                                    Начислить NR
+                                </button>
+                            ` : ""}
 
-                            <button
-                                type="button"
-                                class="success"
-                                onclick="mintToCitizen(
-                                    ${Number(citizen.internal_id)}
-                                )"
-                            >
-                                Начислить NR
-                            </button>
-                            <button
-                                type="button"
-                                class="danger"
-                                onclick="burnFromCitizen(${Number(citizen.internal_id)})"
-                            >
-                                Удалить NR
-                            </button>
-
+                            ${governmentRoles.is_founder ? `
+                                <button
+                                    type="button"
+                                    class="danger"
+                                    onclick="burnFromCitizen(${Number(citizen.internal_id)})"
+                                >
+                                    Удалить NR
+                                </button>
+                            ` : ""}
                         </div>
                     </td>
 
@@ -1076,6 +1081,10 @@
 
 
     function buildActionButtons(citizen) {
+
+        if (!governmentRoles.mvd) {
+            return "";
+        }
 
         const id =
             Number(citizen.internal_id);
