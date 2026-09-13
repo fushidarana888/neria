@@ -40,7 +40,7 @@ nav{display:flex;gap:24px;flex-wrap:wrap;align-items:center}nav a{color:#55555d;
 <textarea id="message" maxlength="1000" placeholder="Сообщение в общий чат"></textarea>
 <button id="sendButton" onclick="sendMessage()">Отправить</button>
 </div>
-<div class="hint" id="cooldownHint">Одно сообщение можно отправлять не чаще одного раза в 20 секунд.</div>
+<div class="hint" id="cooldownHint">Днём — одно сообщение раз в 20 секунд. С 00:00 до 08:00 по Москве — раз в минуту.</div>
 <div class="hint" id="blockHint" style="display:none;color:#a92f2f;font-weight:700"></div>
 </div>
 </main>
@@ -55,7 +55,8 @@ function render(rows){const arr=[...(rows||[])].reverse();if(!arr.length){chat.i
 async function load(){const {data:{user}}=await sb.auth.getUser();if(!user){location.href="registration.html";return}const [{data,error},{data:blockRows}]=await Promise.all([sb.rpc("public_chat_list",{p_limit:100}),sb.rpc("public_chat_active_block")]);if(error){chat.innerHTML='<div class="empty">'+esc(friendly(error))+'</div>';btn.disabled=true;return}render(data||[]);applyBlock(blockRows?.[0]||null);if(!channel)channel=sb.channel("public-chat").on("postgres_changes",{event:"INSERT",schema:"public",table:"public_chat_messages"},()=>load()).subscribe()}
 let activeBlock=null;
 function applyBlock(block){activeBlock=block;if(block){btn.disabled=true;blockHint.style.display="block";const type=block.block_type==="auto_spam"?"Спамблок":"Мут";blockHint.textContent=type+" до "+new Date(block.expires_at).toLocaleString("ru-RU")+". Причина: "+block.reason;}else{blockHint.style.display="none";blockHint.textContent="";updateCooldown()}}
-function updateCooldown(){clearInterval(timer);if(activeBlock&&new Date(activeBlock.expires_at).getTime()>Date.now()){btn.disabled=true;return}activeBlock=null;const tick=()=>{const left=Math.max(0,20000-(Date.now()-lastMineAt));if(left>0){btn.disabled=true;hint.textContent="Следующее сообщение можно отправить через "+Math.ceil(left/1000)+" сек."}else{btn.disabled=false;hint.textContent="Одно сообщение можно отправлять не чаще одного раза в 20 секунд.";clearInterval(timer)}};tick();timer=setInterval(tick,500)}
+function moscowCooldownMs(){const parts=new Intl.DateTimeFormat("en-GB",{timeZone:"Europe/Moscow",hour:"2-digit",hourCycle:"h23"}).formatToParts(new Date());const hour=Number(parts.find(x=>x.type==="hour")?.value||0);return hour>=0&&hour<8?60000:20000}
+function updateCooldown(){clearInterval(timer);if(activeBlock&&new Date(activeBlock.expires_at).getTime()>Date.now()){btn.disabled=true;return}activeBlock=null;const tick=()=>{const cooldown=moscowCooldownMs();const left=Math.max(0,cooldown-(Date.now()-lastMineAt));if(left>0){btn.disabled=true;hint.textContent="Следующее сообщение можно отправить через "+Math.ceil(left/1000)+" сек."}else{btn.disabled=false;hint.textContent=cooldown===60000?"Ночной режим: с 00:00 до 08:00 по Москве — одно сообщение раз в минуту.":"Одно сообщение можно отправлять не чаще одного раза в 20 секунд.";clearInterval(timer)}};tick();timer=setInterval(tick,500)}
 async function sendMessage(){const el=document.getElementById("message"),msg=el.value.trim();if(!msg)return;btn.disabled=true;const {data,error}=await sb.rpc("public_chat_send",{p_message:msg});if(error){alert(friendly(error));await load();return}if(Number(data)===0){alert("Вы отправили 8 сообщений подряд без сообщений других граждан. Включён автоматический спамблок на 24 часа.");await load();return}el.value="";lastMineAt=Date.now();updateCooldown();await load()}
 load();
 </script>
