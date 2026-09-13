@@ -717,6 +717,41 @@ function friendlyError(error){
 
 
     if (!citizenshipStatus) {
+      const { data: applicationsEnabled } =
+        await supabaseClient.rpc("citizenship_applications_enabled");
+
+      if (applicationsEnabled) {
+        const { data: applicationRows } =
+          await supabaseClient.rpc("my_citizenship_application");
+
+        const application = applicationRows?.[0];
+
+        if (application?.status === "pending") {
+          status.textContent =
+            "Ваша заявка на гражданство отправлена в МВД и ожидает рассмотрения.";
+          if (citizenshipButton) {
+            citizenshipButton.disabled = true;
+            citizenshipButton.textContent = "Заявка рассматривается";
+          }
+          return;
+        }
+
+        if (application?.status === "rejected") {
+          status.textContent =
+            "Предыдущая заявка была отклонена" +
+            (application.review_reason ? ": " + application.review_reason : ".") +
+            " Вы можете подать новую заявку.";
+        } else {
+          status.textContent =
+            "Приём гражданства работает по заявкам. Заполните данные и отправьте заявку в МВД.";
+        }
+
+        if (citizenshipButton) {
+          citizenshipButton.disabled = false;
+          citizenshipButton.textContent = "Подать заявку на гражданство";
+        }
+        return;
+      }
 
       status.textContent =
         "Telegram успешно подключён. Заполните данные для получения гражданства.";
@@ -936,6 +971,53 @@ if (banned) {
   button.disabled = true;
   button.textContent = "Регистрация...";
 
+
+const { data: applicationsEnabled, error: modeError } =
+  await supabaseClient.rpc("citizenship_applications_enabled");
+
+if (modeError) {
+  button.disabled = false;
+  button.textContent = "Получить гражданство";
+  alert(friendlyError(modeError));
+  return;
+}
+
+if (applicationsEnabled) {
+  button.textContent = "Отправка заявки...";
+
+  const { data: applicationId, error } =
+    await supabaseClient.rpc(
+      "submit_citizenship_application",
+      {
+        p_nickname: nickname,
+        p_first_name: firstName || "",
+        p_surname: lastName || "",
+        p_birth_day: Number(day),
+        p_birth_month: Number(month),
+        p_birth_year: birthYear ? Number(birthYear) : null
+      }
+    );
+
+  if (error) {
+    button.disabled = false;
+    button.textContent = "Подать заявку на гражданство";
+    if (String(error.message||"").includes("Application already pending")) {
+      alert("У вас уже есть заявка, которая ожидает рассмотрения МВД.");
+    } else {
+      alert(friendlyError(error));
+    }
+    return;
+  }
+
+  alert(
+    "Заявка на гражданство №" + applicationId +
+    " отправлена в МВД. После рассмотрения статус обновится автоматически."
+  );
+  button.disabled = true;
+  button.textContent = "Заявка рассматривается";
+  status.textContent = "Ваша заявка отправлена в МВД и ожидает рассмотрения.";
+  return;
+}
 
 const { data: registrationData, error } =
   await supabaseClient.rpc(
