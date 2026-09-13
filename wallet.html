@@ -19,8 +19,8 @@ h1{font-size:38px;margin-bottom:10px}.lead{color:#777780;line-height:1.6;margin-
 .transfer-box{margin-top:22px;background:#fff;border:1px solid #ded7f0;border-radius:14px;padding:24px}
 .transfer-box h2{font-size:19px;margin-bottom:7px}.transfer-box p{color:#777780;font-size:13px;line-height:1.5;margin-bottom:16px}
 .transfer-form{display:grid;grid-template-columns:1fr 150px 1.2fr auto;gap:10px}
-.transfer-form input{width:100%;padding:11px 12px;border:1px solid #dcdce1;border-radius:7px;font:inherit;font-size:13px}
-.transfer-form input:focus{outline:none;border-color:#6d3fc0}
+.transfer-form input,.transfer-form select{width:100%;padding:11px 12px;border:1px solid #dcdce1;border-radius:7px;font:inherit;font-size:13px;background:#fff}
+.transfer-form input:focus,.transfer-form select:focus{outline:none;border-color:#6d3fc0}
 .transfer-button{border:none;border-radius:7px;background:#6d3fc0;color:#fff;font-weight:700;padding:11px 16px;cursor:pointer}
 .transfer-button:disabled{opacity:.6;cursor:wait}
 .wallet-history-item{display:grid;grid-template-columns:150px 1fr auto;gap:14px;padding:14px 0;border-bottom:1px solid #eeeeF1;align-items:center}
@@ -60,7 +60,7 @@ function escapeHtml(value){
 
 async function sendTransfer(){
     const recipientNumber =
-        Number(document.getElementById("recipientNumber")?.value);
+        Number(document.getElementById("recipientSelect")?.value);
 
     const amount =
         Number(document.getElementById("transferAmount")?.value);
@@ -72,7 +72,7 @@ async function sendTransfer(){
         document.getElementById("transferButton");
 
     if(!Number.isSafeInteger(recipientNumber)||recipientNumber<=0){
-        alert("Введите корректный гражданский ID получателя.");
+        alert("Выберите получателя.");
         return;
     }
 
@@ -222,18 +222,14 @@ async function loadWallet(){
         <div class="transfer-box">
             <h2>Перевести NR</h2>
             <p>
-                Укажите гражданский ID получателя. Перевод списывается с вашего баланса
-                и не создаёт новые NR.
+                Выберите получателя из списка активных граждан. Перевод списывается
+                с вашего баланса и не создаёт новые NR.
             </p>
 
             <div class="transfer-form">
-                <input
-                    type="number"
-                    id="recipientNumber"
-                    min="1"
-                    step="1"
-                    placeholder="ID гражданина"
-                >
+                <select id="recipientSelect">
+                    <option value="">Загрузка граждан...</option>
+                </select>
                 <input
                     type="number"
                     id="transferAmount"
@@ -263,6 +259,44 @@ async function loadWallet(){
             ${historyHtml}
         </div>
     `;
+
+
+    const recipientsResult =
+        await supabaseClient.rpc(
+            "get_transfer_recipients"
+        );
+
+    const recipientSelect =
+        document.getElementById("recipientSelect");
+
+    if(recipientSelect){
+        if(recipientsResult.error){
+            console.error(recipientsResult.error);
+            recipientSelect.innerHTML =
+                '<option value="">Не удалось загрузить граждан</option>';
+        } else {
+            const recipients =
+                recipientsResult.data || [];
+
+            recipientSelect.innerHTML =
+                '<option value="">Выберите гражданина</option>' +
+                recipients.map(citizen => {
+                    const number =
+                        String(citizen.citizen_number)
+                            .padStart(6,"0");
+
+                    return '<option value="' +
+                        Number(citizen.citizen_number) +
+                        '">' +
+                        escapeHtml(
+                            citizen.nickname +
+                            " · #" +
+                            number
+                        ) +
+                        '</option>';
+                }).join("");
+        }
+    }
 }
 loadWallet();
 </script>
