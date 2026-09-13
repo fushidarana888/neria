@@ -178,9 +178,15 @@ async function loadHistory(){
     }
     el.innerHTML=data.map(item=>{
         const positive=Number(item.amount)>=0;
+        const recipient =
+            item.recipient_citizen_number
+                ? " · #"+String(item.recipient_citizen_number).padStart(6,"0")+
+                  " · "+(item.recipient_nickname||"")
+                : "";
+
         return '<div class="history-item">'+
             '<div class="date">'+esc(date(item.created_at))+'</div>'+
-            '<div><div class="reason">'+esc(item.reason)+'</div><div class="type">'+esc(operationLabel(item.operation_type))+'</div></div>'+
+            '<div><div class="reason">'+esc(item.reason)+'</div><div class="type">'+esc(operationLabel(item.operation_type)+recipient)+'</div></div>'+
             '<div class="amount '+(positive?'positive':'negative')+'">'+(positive?'+':'')+esc(nr(item.amount))+'</div>'+
         '</div>';
     }).join("");
