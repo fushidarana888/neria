@@ -18,7 +18,7 @@ h1{font-size:38px;margin-bottom:10px}.lead{color:#777780;line-height:1.6;margin-
 .panel h2{font-size:19px;margin-bottom:14px}.panel p{color:#777780;font-size:14px;line-height:1.6}
 .transfer-box{margin-top:22px;background:#fff;border:1px solid #ded7f0;border-radius:14px;padding:24px}
 .transfer-box h2{font-size:19px;margin-bottom:7px}.transfer-box p{color:#777780;font-size:13px;line-height:1.5;margin-bottom:16px}
-.transfer-form{display:grid;grid-template-columns:1fr 150px 1.2fr auto;gap:10px}
+.transfer-form{display:grid;grid-template-columns:1fr 1fr 150px 1.2fr auto;gap:10px}
 .transfer-form input,.transfer-form select{width:100%;padding:11px 12px;border:1px solid #dcdce1;border-radius:7px;font:inherit;font-size:13px;background:#fff}
 .transfer-form input:focus,.transfer-form select:focus{outline:none;border-color:#6d3fc0}
 .transfer-button{border:none;border-radius:7px;background:#6d3fc0;color:#fff;font-weight:700;padding:11px 16px;cursor:pointer}
@@ -173,8 +173,9 @@ function escapeHtml(value){
 }
 
 async function sendTransfer(){
-    const recipientNumber =
-        Number(document.getElementById("recipientSelect")?.value);
+    const manualRecipient = document.getElementById("recipientId")?.value?.trim() || "";
+    const selectedRecipient = document.getElementById("recipientSelect")?.value?.trim() || "";
+    const recipientNumber = Number(manualRecipient || selectedRecipient);
 
     const amount =
         Number(document.getElementById("transferAmount")?.value);
@@ -186,7 +187,7 @@ async function sendTransfer(){
         document.getElementById("transferButton");
 
     if(!Number.isSafeInteger(recipientNumber)||recipientNumber<=0){
-        alert("Выберите получателя.");
+        alert("Выберите получателя из списка или введите его ID.");
         return;
     }
 
@@ -347,6 +348,14 @@ async function loadWallet(){
                 <select id="recipientSelect">
                     <option value="">Загрузка граждан...</option>
                 </select>
+                <input
+                    type="text"
+                    id="recipientId"
+                    inputmode="numeric"
+                    pattern="[0-9]{1,18}"
+                    maxlength="18"
+                    placeholder="или ID гражданина"
+                >
                 <input
                     type="number"
                     id="transferAmount"
