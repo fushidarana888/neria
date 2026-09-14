@@ -91,3 +91,7 @@ revoke all on function public.my_citizen_path() from public, anon;
 revoke all on function public.public_citizen_path(bigint) from public, anon;
 grant execute on function public.my_citizen_path() to authenticated;
 grant execute on function public.public_citizen_path(bigint) to authenticated;
+
+
+-- Extended path history: role terms, citizenship changes, first deal/article, anniversaries and historical marks.
+-- Live database migrations: extend_citizen_path_history + enrich_citizen_path_events (2026-09-14).
