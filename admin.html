@@ -811,6 +811,7 @@ function friendlyError(error){
         const menu = [
             governmentRoles.is_founder ? ["overview","Управление","Роли и контроль министров"] : null,
             governmentRoles.is_founder ? ["roleapps","Заявки на роли","Министры и журналисты"] : null,
+            governmentRoles.is_founder ? ["familysettings","Семейные сроки","Персональные послабления"] : null,
             governmentRoles.is_founder ? ["alliances","Союзы","Предложения от сообществ"] : null,
             governmentRoles.is_founder ? ["stateoffers","Услуги государству","Предложения граждан"] : null,
             governmentRoles.economy_minister ? ["economy","Экономика","Казна, NR и выплаты"] : null,
@@ -867,6 +868,12 @@ function friendlyError(error){
                     <p>Можно временно запретить конкретному гражданину подавать новые заявки на роли.</p>
                     <div id="roleApplicationBlockList"><div class="loading">Загрузка блокировок...</div></div>
                 </div>
+            </section>` : ""}
+
+            ${governmentRoles.is_founder ? `
+            <section class="admin-section" id="section-familysettings">
+                <div class="section-heading"><h2>Персональные семейные сроки</h2><p>Только Основатель может уменьшать сроки для выбранных граждан. Все изменения сохраняются в журнале.</p></div>
+                <div id="founderFamilySettings"></div>
             </section>` : ""}
 
             ${governmentRoles.is_founder ? `
@@ -1250,7 +1257,7 @@ function showAdminSection(section, button) {
                 const actions=a.status==="pending"
                     ? '<div class="reward-actions"><button class="success" onclick="reviewGovernmentRoleApplication('+Number(a.application_id)+',true)">Принять</button><button class="danger" onclick="reviewGovernmentRoleApplication('+Number(a.application_id)+',false)">Отклонить</button><button class="secondary" onclick="blockCitizenAction('+Number(a.citizen_id)+',&quot;role_applications&quot;)">Заблокировать новые заявки</button></div>'
                     : '';
-                return '<div class="deal-admin-card"><div class="deal-admin-title">'+escapeHtml(a.nickname)+' · '+escapeHtml(formatCitizenNumber(a.citizen_number))+' · '+escapeHtml(governmentRoleLabels[a.requested_role]||a.requested_role)+'</div><div class="deal-admin-meta">'+escapeHtml(a.status==="pending"?"На рассмотрении":a.status==="accepted"?"Принята":"Отклонена")+' · '+escapeHtml(formatDate(a.created_at))+'</div><div class="dispute-reason">'+escapeHtml(a.statement)+'</div>'+actions+'</div>';
+                return '<div class="deal-admin-card"><div class="deal-admin-title">'+escapeHtml(a.nickname)+' · '+escapeHtml(formatCitizenNumber(a.citizen_number))+' · '+escapeHtml(governmentRoleLabels[a.requested_role]||a.requested_role)+'</div><div class="deal-admin-meta">'+escapeHtml(a.status==="pending"?"На рассмотрении":a.status==="accepted"?"Принята":"Отклонена")+' · '+escapeHtml(formatDate(a.created_at))+'</div><div class="dispute-reason">'+escapeHtml(a.statement)+'</div>'+actions+'<div class="reward-actions"><button type="button" class="secondary" onclick="openRoleApplicationChat('+Number(a.application_id)+')">Переписка</button></div></div>';
             }).join(""):'<div class="empty">Заявок на роли пока нет.</div>';
         }
 
@@ -2800,6 +2807,8 @@ function showAdminSection(section, button) {
 </script>
 
 
+<script src="founder-family.js"></script>
+<script src="role-application-chat.js"></script>
 <script id="neria-action-guard">
 (function(){
  const guarded=[
