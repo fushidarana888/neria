@@ -1,0 +1,8 @@
+.neria-site-header{min-height:72px;background:#fff;border-bottom:1px solid #e5e5e8;display:flex;align-items:center;justify-content:space-between;padding:12px 4%;gap:20px;position:relative;z-index:1000;font-family:Arial,Helvetica,sans-serif}
+.neria-site-logo{display:flex;align-items:center;gap:11px;color:#17171c!important;text-decoration:none!important;font-size:19px;font-weight:800;letter-spacing:1px;flex:0 0 auto}
+.neria-site-flag{width:30px;height:40px;display:flex;flex-direction:column;border-radius:3px;overflow:hidden;box-shadow:0 0 0 1px #e7e2ef}
+.neria-site-flag i:nth-child(1),.neria-site-flag i:nth-child(3){background:#6d3fc0;flex:1}.neria-site-flag i:nth-child(2){background:#eee8ff;flex:1}
+.neria-site-nav{display:flex;align-items:center;justify-content:flex-end;gap:18px;flex-wrap:wrap}
+.neria-site-nav a{color:#55555d!important;text-decoration:none!important;font-size:13px!important;font-weight:400!important;white-space:nowrap;line-height:1.2}
+.neria-site-nav a:hover,.neria-site-nav a.active{color:#6d3fc0!important}.neria-site-nav a.active{font-weight:700!important}
+@media(max-width:900px){.neria-site-header{padding:10px 10px;flex-wrap:wrap;justify-content:center;gap:8px}.neria-site-logo{width:100%;justify-content:center}.neria-site-nav{width:100%;display:flex;flex-wrap:nowrap;justify-content:flex-start;overflow-x:auto;gap:7px;padding:4px 2px 8px;-webkit-overflow-scrolling:touch;scrollbar-width:none}.neria-site-nav::-webkit-scrollbar{display:none}.neria-site-nav a{flex:0 0 auto;padding:7px 8px;font-size:12px!important}}
