@@ -798,6 +798,7 @@ function friendlyError(error){
             jobs.push(loadOpenMarketListings());
             jobs.push(loadStateAnnouncementAdminList());
             jobs.push(loadAllianceProposals());
+            jobs.push(loadAlliedCommunitiesAdmin());
             jobs.push(loadStateServiceOffers());
             jobs.push(loadCommunityLinksAdmin());
             jobs.push(loadGovernmentRoleApplications());
@@ -877,7 +878,7 @@ function friendlyError(error){
             </section>` : ""}
 
             ${governmentRoles.is_founder ? `
-            <section class="admin-section" id="section-alliances"><div class="section-heading"><h2>Союзы и партнёрства</h2><p>Предложения от флудов, РП, игровых чатов и других интернет-сообществ.</p></div><div class="reward-panel"><h2>Предложения союза</h2><p>Название, контакт, описание и статус предложения. Конкретные условия после принятия согласовываются с представителем сообщества.</p><div id="allianceProposalList"><div class="loading">Загрузка предложений...</div></div></div></section>` : ""}
+            <section class="admin-section" id="section-alliances"><div class="section-heading"><h2>Союзы и партнёрства</h2><p>Предложения от флудов, РП, игровых чатов и других интернет-сообществ.</p></div><div class="reward-panel"><h2>Действующие отношения</h2><p>Здесь можно повысить или понизить уровень отношений, а также полностью завершить сотрудничество. После завершения карточка исчезает с публичной страницы союзов.</p><div id="alliedCommunityList"><div class="loading">Загрузка действующих партнёров...</div></div></div><div class="reward-panel"><h2>Предложения сотрудничества</h2><p>Заявка — это только входящее предложение. После принятия сообщество автоматически становится партнёром Нерии.</p><div id="allianceProposalList"><div class="loading">Загрузка предложений...</div></div></div></section>` : ""}
 
             ${governmentRoles.is_founder ? `
             <section class="admin-section" id="section-stateoffers">
@@ -1055,6 +1056,42 @@ function friendlyError(error){
         await loadStateServiceOffers();
     }
 
+    async function loadAlliedCommunitiesAdmin(){
+        const el=document.getElementById("alliedCommunityList"); if(!el)return;
+        const {data,error}=await supabaseClient.rpc("founder_list_allied_communities");
+        if(error){el.innerHTML='<div class="error">'+escapeHtml(friendlyError(error))+'</div>';return}
+        const rows=(data||[]);
+        if(!rows.length){el.innerHTML='<div class="empty">Партнёров и союзников пока нет.</div>';return}
+        const levelNames={partner:"🔗 Партнёр Нерии",ally:"🤝 Союзное сообщество",special:"⭐ Особый союзник"};
+        el.innerHTML=rows.map(x=>{
+            const status=x.is_active?"Действует":"Завершено";
+            const ended=!x.is_active&&x.ended_at?'<br>Завершено: '+escapeHtml(formatDate(x.ended_at)):"";
+            const reason=!x.is_active&&x.end_reason?'<br>Причина: '+escapeHtml(x.end_reason):"";
+            const controls=x.is_active?'<div class="dispute-actions" style="margin-top:12px">'+
+                '<select id="allianceLevel-'+Number(x.id)+'" style="min-width:220px"><option value="partner" '+(x.relationship_level==="partner"?"selected":"")+'>🔗 Партнёр</option><option value="ally" '+(x.relationship_level==="ally"?"selected":"")+'>🤝 Союзное сообщество</option><option value="special" '+(x.relationship_level==="special"?"selected":"")+'>⭐ Особый союзник</option></select>'+
+                '<button type="button" class="secondary" onclick="saveAllianceLevel('+Number(x.id)+')">Изменить уровень</button>'+
+                '<button type="button" class="danger" onclick="endAlliance('+Number(x.id)+',\''+escapeHtml(String(x.name)).replace(/&#039;/g,"\\'")+'\')">Завершить отношения</button>'+
+                '</div>':'';
+            return '<div class="deal-admin-card"><div class="deal-admin-title">'+escapeHtml(x.name)+' · '+escapeHtml(levelNames[x.relationship_level]||x.relationship_level)+'</div><div class="deal-admin-meta">'+escapeHtml(x.topic||"Без тематики")+' · '+status+'<br>С '+escapeHtml(String(x.allied_since||"—"))+ended+reason+'</div>'+controls+'</div>';
+        }).join("");
+    }
+
+    async function saveAllianceLevel(id){
+        const select=document.getElementById("allianceLevel-"+id); if(!select)return;
+        const {error}=await supabaseClient.rpc("founder_set_community_relationship",{p_community_id:id,p_level:select.value});
+        if(error){alert("Не удалось изменить уровень отношений:\n"+friendlyError(error));return}
+        await loadAlliedCommunitiesAdmin();
+    }
+
+    async function endAlliance(id,name){
+        const reason=prompt("Завершить отношения с «"+name+"»?\n\nМожно указать причину для внутренней истории. Оставьте пустым, если причина не нужна.");
+        if(reason===null)return;
+        if(!confirm("После завершения сообщество исчезнет с публичной страницы союзов. Продолжить?"))return;
+        const {error}=await supabaseClient.rpc("founder_end_allied_community",{p_community_id:id,p_reason:reason||null});
+        if(error){alert("Не удалось завершить отношения:\n"+friendlyError(error));return}
+        await Promise.all([loadAlliedCommunitiesAdmin(),loadAllianceProposals()]);
+    }
+
     async function loadAllianceProposals(){
         const el=document.getElementById("allianceProposalList"); if(!el)return;
         const {data,error}=await supabaseClient.rpc("founder_alliance_proposals");
@@ -1072,7 +1109,7 @@ function friendlyError(error){
       if(!confirm("Вы уверены, что хотите "+(words[status]||"изменить статус")+"?"))return;
       const {error}=await supabaseClient.rpc("founder_set_alliance_proposal_status",{p_id:id,p_status:status});
       if(error){alert("Не удалось обработать предложение:\n"+friendlyError(error));return}
-      await loadAllianceProposals();
+      await Promise.all([loadAllianceProposals(),loadAlliedCommunitiesAdmin()]);
     }
 
 function showAdminSection(section, button) {
