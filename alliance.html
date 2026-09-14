@@ -68,7 +68,7 @@ table{max-width:100%}
 <label class="field-label">Тип сообщества</label><input id="type" maxlength="80" placeholder="Флуд, РП, игровой чат, канал...">
 <label class="field-label">Ссылка на сообщество</label><input id="communityUrl" maxlength="500" placeholder="https://t.me/...">
 <label class="field-label">Примерное количество участников <span class="optional">(необязательно)</span></label><input id="memberCount" type="number" min="0" max="10000000" placeholder="Например: 140">
-<label class="field-label">Какой формат интересен</label><select id="desiredLevel"><option value="partner">🔗 Партнёрство — лёгкий формат без обязательств</option><option value="ally">🤝 Союз — более тесное сотрудничество</option></select>
+
 <div class="guest-fields" id="guestFields"><label class="field-label">Как к вам обращаться</label><input id="proposerName" maxlength="100" placeholder="Имя или ник"><label class="field-label">Кто вы в сообществе</label><input id="proposerRole" maxlength="120" placeholder="Владелец, администратор, представитель..."></div>
 <label class="field-label">Контакт для связи</label><input id="contact" maxlength="200" placeholder="@username или другой удобный контакт">
 <label class="field-label">Комментарий <span class="optional">(необязательно)</span></label><textarea id="description" maxlength="2000" placeholder="Можно ничего не обещать — просто расскажите пару слов о сообществе или пожеланиях к сотрудничеству"></textarea>
@@ -87,7 +87,7 @@ async function initForm(){
 }
 async function submitAlliance(){
  const b=document.getElementById('send'),status=document.getElementById('status');b.disabled=true;status.textContent='';
- const common={name:name.value.trim(),type:type.value.trim(),url:communityUrl.value.trim(),count:memberCount.value?Number(memberCount.value):null,contact:contact.value.trim(),description:description.value.trim(),level:desiredLevel.value};
+ const common={name:name.value.trim(),type:type.value.trim(),url:communityUrl.value.trim(),count:memberCount.value?Number(memberCount.value):null,contact:contact.value.trim(),description:description.value.trim(),level:'partner'};
  if(!common.name||!common.type||!common.url||!common.contact){status.textContent='Заполните название, тип, ссылку и контакт для связи.';b.disabled=false;return}
  let error;
  if(currentCitizen){
