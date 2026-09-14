@@ -964,10 +964,11 @@ function friendlyError(error){
                 <div class="reward-panel">
                     <h2>Выдать мут</h2>
                     <p>МВД и Основатель могут запретить выбранному гражданину писать в общий чат на указанный срок.</p>
-                    <div class="reward-controls" style="grid-template-columns:1.3fr 120px 120px">
+                    <div class="reward-controls" style="grid-template-columns:1.3fr 1fr 120px 120px">
                         <select id="chatMuteCitizen" style="padding:11px 12px;border:1px solid #dcdce1;border-radius:7px;font:inherit">
                             <option value="">Выберите гражданина</option>
                         </select>
+                        <input id="chatMuteCitizenId" type="text" inputmode="numeric" pattern="[0-9]{1,18}" maxlength="18" placeholder="или ID гражданина" style="padding:11px 12px;border:1px solid #dcdce1;border-radius:7px;font:inherit">
                         <input id="chatMuteDuration" type="number" min="1" step="1" placeholder="Срок">
                         <select id="chatMuteUnit" style="padding:11px 12px;border:1px solid #dcdce1;border-radius:7px;font:inherit">
                             <option value="minutes">Минуты</option>
@@ -1554,8 +1555,10 @@ function showAdminSection(section, button) {
             ]);
 
         if (peopleError) {
+            window.neriaChatModerationPeople = [];
             select.innerHTML = '<option value="">Не удалось загрузить граждан</option>';
         } else {
+            window.neriaChatModerationPeople = people || [];
             select.innerHTML =
                 '<option value="">Выберите гражданина</option>' +
                 (people || []).map(c =>
@@ -1600,13 +1603,20 @@ function showAdminSection(section, button) {
     }
 
     async function muteChatCitizen() {
-        const citizenId = Number(document.getElementById("chatMuteCitizen")?.value);
+        const manual = document.getElementById("chatMuteCitizenId")?.value?.trim() || "";
+        const selected = document.getElementById("chatMuteCitizen")?.value?.trim() || "";
+        let citizenId = Number(selected);
+        if (manual) {
+            const visibleId = Number(manual);
+            const match = (window.neriaChatModerationPeople || []).find(c => Number(c.citizen_number) === visibleId);
+            citizenId = match ? Number(match.citizen_id) : 0;
+        }
         const duration = Number(document.getElementById("chatMuteDuration")?.value);
         const unit = document.getElementById("chatMuteUnit")?.value;
         const reason = document.getElementById("chatMuteReason")?.value?.trim();
 
         if (!Number.isSafeInteger(citizenId) || citizenId <= 0) {
-            alert("Выберите гражданина.");
+            alert("Выберите гражданина из списка или введите корректный ID.");
             return;
         }
         if (!Number.isSafeInteger(duration) || duration <= 0) {
