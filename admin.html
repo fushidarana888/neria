@@ -1248,7 +1248,7 @@ function showAdminSection(section, button) {
             const rows=data||[];
             list.innerHTML=rows.length?rows.map(a=>{
                 const actions=a.status==="pending"
-                    ? '<div class="reward-actions"><button class="success" onclick="reviewGovernmentRoleApplication('+Number(a.application_id)+',true)">Принять</button><button class="danger" onclick="reviewGovernmentRoleApplication('+Number(a.application_id)+',false)">Отклонить</button><button class="secondary" onclick="blockCitizenAction('+Number(a.citizen_id)+',\\'role_applications\\')">Заблокировать новые заявки</button></div>'
+                    ? '<div class="reward-actions"><button class="success" onclick="reviewGovernmentRoleApplication('+Number(a.application_id)+',true)">Принять</button><button class="danger" onclick="reviewGovernmentRoleApplication('+Number(a.application_id)+',false)">Отклонить</button><button class="secondary" onclick="blockCitizenAction('+Number(a.citizen_id)+',&quot;role_applications&quot;)">Заблокировать новые заявки</button></div>'
                     : '';
                 return '<div class="deal-admin-card"><div class="deal-admin-title">'+escapeHtml(a.nickname)+' · '+escapeHtml(formatCitizenNumber(a.citizen_number))+' · '+escapeHtml(governmentRoleLabels[a.requested_role]||a.requested_role)+'</div><div class="deal-admin-meta">'+escapeHtml(a.status==="pending"?"На рассмотрении":a.status==="accepted"?"Принята":"Отклонена")+' · '+escapeHtml(formatDate(a.created_at))+'</div><div class="dispute-reason">'+escapeHtml(a.statement)+'</div>'+actions+'</div>';
             }).join(""):'<div class="empty">Заявок на роли пока нет.</div>';
