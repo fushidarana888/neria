@@ -1,11 +1,113 @@
-<!DOCTYPE html><html lang="ru"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Газета Нерии</title><style>*{box-sizing:border-box}body{margin:0;font-family:Arial,Helvetica,sans-serif;background:#f5f5f7;color:#17171c}header{background:#fff;border-bottom:1px solid #e5e5e8;padding:16px 6%;display:flex;justify-content:space-between;align-items:center;gap:16px;flex-wrap:wrap}header a{color:#6d3fc0;text-decoration:none;font-weight:700}main{max-width:900px;margin:auto;padding:50px 18px 80px}h1{font-size:40px;margin:0 0 8px}.lead{color:#6f6f78;line-height:1.6}.article{background:#fff;border:1px solid #e5e5e8;border-radius:13px;padding:22px;margin-top:16px}.article h2{margin:0 0 8px}.meta{font-size:12px;color:#888}.body{margin-top:14px;line-height:1.7;white-space:pre-wrap;overflow-wrap:anywhere}.empty{color:#777;text-align:center;padding:35px}.editor{display:none;background:#6d3fc0;color:#fff;padding:10px 14px;border-radius:8px}@media(max-width:600px){main{padding:34px 12px 60px}h1{font-size:30px}.article{padding:16px}}</style><style id="neria-unified-header-style">
-body>header:not(.neria-unified-header){display:none!important}
-.neria-unified-header{min-height:72px;background:#fff;border-bottom:1px solid #e5e5e8;display:flex;align-items:center;justify-content:space-between;padding:12px 4%;gap:20px;position:relative;z-index:50}
-.neria-unified-logo{display:flex;align-items:center;gap:11px;color:#17171c;text-decoration:none;font-size:19px;font-weight:800;letter-spacing:1px;flex:0 0 auto}
-.neria-unified-flag{width:30px;height:40px;display:flex;flex-direction:column;border-radius:3px;overflow:hidden}.neria-unified-flag i:nth-child(1),.neria-unified-flag i:nth-child(3){background:#6d3fc0;flex:1}.neria-unified-flag i:nth-child(2){background:#eee8ff;flex:1}
-.neria-unified-nav{display:flex;align-items:center;justify-content:flex-end;gap:18px;flex-wrap:wrap}
-.neria-unified-nav a{color:#55555d;text-decoration:none;font-size:13px;white-space:nowrap}.neria-unified-nav a:hover{color:#6d3fc0}.neria-unified-nav a[href="chat.html"],.neria-unified-nav a[href="newspaper.html"]{font-weight:700}
-@media(max-width:900px){.neria-unified-header{padding:11px 14px;flex-wrap:wrap;justify-content:center}.neria-unified-logo{width:100%;justify-content:center}.neria-unified-nav{width:100%;justify-content:center;gap:9px 14px}.neria-unified-nav a{font-size:12px}}
-@media(max-width:430px){.neria-unified-nav{gap:8px 11px}.neria-unified-nav a{font-size:11px}}
-</style><style id="neria-mobile-final">html,body{max-width:100%;overflow-x:hidden}img,svg,video,canvas{max-width:100%;height:auto}input,select,textarea,button{max-width:100%}@media(max-width:700px){body{min-width:0!important}main{width:100%!important;max-width:100%!important;padding-left:12px!important;padding-right:12px!important}h1{font-size:clamp(28px,9vw,38px)!important;overflow-wrap:anywhere}h2,h3,p,.muted,.lead{overflow-wrap:anywhere}.neria-unified-header{padding:10px 8px!important;gap:8px!important}.neria-unified-logo{width:100%!important;justify-content:center!important}.neria-unified-nav{width:100%!important;display:flex!important;flex-wrap:nowrap!important;justify-content:flex-start!important;gap:7px!important;overflow-x:auto!important;padding:4px 2px 8px!important;-webkit-overflow-scrolling:touch;scrollbar-width:none}.neria-unified-nav::-webkit-scrollbar{display:none}.neria-unified-nav a{flex:0 0 auto!important;font-size:12px!important;padding:7px 8px!important}.admin-menu,.folders,.cards,.grid,.deal-grid,.market-grid,.profile-grid,.stats,.columns{grid-template-columns:1fr!important}.reward-controls,.money-form,.reward-list,.layout{grid-template-columns:1fr!important}.sidebar{max-height:300px!important}.panel,.box,.card,.section,.article,.reward-panel,.money-panel,.dispute-panel{max-width:100%!important}.actions,.reward-actions,.chat-head{flex-wrap:wrap!important}table{display:block!important;overflow-x:auto!important;white-space:nowrap}pre,code{white-space:pre-wrap!important;overflow-wrap:anywhere}}</style><link rel="stylesheet" href="site-header.css"><script src="site-header.js" defer></script></head><body><header class="neria-unified-header"><a class="neria-unified-logo" href="index.html"><span class="neria-unified-flag"><i></i><i></i><i></i></span>НЕРИЯ</a><nav class="neria-unified-nav"><a href="profile.html">Личный кабинет</a><a href="citizens.html">Граждане</a><a href="state.html">Государство</a><a href="treasury.html">Экономика</a><a href="market.html">Объявления</a><a href="chat.html">Общий чат</a><a href="newspaper.html">Газета</a><a href="alliances.html">Союзы</a><a href="community.html">Telegram</a><a href="laws.html">Законы</a><a href="notifications.html">🔔 Уведомления</a></nav></header><main><div style="display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap"><div><h1>Газета Нерии</h1><p class="lead">Новости государства, события, объявления и материалы редакции. Публиковать статьи могут Основатель и граждане с ролью журналиста.</p></div><a id="editorLink" class="editor" href="newspaper-editor.html">Опубликовать статью</a></div><div id="list"><div class="empty">Загрузка…</div></div></main><script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script><script>const sb=supabase.createClient("https://rictvznkxkeygbrlcymn.supabase.co","sb_publishable_SVwKto14tbMtsmcDOagvCw_TVqg7he7");const esc=v=>String(v??"").replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;");async function deleteArticle(id){if(!confirm("Удалить эту публикацию из газеты?"))return;const {error}=await sb.rpc("newspaper_delete",{p_article_id:id});if(error){alert("Не удалось удалить публикацию.");return}await load()}
-async function load(){const {data,error}=await sb.rpc("newspaper_list",{p_limit:50});const el=document.getElementById("list");if(error){el.innerHTML='<div class="empty">Не удалось загрузить газету.</div>';return}const rows=data||[];el.innerHTML=rows.length?rows.map(x=>'<article class="article"><div style="display:flex;justify-content:space-between;gap:12px;align-items:flex-start"><div><h2>'+esc(x.title)+'</h2><div class="meta">'+esc(x.author_nickname)+' · '+new Date(x.published_at).toLocaleString("ru-RU")+'</div></div>'+(x.can_delete?'<button onclick="deleteArticle('+Number(x.id)+')" style="border:1px solid #efcaca;background:#fff0f0;color:#a92f2f;border-radius:7px;padding:7px 10px;cursor:pointer">Удалить</button>':'')+'</div><div class="body">'+esc(x.body)+'</div></article>').join(""):'<div class="empty">Публикаций пока нет.</div>';const {data:{user}}=await sb.auth.getUser();if(user){const {data:r}=await sb.rpc("get_my_government_roles");if(r?.[0]?.is_founder||r?.[0]?.journalist)document.getElementById("editorLink").style.display="inline-block"}}load();</script></body></html>
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Газета Нерии</title>
+<style>
+*{box-sizing:border-box}
+body{margin:0;font-family:Arial,Helvetica,sans-serif;background:#f5f5f7;color:#17171c}
+main{max-width:980px;margin:auto;padding:52px 20px 90px}
+.hero{display:flex;align-items:flex-end;justify-content:space-between;gap:18px;flex-wrap:wrap;margin-bottom:28px}
+h1{font-size:42px;margin:0 0 10px}.lead{color:#6f6f78;line-height:1.65;max-width:700px;margin:0}
+.editor{display:none;background:#6d3fc0;color:#fff;text-decoration:none;padding:11px 15px;border-radius:9px;font-weight:700;font-size:13px}
+.paper-list{display:grid;gap:12px}
+.paper-card{width:100%;background:#fff;border:1px solid #e5e5e8;border-radius:14px;padding:21px 22px;display:flex;align-items:center;justify-content:space-between;gap:18px;text-align:left;cursor:pointer;transition:.18s ease;color:inherit;font:inherit}
+.paper-card:hover{border-color:#cdbbe8;box-shadow:0 7px 22px rgba(30,20,45,.06);transform:translateY(-1px)}
+.paper-card:focus-visible{outline:3px solid #d8c5f3;outline-offset:2px}
+.paper-info{min-width:0}.paper-title{font-size:19px;font-weight:800;line-height:1.32;margin-bottom:8px;overflow-wrap:anywhere}.paper-date{font-size:12px;color:#888891}.paper-open{flex:0 0 auto;color:#6d3fc0;font-size:13px;font-weight:800}
+.empty{background:#fff;border:1px dashed #d3d3d8;border-radius:14px;color:#777;text-align:center;padding:40px 22px}
+.reader{display:none;background:#fff;border:1px solid #ddd6e8;border-radius:16px;overflow:hidden}
+.reader.visible{display:block}.reader-top{padding:18px 22px;border-bottom:1px solid #ece8f1;display:flex;justify-content:space-between;align-items:center;gap:14px;flex-wrap:wrap;background:#faf8fd}
+.back-list{border:0;background:transparent;color:#6d3fc0;font-weight:800;cursor:pointer;padding:5px 0;font-size:13px}
+.reader-actions{display:flex;gap:8px;align-items:center}.delete-btn{display:none;border:1px solid #efcaca;background:#fff0f0;color:#a92f2f;border-radius:8px;padding:8px 11px;cursor:pointer;font-weight:700}
+.reader-body{padding:34px 38px 42px}.reader-date{font-size:12px;color:#888891;margin-bottom:13px}.reader-title{font-size:34px;line-height:1.2;margin:0 0 12px;overflow-wrap:anywhere}.reader-author{font-size:13px;color:#6d3fc0;font-weight:700;padding-bottom:24px;border-bottom:1px solid #eeeaf3;margin-bottom:25px}.reader-text{font-size:16px;line-height:1.8;white-space:pre-wrap;overflow-wrap:anywhere;color:#34343a}
+@media(max-width:650px){main{padding:36px 12px 70px}h1{font-size:32px}.paper-card{padding:17px 16px}.paper-title{font-size:17px}.paper-open{font-size:0}.paper-open:after{content:'→';font-size:20px}.reader-body{padding:25px 19px 32px}.reader-title{font-size:27px}}
+</style>
+<link rel="stylesheet" href="site-header.css">
+<script src="site-header.js" defer></script>
+</head>
+<body>
+<main>
+<section class="hero">
+<div><h1>Газета Нерии</h1><p class="lead">Публикации о жизни государства. Откройте материал, чтобы прочитать его полностью.</p></div>
+<a id="editorLink" class="editor" href="newspaper-editor.html">Опубликовать статью</a>
+</section>
+
+<section id="listView">
+<div id="list" class="paper-list"><div class="empty">Загрузка публикаций…</div></div>
+</section>
+
+<article id="reader" class="reader" aria-live="polite">
+<div class="reader-top">
+<button class="back-list" type="button" onclick="closeArticle()">← Вернуться к публикациям</button>
+<div class="reader-actions"><button id="deleteButton" class="delete-btn" type="button">Удалить публикацию</button></div>
+</div>
+<div class="reader-body">
+<div id="readerDate" class="reader-date"></div>
+<h2 id="readerTitle" class="reader-title"></h2>
+<div id="readerAuthor" class="reader-author"></div>
+<div id="readerText" class="reader-text"></div>
+</div>
+</article>
+</main>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script>
+const sb=supabase.createClient("https://rictvznkxkeygbrlcymn.supabase.co","sb_publishable_SVwKto14tbMtsmcDOagvCw_TVqg7he7");
+const esc=v=>String(v??"").replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;").replace(/'/g,"&#39;");
+let articles=[];
+let currentArticle=null;
+function formatDate(value){return new Date(value).toLocaleDateString("ru-RU",{day:"numeric",month:"long",year:"numeric"})}
+function renderList(){
+ const el=document.getElementById("list");
+ if(!articles.length){el.innerHTML='<div class="empty">Публикаций пока нет.</div>';return}
+ el.innerHTML=articles.map(x=>'<button class="paper-card" type="button" onclick="openArticle('+Number(x.id)+')"><div class="paper-info"><div class="paper-title">'+esc(x.title)+'</div><div class="paper-date">'+esc(formatDate(x.published_at))+'</div></div><div class="paper-open">Открыть →</div></button>').join("");
+}
+function openArticle(id){
+ const x=articles.find(a=>Number(a.id)===Number(id));
+ if(!x)return;
+ currentArticle=x;
+ document.getElementById("readerDate").textContent=formatDate(x.published_at);
+ document.getElementById("readerTitle").textContent=x.title||"Без названия";
+ document.getElementById("readerAuthor").textContent="Автор: "+(x.author_nickname||"Редакция Нерии");
+ document.getElementById("readerText").textContent=x.body||"";
+ const del=document.getElementById("deleteButton");
+ del.style.display=x.can_delete?"inline-block":"none";
+ del.onclick=()=>deleteArticle(Number(x.id));
+ document.getElementById("listView").style.display="none";
+ document.getElementById("reader").classList.add("visible");
+ history.replaceState(null,"",location.pathname+location.search+"#article-"+Number(x.id));
+ window.scrollTo({top:0,behavior:"smooth"});
+}
+function closeArticle(){
+ currentArticle=null;
+ document.getElementById("reader").classList.remove("visible");
+ document.getElementById("listView").style.display="block";
+ history.replaceState(null,"",location.pathname+location.search);
+}
+async function deleteArticle(id){
+ if(!confirm("Удалить эту публикацию из газеты?"))return;
+ const {error}=await sb.rpc("newspaper_delete",{p_article_id:id});
+ if(error){alert("Не удалось удалить публикацию.");return}
+ closeArticle();
+ await load();
+}
+async function load(){
+ const {data,error}=await sb.rpc("newspaper_list",{p_limit:50});
+ const el=document.getElementById("list");
+ if(error){el.innerHTML='<div class="empty">Не удалось загрузить газету.</div>';return}
+ articles=data||[];
+ renderList();
+ const match=location.hash.match(/^#article-(\d+)$/);
+ if(match)openArticle(Number(match[1]));
+ const {data:{user}}=await sb.auth.getUser();
+ if(user){
+   const {data:r}=await sb.rpc("get_my_government_roles");
+   if(r?.[0]?.is_founder||r?.[0]?.journalist)document.getElementById("editorLink").style.display="inline-block";
+ }
+}
+window.addEventListener("hashchange",()=>{const m=location.hash.match(/^#article-(\d+)$/);if(m)openArticle(Number(m[1]));else if(currentArticle)closeArticle()});
+load();
+</script>
+</body>
+</html>
