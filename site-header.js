@@ -1,1 +1,77 @@
-(()=>{const SB_URL="https://rictvznkxkeygbrlcymn.supabase.co",SB_KEY="sb_publishable_SVwKto14tbMtsmcDOagvCw_TVqg7he7";function renderCount(n){const a=document.querySelector('.neria-notifications-link');if(!a)return;a.classList.toggle('has-unread',n>0);const badge=a.querySelector('.neria-notification-badge');if(badge){badge.textContent=n>99?'99+':String(n);badge.style.display=n>0?'inline-flex':'none'}a.title=n>0?'Непрочитанных уведомлений: '+n:'Уведомления'}async function setupNotifications(){try{if(!window.supabase)return;const sb=window.__neriaHeaderSb||(window.__neriaHeaderSb=window.supabase.createClient(SB_URL,SB_KEY));const {data:{session}}=await sb.auth.getSession();if(!session){renderCount(0);return}const refresh=async()=>{const {data,error}=await sb.rpc('my_unread_notification_count');if(!error)renderCount(Number(data)||0)};await refresh();sb.channel('neria-header-notifications-'+session.user.id).on('postgres_changes',{event:'*',schema:'public',table:'notifications',filter:'user_id=eq.'+session.user.id},refresh).subscribe()}catch{}}function init(){document.querySelectorAll('body > header').forEach(h=>h.remove());const path=(location.pathname.split('/').pop()||'index.html').toLowerCase();const items=[['profile.html','Личный кабинет'],['citizens.html','Граждане'],['state.html','Государство'],['treasury.html','Экономика'],['market.html','Объявления'],['chat.html','Общий чат'],['newspaper.html','Газета'],['alliances.html','Союзы'],['family.html','Семья'],['community.html','Telegram'],['laws.html','Законы']];const familyPages=['family.html','state-family.html'];const statePages=['state.html','state-founder.html','state-ministers.html','state-deputies.html','state-elections.html','state-justice.html','state-migration.html','state-economy.html','state-events.html','state-careers.html','state-earn-nr.html','state-alliance.html','constitution.html','government-law.html','economy-law.html'];const activeFor=(href)=>href==='family.html'?familyPages.includes(path):href==='state.html'?statePages.includes(path):href===path;const h=document.createElement('header');h.className='neria-site-header';h.innerHTML='<a class="neria-site-logo" href="index.html"><span class="neria-site-flag" aria-label="Флаг Нерии"><i></i><i></i><i></i></span>НЕРИЯ</a><nav class="neria-site-nav">'+items.map(([href,label])=>'<a href="'+href+'"'+(activeFor(href)?' class="active" aria-current="page"':'')+'>'+label+'</a>').join('')+'<a href="notifications.html" class="neria-notifications-link'+(path==='notifications.html'?' active':'')+'"><span class="neria-bell">🔔</span><span class="neria-notification-text">Уведомления</span><span class="neria-notification-badge" style="display:none">0</span></a></nav>';document.body.prepend(h);let tries=0;const wait=()=>{if(window.supabase)setupNotifications();else if(tries++<40)setTimeout(wait,100)};wait()}if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',init);else init()})();
+(()=>{
+  const SB_URL="https://rictvznkxkeygbrlcymn.supabase.co";
+  const SB_KEY="sb_publishable_SVwKto14tbMtsmcDOagvCw_TVqg7he7";
+
+  function renderCount(n){
+    const a=document.querySelector('.neria-notifications-link');
+    if(!a)return;
+    a.classList.toggle('has-unread',n>0);
+    const badge=a.querySelector('.neria-notification-badge');
+    if(badge){
+      badge.textContent=n>99?'99+':String(n);
+      badge.style.display=n>0?'inline-flex':'none';
+    }
+    a.title=n>0?'Непрочитанных уведомлений: '+n:'Уведомления';
+  }
+
+  async function setupNotifications(){
+    try{
+      if(!window.supabase)return;
+      const sb=window.__neriaHeaderSb||(window.__neriaHeaderSb=window.supabase.createClient(SB_URL,SB_KEY));
+      const {data:{session}}=await sb.auth.getSession();
+      if(!session){renderCount(0);return;}
+      const refresh=async()=>{
+        const {data,error}=await sb.rpc('my_unread_notification_count');
+        if(!error)renderCount(Number(data)||0);
+      };
+      await refresh();
+      sb.channel('neria-header-notifications-'+session.user.id)
+        .on('postgres_changes',{event:'*',schema:'public',table:'notifications',filter:'user_id=eq.'+session.user.id},refresh)
+        .subscribe();
+    }catch{}
+  }
+
+  function init(){
+    const path=(location.pathname.split('/').pop()||'index.html').toLowerCase();
+
+    // Демо-песочница сохраняет собственную отдельную шапку.
+    if(path.startsWith('demo-'))return;
+
+    // Удаляем все старые локальные шапки конкретных страниц.
+    document.querySelectorAll('body > header').forEach(h=>h.remove());
+
+    const items=[
+      ['profile.html','Личный кабинет'],
+      ['citizens.html','Граждане'],
+      ['state.html','Государство'],
+      ['treasury.html','Экономика'],
+      ['market.html','Объявления'],
+      ['chat.html','Общий чат'],
+      ['newspaper.html','Газета'],
+      ['alliances.html','Союзы'],
+      ['family.html','Семья'],
+      ['community.html','Telegram'],
+      ['laws.html','Законы']
+    ];
+    const familyPages=['family.html','state-family.html'];
+    const statePages=['state.html','state-founder.html','state-ministers.html','state-deputies.html','state-elections.html','state-justice.html','state-migration.html','state-economy.html','state-events.html','state-careers.html','state-earn-nr.html','state-alliance.html','constitution.html','government-law.html','economy-law.html'];
+    const activeFor=(href)=>href==='family.html'?familyPages.includes(path):href==='state.html'?statePages.includes(path):href===path;
+
+    const h=document.createElement('header');
+    h.className='neria-site-header';
+    h.innerHTML='<a class="neria-site-logo" href="index.html"><span class="neria-site-flag" aria-label="Флаг Нерии"><i></i><i></i><i></i></span>НЕРИЯ</a><nav class="neria-site-nav">'+
+      items.map(([href,label])=>'<a href="'+href+'"'+(activeFor(href)?' class="active" aria-current="page"':'')+'>'+label+'</a>').join('')+
+      '<a href="notifications.html" class="neria-notifications-link'+(path==='notifications.html'?' active':'')+'"><span class="neria-bell">🔔</span><span class="neria-notification-text">Уведомления</span><span class="neria-notification-badge" style="display:none">0</span></a></nav>';
+    document.body.prepend(h);
+
+    let tries=0;
+    const wait=()=>{
+      if(window.supabase)setupNotifications();
+      else if(tries++<40)setTimeout(wait,100);
+    };
+    wait();
+  }
+
+  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',init);
+  else init();
+})();
