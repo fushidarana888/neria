@@ -14,10 +14,14 @@
     a.title=n>0?'Непрочитанных уведомлений: '+n:'Уведомления';
   }
 
+  function getSb(){
+    if(!window.supabase)return null;
+    return window.__neriaHeaderSb||(window.__neriaHeaderSb=window.supabase.createClient(SB_URL,SB_KEY));
+  }
+
   async function setupNotifications(){
     try{
-      if(!window.supabase)return;
-      const sb=window.__neriaHeaderSb||(window.__neriaHeaderSb=window.supabase.createClient(SB_URL,SB_KEY));
+      const sb=getSb(); if(!sb)return;
       const {data:{session}}=await sb.auth.getSession();
       if(!session){renderCount(0);return;}
       const refresh=async()=>{
@@ -31,13 +35,32 @@
     }catch{}
   }
 
+  async function setupProfileCustomization(){
+    try{
+      const sb=getSb(); if(!sb)return;
+      const {data:{session}}=await sb.auth.getSession();
+      if(!session)return;
+      const {data,error}=await sb.rpc('my_store_status');
+      if(error||!data?.citizen_id)return;
+
+      const apply=()=>{
+        const avatar=document.querySelector('.avatar-editor');
+        const color=document.querySelector('.nickname-color-editor');
+        if(avatar) avatar.style.display=data.avatar_access?'flex':'none';
+        if(color) color.style.display=data.nickname_color_access?'block':'none';
+      };
+      apply();
+      const target=document.getElementById('profileCard')||document.body;
+      const obs=new MutationObserver(apply);
+      obs.observe(target,{childList:true,subtree:true});
+      setTimeout(()=>obs.disconnect(),15000);
+    }catch{}
+  }
+
   function init(){
     const path=(location.pathname.split('/').pop()||'index.html').toLowerCase();
-
-    // Демо-песочница сохраняет собственную отдельную шапку.
     if(path.startsWith('demo-'))return;
 
-    // Удаляем все старые локальные шапки конкретных страниц.
     document.querySelectorAll('body > header').forEach(h=>h.remove());
 
     const items=[
@@ -45,6 +68,7 @@
       ['citizens.html','Граждане'],
       ['state.html','Государство'],
       ['treasury.html','Экономика'],
+      ['shop.html','Маркет'],
       ['market.html','Объявления'],
       ['chat.html','Общий чат'],
       ['newspaper.html','Газета'],
@@ -66,8 +90,10 @@
 
     let tries=0;
     const wait=()=>{
-      if(window.supabase)setupNotifications();
-      else if(tries++<40)setTimeout(wait,100);
+      if(window.supabase){
+        setupNotifications();
+        if(path==='profile.html')setupProfileCustomization();
+      }else if(tries++<40)setTimeout(wait,100);
     };
     wait();
   }
