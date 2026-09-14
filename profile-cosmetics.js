@@ -1,0 +1,32 @@
+(()=>{
+const SB_URL='https://rictvznkxkeygbrlcymn.supabase.co',SB_KEY='sb_publishable_SVwKto14tbMtsmcDOagvCw_TVqg7he7';
+const path=(location.pathname.split('/').pop()||'').toLowerCase();
+if(!['citizen.html','profile.html'].includes(path))return;
+function injectStyles(){if(document.getElementById('neria-cosmetic-styles'))return;const s=document.createElement('style');s.id='neria-cosmetic-styles';s.textContent=`
+.neria-cosmetic-card{position:relative!important;isolation:isolate!important;overflow:hidden!important;transition:.25s ease!important}
+.neria-cosmetic-card>.neria-cosmetic-particles{position:absolute;inset:0;pointer-events:none;overflow:hidden;z-index:5}
+.neria-cosmetic-card .neria-particle{position:absolute;top:-30px;opacity:.8;animation:neriaFall linear infinite;user-select:none}
+@keyframes neriaFall{to{transform:translateY(760px) rotate(360deg)}}
+.neria-bg-cosmos .cover{background:radial-gradient(circle at 78% 20%,rgba(255,255,255,.95) 0 1px,transparent 2px),radial-gradient(circle at 30% 35%,rgba(255,255,255,.8) 0 1px,transparent 2px),linear-gradient(135deg,#121024,#50357d)!important;background-size:auto!important}
+.neria-bg-sakura .cover{background:radial-gradient(circle at 80% 25%,#f4b2c5 0 7px,transparent 8px),linear-gradient(135deg,#fff7fa,#efb7ca)!important}
+.neria-bg-imperial .cover{background:linear-gradient(135deg,#0d0d0f,#342a17 65%,#987025)!important}
+.neria-bg-midnight .cover{background:linear-gradient(135deg,#090b12,#222839)!important}
+.neria-bg-sky .cover{background:radial-gradient(circle at 74% 34%,rgba(255,255,255,.85) 0 28px,transparent 29px),linear-gradient(135deg,#e2f5ff,#86c2eb)!important}
+.neria-frame-cosmos .avatar{box-shadow:0 0 0 3px #8e6bd1,0 0 22px rgba(116,75,190,.75)!important;border-color:#efe9ff!important}
+.neria-frame-sakura .avatar{box-shadow:0 0 0 3px #e99bb6,0 0 20px rgba(231,141,174,.45)!important;border-color:#fff2f6!important}
+.neria-frame-imperial .avatar{box-shadow:0 0 0 3px #b78a34,0 0 18px rgba(173,123,34,.55)!important;border-color:#fff5cf!important}
+.neria-frame-midnight .avatar{box-shadow:0 0 0 3px #75809b,0 0 20px rgba(44,52,72,.55)!important;border-color:#e9edf7!important}
+.neria-frame-sky .avatar{box-shadow:0 0 0 3px #72bce8,0 0 18px rgba(92,181,235,.45)!important;border-color:#f1fbff!important}
+.neria-card-cosmos{background:linear-gradient(180deg,#fff,#f5f0ff)!important;border-color:#cdb9ee!important}
+.neria-card-sakura{background:linear-gradient(180deg,#fff,#fff5f8)!important;border-color:#efc4d2!important}
+.neria-card-imperial{background:linear-gradient(180deg,#fffdf7,#f8f1dc)!important;border-color:#d8bb78!important}
+.neria-card-midnight{background:linear-gradient(180deg,#202431,#12151d)!important;color:#f4f5f8!important;border-color:#3a4154!important}.neria-card-midnight .label,.neria-card-midnight .value{color:#c9cedb!important}.neria-card-midnight .data,.neria-card-midnight .row{border-color:#343a49!important}.neria-card-midnight .citizen-id{color:#b6a5e5!important}
+.neria-card-sky{background:linear-gradient(180deg,#fff,#f1faff)!important;border-color:#b9ddf1!important}
+.neria-cosmetics-link{display:block;margin-top:12px;padding:13px;border-radius:9px;text-align:center;text-decoration:none;background:#f2ecfb;color:#6d3fc0;font-size:13px;font-weight:700;border:1px solid #ded0f2}
+`;(document.head||document.documentElement).appendChild(s)}
+function classes(el,d){if(!el)return;el.classList.add('neria-cosmetic-card');['background','frame','card'].forEach(k=>{const v=d['profile_'+(k==='card'?'card_style':k)];if(v)el.classList.add('neria-'+(k==='background'?'bg':k)+'-'+v)})}
+function particles(el,effect){if(!el||!effect||effect==='none'||el.querySelector('.neria-cosmetic-particles'))return;const layer=document.createElement('div');layer.className='neria-cosmetic-particles';const count=effect==='stars'?16:12;for(let i=0;i<count;i++){const p=document.createElement('span');p.className='neria-particle';p.textContent=effect==='stars'?(i%3===0?'✦':'·'):'🌸';p.style.left=(Math.random()*96)+'%';p.style.fontSize=(effect==='stars'?8+Math.random()*10:9+Math.random()*8)+'px';p.style.animationDuration=(6+Math.random()*7)+'s';p.style.animationDelay=(-Math.random()*10)+'s';layer.appendChild(p)}el.appendChild(layer)}
+function waitFor(sel,cb){let n=0;const t=setInterval(()=>{const e=document.querySelector(sel);if(e){clearInterval(t);cb(e)}else if(n++>80)clearInterval(t)},100)}
+async function init(){injectStyles();let tries=0;while(!window.supabase&&tries++<50)await new Promise(r=>setTimeout(r,100));if(!window.supabase)return;const sb=window.__neriaHeaderSb||(window.__neriaHeaderSb=window.supabase.createClient(SB_URL,SB_KEY));if(path==='citizen.html'){const id=new URLSearchParams(location.search).get('id');if(!id)return;const {data,error}=await sb.rpc('get_public_citizen_profile',{p_citizen_id:id});const d=Array.isArray(data)?data[0]:data;if(error||!d)return;waitFor('.card',card=>{classes(card,d);particles(card,d.profile_effect)})}else{const {data,error}=await sb.rpc('my_profile_cosmetics');if(error||!data)return;waitFor('#profileCard',box=>{const add=()=>{if(box.querySelector('.neria-cosmetics-link'))return;const target=box.querySelector('.actions')||box.querySelector('.dashboard-grid')||box.lastElementChild;if(!target)return;const a=document.createElement('a');a.href='cosmetics.html';a.className='neria-cosmetics-link';a.textContent='✨ Настроить оформление профиля';target.appendChild(a)};add();const o=new MutationObserver(add);o.observe(box,{subtree:true,childList:true});setTimeout(()=>o.disconnect(),12000)})}}
+init();
+})();
