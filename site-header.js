@@ -57,6 +57,16 @@
     }catch{}
   }
 
+  function loadCosmetics(path){
+    if(!['profile.html','citizen.html'].includes(path))return;
+    if(document.querySelector('script[data-neria-cosmetics]'))return;
+    const s=document.createElement('script');
+    s.src='profile-cosmetics.js?v=2';
+    s.defer=true;
+    s.dataset.neriaCosmetics='1';
+    document.head.appendChild(s);
+  }
+
   function init(){
     const path=(location.pathname.split('/').pop()||'index.html').toLowerCase();
     if(path.startsWith('demo-'))return;
@@ -87,6 +97,7 @@
       items.map(([href,label])=>'<a href="'+href+'"'+(activeFor(href)?' class="active" aria-current="page"':'')+'>'+label+'</a>').join('')+
       '<a href="notifications.html" class="neria-notifications-link'+(path==='notifications.html'?' active':'')+'"><span class="neria-bell">🔔</span><span class="neria-notification-text">Уведомления</span><span class="neria-notification-badge" style="display:none">0</span></a></nav>';
     document.body.prepend(h);
+    loadCosmetics(path);
 
     let tries=0;
     const wait=()=>{
