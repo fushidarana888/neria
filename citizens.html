@@ -155,6 +155,18 @@
             font-size: 14px;
             font-weight: 700;
         }
+        .avatar-wrap{position:relative;width:46px;height:46px;display:flex;align-items:center;justify-content:center;border-radius:50%}
+        .avatar-wrap .citizen-avatar,.avatar-wrap .citizen-avatar-fallback{position:relative;z-index:2}
+        .avatar-wrap.frame-cosmos{box-shadow:0 0 0 2px #8e6bd1,0 0 16px rgba(116,75,190,.75)}
+        .avatar-wrap.frame-sakura{box-shadow:0 0 0 2px #e99bb6,0 0 14px rgba(231,141,174,.5)}
+        .avatar-wrap.frame-imperial{box-shadow:0 0 0 2px #b78a34,0 0 14px rgba(173,123,34,.45)}
+        .avatar-wrap.frame-midnight{box-shadow:0 0 0 2px #75809b,0 0 14px rgba(44,52,72,.5)}
+        .avatar-wrap.frame-sky{box-shadow:0 0 0 2px #72bce8,0 0 14px rgba(92,181,235,.45)}
+        .avatar-wrap.effect-stars:before,.avatar-wrap.effect-petals:before{position:absolute;inset:-6px;z-index:1;pointer-events:none;line-height:1}
+        .avatar-wrap.effect-stars:before{content:"✦  ·  ✦";color:#8e6bd1;text-shadow:0 0 8px rgba(116,75,190,.85);font-size:11px;animation:registryFx 2.4s ease-in-out infinite}
+        .avatar-wrap.effect-petals:before{content:"🌸";font-size:12px;animation:registryPetal 2.8s ease-in-out infinite}
+        @keyframes registryFx{0%,100%{transform:rotate(-8deg) scale(.95);opacity:.45}50%{transform:rotate(8deg) scale(1.08);opacity:1}}
+        @keyframes registryPetal{0%,100%{transform:translate(-3px,-2px) rotate(-12deg);opacity:.55}50%{transform:translate(4px,3px) rotate(12deg);opacity:1}}
 
         .empty {
             padding: 40px 25px;
@@ -484,6 +496,7 @@ async function loadCitizens() {
             <div class="citizen">
 
                 <div class="avatar-cell">
+                    <div class="avatar-wrap ${getFrameClass(citizen.profile_frame)} ${getEffectClass(citizen.profile_effect)}">
                     ${
                         citizen.avatar_path
                             ? `<img
@@ -495,6 +508,7 @@ async function loadCitizens() {
                                 ${escapeHtml((citizen.nickname || "?").charAt(0).toUpperCase())}
                               </div>`
                     }
+                    </div>
                 </div>
 
                 <div class="id">
@@ -549,6 +563,14 @@ const NICKNAME_COLORS = {
 
 function getNicknameColor(color) {
     return NICKNAME_COLORS[color] || "#17171c";
+}
+function getFrameClass(frame) {
+    return ["cosmos","sakura","imperial","midnight","sky"].includes(frame) ? "frame-" + frame : "";
+}
+function getEffectClass(effect) {
+    if (effect === "stars") return "effect-stars";
+    if (effect === "petals") return "effect-petals";
+    return "";
 }
 
 function getAvatarUrl(path, updatedAt) {
