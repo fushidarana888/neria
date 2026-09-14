@@ -1,4 +1,4 @@
-.neria-site-header{min-height:72px;background:#fff;border-bottom:1px solid #e5e5e8;display:flex;align-items:center;justify-content:space-between;padding:12px 4%;gap:20px;position:relative;z-index:1000;font-family:Arial,Helvetica,sans-serif}
+body>header.neria-site-header{min-height:72px;background:#fff;border-bottom:1px solid #e5e5e8;display:flex;align-items:center;justify-content:space-between;padding:12px 4%;gap:20px;position:relative;z-index:1000;font-family:Arial,Helvetica,sans-serif}
 .neria-site-logo{display:flex;align-items:center;gap:11px;color:#17171c!important;text-decoration:none!important;font-size:19px;font-weight:800;letter-spacing:1px;flex:0 0 auto}
 .neria-site-flag{width:30px;height:40px;display:flex;flex-direction:column;border-radius:3px;overflow:hidden;box-shadow:0 0 0 1px #e7e2ef}
 .neria-site-flag i:nth-child(1),.neria-site-flag i:nth-child(3){background:#6d3fc0;flex:1}.neria-site-flag i:nth-child(2){background:#eee8ff;flex:1}
