@@ -776,5 +776,7 @@ table{max-width:100%}
 <script>
 async function neriaLoadNotificationBadge(){try{const client=window.supabaseClient||window.sb;if(!client||!client.auth)return;const {data:{user}}=await client.auth.getUser();if(!user)return;const paint=async()=>{const {data,error}=await client.rpc("my_unread_notification_count");if(error)return;const n=Number(data||0);document.querySelectorAll(".neria-notification-count").forEach(el=>{el.textContent=n>99?"99+":String(n);el.style.display=n>0?"inline-flex":"none"})};await paint();client.channel("notification-badge-"+location.pathname).on("postgres_changes",{event:"INSERT",schema:"public",table:"notifications",filter:"user_id=eq."+user.id},paint).subscribe()}catch(e){}}
 window.addEventListener("load",neriaLoadNotificationBadge);
-</script></body>
+</script>
+<script src="achievements-profile.js"></script>
+</body>
 </html>
