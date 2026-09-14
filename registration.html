@@ -676,7 +676,7 @@ function friendlyError(error){
     SUPABASE_PUBLISHABLE_KEY
   );
 
-  const button = document.getElementById("telegramLoginButton");
+  const REF_KEY="neria_referral_code";function captureRefFromUrl(){const code=new URLSearchParams(location.search).get("ref");if(code&&/^[a-zA-Z0-9_-]{2,40}$/.test(code)){localStorage.setItem(REF_KEY,code.toLowerCase())}}captureRefFromUrl();const button = document.getElementById("telegramLoginButton");
   const status = document.getElementById("telegramStatus");
 
   async function updateAuthUI(session) {
@@ -863,7 +863,7 @@ function friendlyError(error){
       provider: "custom:telegram",
       options: {
         redirectTo:
-          "https://fushidarana888.github.io/neria/registration.html"
+          "https://fushidarana888.github.io/neria/registration.html"+(localStorage.getItem(REF_KEY)?"?ref="+encodeURIComponent(localStorage.getItem(REF_KEY)):"")
       }
     });
 
@@ -1033,7 +1033,8 @@ if (applicationsEnabled) {
         p_surname: lastName || "",
         p_birth_day: Number(day),
         p_birth_month: Number(month),
-        p_birth_year: birthYear ? Number(birthYear) : null
+        p_birth_year: birthYear ? Number(birthYear) : null,
+        p_referral_code: localStorage.getItem(REF_KEY) || null
       }
     );
 
@@ -1067,7 +1068,8 @@ const { data: registrationData, error } =
       p_surname: lastName || "",
       p_birth_day: Number(day),
       p_birth_month: Number(month),
-      p_birth_year: birthYear ? Number(birthYear) : null
+      p_birth_year: birthYear ? Number(birthYear) : null,
+      p_referral_code: localStorage.getItem(REF_KEY) || null
     }
   );
 
