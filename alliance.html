@@ -87,13 +87,21 @@ async function initForm(){
 }
 async function submitAlliance(){
  const b=document.getElementById('send'),status=document.getElementById('status');b.disabled=true;status.textContent='';
- const common={name:name.value.trim(),type:type.value.trim(),url:communityUrl.value.trim(),count:memberCount.value?Number(memberCount.value):null,contact:contact.value.trim(),description:description.value.trim(),level:'partner'};
+ const common={
+   name:document.getElementById('name').value.trim(),
+   type:document.getElementById('type').value.trim(),
+   url:document.getElementById('communityUrl').value.trim(),
+   count:document.getElementById('memberCount').value?Number(document.getElementById('memberCount').value):null,
+   contact:document.getElementById('contact').value.trim(),
+   description:document.getElementById('description').value.trim(),
+   level:'partner'
+ };
  if(!common.name||!common.type||!common.url||!common.contact){status.textContent='Заполните название, тип, ссылку и контакт для связи.';b.disabled=false;return}
  let error;
  if(currentCitizen){
    ({error}=await sb.rpc('propose_alliance',{p_community_name:common.name,p_community_type:common.type,p_contact:common.contact,p_description:common.description,p_community_url:common.url,p_member_count:common.count,p_desired_level:common.level}));
  }else{
-   const pn=proposerName.value.trim(),pr=proposerRole.value.trim();
+   const pn=document.getElementById('proposerName').value.trim(),pr=document.getElementById('proposerRole').value.trim();
    if(!pn){status.textContent='Укажите, как к вам обращаться.';b.disabled=false;return}
    ({error}=await sb.rpc('propose_alliance_guest',{p_community_name:common.name,p_community_type:common.type,p_community_url:common.url,p_member_count:common.count,p_proposer_name:pn,p_proposer_role:pr,p_contact:common.contact,p_description:common.description,p_desired_level:common.level}));
  }
