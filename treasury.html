@@ -93,6 +93,7 @@ body>header:not(.neria-unified-header){display:none!important}
 <select id="recipientSelect">
 <option value="">Выберите гражданина</option>
 </select>
+<input type="text" id="recipientId" inputmode="numeric" pattern="[0-9]{1,18}" maxlength="18" placeholder="или ID гражданина">
 <input type="number" id="transferAmount" min="1" step="1" placeholder="Сумма NR">
 <input type="text" id="transferReason" maxlength="250" placeholder="Причина выплаты">
 <button type="button" class="primary-button" onclick="transferFromTreasury()">Передать NR</button>
@@ -109,6 +110,7 @@ body>header:not(.neria-unified-header){display:none!important}
 const SUPABASE_URL="https://rictvznkxkeygbrlcymn.supabase.co";
 const SUPABASE_PUBLISHABLE_KEY="sb_publishable_SVwKto14tbMtsmcDOagvCw_TVqg7he7";
 const supabaseClient=window.supabase.createClient(SUPABASE_URL,SUPABASE_PUBLISHABLE_KEY);
+let treasuryCitizens=[];
 
 function nr(v){return new Intl.NumberFormat("ru-RU").format(Number(v||0))+" NR";}
 function date(v){return new Date(v).toLocaleString("ru-RU");}
@@ -147,6 +149,7 @@ async function initAdminTreasuryControls(){
 
     const select=document.getElementById("recipientSelect");
     const active=(data||[]).filter(c=>c.citizenship_status==="active");
+    treasuryCitizens=active;
 
     select.innerHTML='<option value="">Выберите гражданина</option>'+
         active.map(c=>{
@@ -158,12 +161,19 @@ async function initAdminTreasuryControls(){
 }
 
 async function transferFromTreasury(){
-    const citizenId=Number(document.getElementById("recipientSelect").value);
+    const manual=document.getElementById("recipientId")?.value?.trim()||"";
+    const selected=document.getElementById("recipientSelect")?.value?.trim()||"";
+    let citizenId=Number(selected);
+    if(manual){
+        const number=Number(manual);
+        const match=treasuryCitizens.find(c=>Number(c.citizen_number)===number);
+        citizenId=match?Number(match.internal_id):0;
+    }
     const amount=Number(document.getElementById("transferAmount").value);
     const reason=document.getElementById("transferReason").value.trim();
 
     if(!Number.isSafeInteger(citizenId)||citizenId<=0){
-        alert("Выберите гражданина.");
+        alert("Выберите гражданина из списка или введите корректный ID.");
         return;
     }
 
