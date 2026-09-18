@@ -481,6 +481,57 @@ table{max-width:100%}
     }
 
 
+    function formatActivity(activity) {
+        if (!activity || activity.visible === false) {
+            return "Скрыта";
+        }
+
+        if (activity.online) {
+            return "🟢 В сети";
+        }
+
+        if (!activity.last_seen_at) {
+            return "Нет данных";
+        }
+
+        const last = new Date(activity.last_seen_at);
+        const now = new Date();
+        const diffMinutes = Math.max(0, Math.floor((now - last) / 60000));
+
+        if (diffMinutes < 60) {
+            return "Последняя активность: " + diffMinutes + " мин. назад";
+        }
+
+        const sameDay =
+            last.getFullYear() === now.getFullYear() &&
+            last.getMonth() === now.getMonth() &&
+            last.getDate() === now.getDate();
+
+        if (sameDay) {
+            return "Сегодня в " + last.toLocaleTimeString("ru-RU", {hour:"2-digit", minute:"2-digit"});
+        }
+
+        const yesterday = new Date(now);
+        yesterday.setDate(now.getDate() - 1);
+        const isYesterday =
+            last.getFullYear() === yesterday.getFullYear() &&
+            last.getMonth() === yesterday.getMonth() &&
+            last.getDate() === yesterday.getDate();
+
+        if (isYesterday) {
+            return "Вчера в " + last.toLocaleTimeString("ru-RU", {hour:"2-digit", minute:"2-digit"});
+        }
+
+        return last.toLocaleString("ru-RU", {
+            day:"numeric",
+            month:"long",
+            year:"numeric",
+            hour:"2-digit",
+            minute:"2-digit"
+        });
+    }
+
+
     function openAvatarModal(url, altText) {
 
         const modal =
@@ -647,6 +698,14 @@ table{max-width:100%}
             return;
         }
 
+        const { data: activity } =
+            await supabaseClient.rpc(
+                "citizen_activity_status",
+                {
+                    p_citizen_number: Number(citizenId)
+                }
+            );
+
 
         const fullName =
             [
@@ -744,6 +803,18 @@ table{max-width:100%}
                                     formatMemberSince(
                                         citizen.member_since
                                     )
+                                )}
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="label">
+                                Активность
+                            </div>
+
+                            <div class="value">
+                                ${escapeHtml(
+                                    formatActivity(activity)
                                 )}
                             </div>
                         </div>
