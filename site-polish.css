@@ -84,73 +84,60 @@ table{max-width:100%;border-collapse:collapse}
   *,*::before,*::after{animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important}
 }
 /* Neria citizen prefixes */
-.neria-prefix,.prefix,.prefix-badge{
-  --prefix:#6d3fc0;
+.neria-prefix-badge{
   position:relative;
   display:inline-flex!important;
   align-items:center;
-  justify-content:center;
+  gap:1.5px;
   vertical-align:middle;
   max-width:100%;
-  padding:3px 8px!important;
-  margin:0 4px 1px 0;
-  border-radius:999px!important;
-  border:1px solid color-mix(in srgb,var(--prefix) 38%,white)!important;
-  background:
-    linear-gradient(115deg,
-      color-mix(in srgb,var(--prefix) 14%,white) 0%,
-      color-mix(in srgb,var(--prefix) 24%,white) 28%,
-      color-mix(in srgb,#8b5bd6 18%,white) 52%,
-      color-mix(in srgb,var(--prefix) 25%,white) 76%,
-      color-mix(in srgb,var(--prefix) 13%,white) 100%)!important;
-  background-size:240% 100%!important;
-  color:color-mix(in srgb,var(--prefix) 82%,#17171c)!important;
-  box-shadow:
-    inset 0 1px 0 rgba(255,255,255,.78),
-    0 1px 5px color-mix(in srgb,var(--prefix) 15%,transparent)!important;
-  font-size:.78em!important;
-  font-weight:850!important;
-  line-height:1.25!important;
-  letter-spacing:.22px!important;
+  min-height:22px;
+  padding:3px 7px!important;
+  margin:0 7px 1px 0;
+  border-radius:7px!important;
+  border:1px solid #ded9e8!important;
+  background:linear-gradient(180deg,#fcfbfe,#f4f1f8)!important;
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.95),0 1px 2px rgba(28,22,38,.06)!important;
   white-space:nowrap;
   text-decoration:none!important;
-  animation:neriaPrefixShimmer 5.5s ease-in-out infinite;
+  font-size:12px!important;
+  font-weight:900!important;
+  line-height:1!important;
+  letter-spacing:.15px!important;
+  isolation:isolate;
 }
-.neria-prefix::before,.prefix::before,.prefix-badge::before{
+.neria-prefix-badge::before{
   content:"";
-  position:absolute;
-  inset:1px;
-  border-radius:inherit;
-  pointer-events:none;
-  background:linear-gradient(105deg,transparent 20%,rgba(255,255,255,.48) 45%,transparent 68%);
-  background-size:220% 100%;
-  opacity:.62;
-  animation:neriaPrefixGloss 5.5s ease-in-out infinite;
+  width:4px;
+  height:4px;
+  margin-right:3px;
+  border-radius:50%;
+  background:#6d3fc0;
+  box-shadow:0 0 0 2px rgba(109,63,192,.10);
+  flex:0 0 auto;
 }
-.neria-prefix:hover,.prefix:hover,.prefix-badge:hover{
-  border-color:color-mix(in srgb,var(--prefix) 58%,white)!important;
-  box-shadow:
-    inset 0 1px 0 rgba(255,255,255,.9),
-    0 2px 9px color-mix(in srgb,var(--prefix) 23%,transparent)!important;
+.neria-prefix-char{
+  position:relative;
+  z-index:1;
+  display:inline-block;
+  color:var(--char-color,#6d3fc0)!important;
+  font:900 1em/1 Arial,Helvetica,sans-serif!important;
+  text-shadow:0 1px 0 rgba(255,255,255,.8);
 }
-@keyframes neriaPrefixShimmer{
-  0%,100%{background-position:0% 50%}
-  50%{background-position:100% 50%}
+.neria-prefix-badge:hover{
+  border-color:#cfc5dc!important;
+  background:linear-gradient(180deg,#fff,#f6f2fa)!important;
+  box-shadow:inset 0 1px 0 #fff,0 2px 6px rgba(70,48,96,.10)!important;
 }
-@keyframes neriaPrefixGloss{
-  0%,18%,100%{background-position:180% 0}
-  52%,70%{background-position:-80% 0}
-}
+.neria-prefix-badge + .neria-nickname,
+.neria-prefix-badge + strong,
+.neria-prefix-badge + a{margin-left:1px}
 @media(max-width:760px){
-  .neria-prefix,.prefix,.prefix-badge{
-    padding:3px 7px!important;
-    font-size:.76em!important;
-    max-width:min(52vw,240px);
+  .neria-prefix-badge{
+    min-height:21px;
+    padding:3px 6px!important;
+    margin-right:6px;
+    max-width:min(48vw,220px);
     overflow:hidden;
-    text-overflow:ellipsis;
   }
-}
-@media(prefers-reduced-motion:reduce){
-  .neria-prefix,.prefix,.prefix-badge,
-  .neria-prefix::before,.prefix::before,.prefix-badge::before{animation:none!important}
 }
