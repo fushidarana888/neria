@@ -384,7 +384,7 @@ table{max-width:100%}
     </div>
 </div>
 
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script><script src="newspaper-mentions.js"></script>
 
 <script>
     const SUPABASE_URL =
@@ -838,6 +838,11 @@ table{max-width:100%}
 
             </div>
         `;
+
+        const mentionsHost=document.createElement("div");
+        mentionsHost.id="newspaperMentions";
+        content.appendChild(mentionsHost);
+        window.NeriaNewspaperMentions?.render(mentionsHost,"citizen",Number(citizenId));
     }
 
 
