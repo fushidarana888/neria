@@ -544,7 +544,7 @@ body>header:not(.neria-unified-header){display:none!important}
 </main>
 
 
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script><script src="newspaper-mentions.js"></script>
 
 
 <script>
@@ -1063,6 +1063,11 @@ body>header:not(.neria-unified-header){display:none!important}
             </div>
 
         `;
+
+        const mentionsHost=document.createElement("div");
+        mentionsHost.id="myNewspaperMentions";
+        profileCard.appendChild(mentionsHost);
+        window.NeriaNewspaperMentions?.render(mentionsHost,"citizen",Number(data.citizen_number));
 
     }
 
