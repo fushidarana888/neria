@@ -1,0 +1,11 @@
+(()=>{
+  function ready(fn){if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",fn,{once:true});else fn()}
+  function ensureViewport(){if(document.querySelector('meta[name="viewport"]'))return;const m=document.createElement("meta");m.name="viewport";m.content="width=device-width,initial-scale=1,viewport-fit=cover";document.head.appendChild(m)}
+  function wrapTables(){document.querySelectorAll("table").forEach(t=>{if(t.parentElement?.classList.contains("neria-scroll-x"))return;const w=document.createElement("div");w.className="neria-scroll-x";t.parentNode?.insertBefore(w,t);w.appendChild(t)})}
+  function polishButtons(){document.querySelectorAll("button").forEach(b=>{if(!b.hasAttribute("type")&&b.hasAttribute("onclick"))b.type="button";if(b.disabled)b.setAttribute("aria-disabled","true")});document.querySelectorAll('a[target="_blank"]').forEach(a=>{const rel=new Set((a.rel||"").split(/\s+/).filter(Boolean));rel.add("noopener");rel.add("noreferrer");a.rel=[...rel].join(" ")})}
+  function hashScroll(){const id=decodeURIComponent(location.hash.slice(1));if(!id)return;const el=document.getElementById(id);if(!el)return;requestAnimationFrame(()=>el.scrollIntoView({block:"start"}))}
+  function toast(message,type="info",ms=2800){let root=document.querySelector(".neria-toast-root");if(!root){root=document.createElement("div");root.className="neria-toast-root";root.setAttribute("aria-live","polite");document.body.appendChild(root)}const el=document.createElement("div");el.className="neria-toast "+type;el.textContent=String(message||"");root.appendChild(el);setTimeout(()=>{el.style.opacity="0";el.style.transform="translateY(6px)";setTimeout(()=>el.remove(),180)},Math.max(900,ms))}
+  window.NeriaUI=Object.assign(window.NeriaUI||{},{toast,refresh(){polishButtons();wrapTables()}});
+  ensureViewport();
+  ready(()=>{polishButtons();wrapTables();hashScroll();window.addEventListener("hashchange",hashScroll);const observer=new MutationObserver(m=>{let useful=false;for(const x of m)if(x.addedNodes?.length){useful=true;break}if(useful){polishButtons();wrapTables()}});observer.observe(document.body,{childList:true,subtree:true})});
+})();
