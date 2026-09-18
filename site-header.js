@@ -45,6 +45,7 @@
       ]],
       ['Общество',[
         ['newspaper.html','Газета','📰'],
+        ['initiatives.html','Инициативы','🛠️'],
         ['projects.html','Дочерние проекты','🧩'],
         ['community.html','Telegram','✈️']
       ]]
