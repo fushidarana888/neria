@@ -4,6 +4,7 @@
   function renderCount(n){const a=document.querySelector('.neria-notifications-link');if(!a)return;a.classList.toggle('has-unread',n>0);const badge=a.querySelector('.neria-notification-badge');if(badge){badge.textContent=n>99?'99+':String(n);badge.style.display=n>0?'inline-flex':'none'}a.title=n>0?'Непрочитанных уведомлений: '+n:'Уведомления'}
   function getSb(){if(!window.supabase)return null;return window.__neriaHeaderSb||(window.__neriaHeaderSb=window.supabase.createClient(SB_URL,SB_KEY))}
   async function setupNotifications(){try{const sb=getSb();if(!sb)return;const {data:{session}}=await sb.auth.getSession();if(!session){renderCount(0);return}const refresh=async()=>{const {data,error}=await sb.rpc('my_unread_notification_count');if(!error)renderCount(Number(data)||0)};await refresh();sb.channel('neria-header-notifications-'+session.user.id).on('postgres_changes',{event:'*',schema:'public',table:'notifications',filter:'user_id=eq.'+session.user.id},refresh).subscribe()}catch{}}
+  async function setupLastSeen(){try{const sb=getSb();if(!sb)return;const {data:{session}}=await sb.auth.getSession();if(!session)return;const touch=async()=>{try{await sb.rpc('touch_my_last_seen')}catch{}};await touch();const timer=setInterval(touch,180000);window.addEventListener('pagehide',()=>clearInterval(timer),{once:true})}catch{}}
   async function setupProfileCustomization(){try{const sb=getSb();if(!sb)return;const {data:{session}}=await sb.auth.getSession();if(!session)return;const {data,error}=await sb.rpc('my_store_status');if(error||!data?.citizen_id)return;const apply=()=>{const avatar=document.querySelector('.avatar-editor'),color=document.querySelector('.nickname-color-editor');if(avatar)avatar.style.display=data.avatar_access?'flex':'none';if(color)color.style.display=data.nickname_color_access?'block':'none'};apply();const target=document.getElementById('profileCard')||document.body;const obs=new MutationObserver(apply);obs.observe(target,{childList:true,subtree:true});setTimeout(()=>obs.disconnect(),15000)}catch{}}
   function addScript(src,key){if(document.querySelector('script[data-'+key+']'))return;const s=document.createElement('script');s.src=src;s.defer=true;s.setAttribute('data-'+key,'1');document.head.appendChild(s)}
   function loadCosmetics(path){if(['profile.html','citizen.html'].includes(path))addScript('profile-cosmetics.js?v=4','neria-cosmetics');if(path==='cosmetics.html')addScript('cosmetics-v2-editor.js?v=4','neria-cosmetics-v2');if(path==='shop.html')addScript('shop-v2.js?v=4','neria-shop-v2');if(path==='citizens.html')addScript('citizens-v2.js?v=3','neria-citizens-v2')}
@@ -79,7 +80,7 @@
 
     loadCosmetics(path);
     let tries=0;
-    const wait=()=>{if(window.supabase){setupNotifications();if(path==='profile.html')setupProfileCustomization()}else if(tries++<40)setTimeout(wait,100)};
+    const wait=()=>{if(window.supabase){setupNotifications();setupLastSeen();if(path==='profile.html')setupProfileCustomization()}else if(tries++<40)setTimeout(wait,100)};
     wait()
   }
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',init);else init();
