@@ -32,7 +32,8 @@
       ['Личное',[
         ['profile.html','Личный кабинет','👤'],
         ['family.html','Семья','💍'],
-        ['subscriptions.html','Подписки','👥']
+        ['subscriptions.html','Подписки','👥'],
+        ['while-away.html','Пока вас не было','✨']
       ]],
       ['Государство',[
         ['citizens.html','Граждане','🪪'],
@@ -46,6 +47,7 @@
       ]],
       ['Общество',[
         ['newspaper.html','Газета','📰'],
+        ['discussions.html','Общественные обсуждения','🗳️'],
         ['calendar.html','Календарь','📅'],
         ['contests.html','Конкурсы','🏆'],
         ['initiatives.html','Инициативы','🛠️'],
