@@ -619,6 +619,15 @@ function friendlyError(error){
     }
 
 
+function renderPrefixBadge(value,baseColor){
+        const raw=String(value??"").trim();
+        if(!raw)return "";
+        const palette=["#7c3aed","#2563eb","#db2777","#0f766e","#d97706","#dc2626","#0891b2","#9333ea"];
+        const base=/^#[0-9a-f]{6}$/i.test(String(baseColor||""))?String(baseColor):"#6d3fc0";
+        let seed=0;for(const ch of raw)seed=(seed+(ch.codePointAt(0)||0))%palette.length;
+        return '<span class="neria-prefix-badge" title="Официальный префикс Нерии" aria-label="Официальный префикс '+escapeHtml(raw)+'">'+[...raw].map((ch,i)=>'<span class="neria-prefix-char" style="--char-color:'+(i===0?base:palette[(seed+i)%palette.length])+'">'+escapeHtml(ch)+'</span>').join("")+'</span>';
+    }
+
     function formatCitizenNumber(value) {
         return String(value).padStart(6, "0");
     }
@@ -1385,7 +1394,7 @@ function showAdminSection(section, button) {
         el.innerHTML = rows.map(c => {
             return '<div class="deal-admin-card">' +
                 '<div class="deal-admin-title">' +
-                    (c.prefix ? '<span class="neria-prefix" style="--prefix:' + escapeHtml(c.prefix_color || "#6d3fc0") + '">[' + escapeHtml(c.prefix) + ']</span> ' : '') +
+                    (c.prefix ? renderPrefixBadge(c.prefix,c.prefix_color) + ' ' : '') +
                     escapeHtml(c.nickname || "Без ника") +
                     ' · ' +
                     escapeHtml(formatCitizenNumber(c.citizen_number)) +
