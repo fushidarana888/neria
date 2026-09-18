@@ -748,6 +748,8 @@ body>header:not(.neria-unified-header){display:none!important}
                 show_first_name,
                 show_surname,
                 show_birth_date,
+                show_last_seen,
+                last_seen_at,
                 telegram_username,
                 avatar_path,
                 avatar_updated_at,
@@ -1018,6 +1020,15 @@ body>header:not(.neria-unified-header){display:none!important}
                                 ${data.show_birth_date ? "checked" : ""}
                             >
                             <span>Показывать дату рождения</span>
+                        </label>
+
+                        <label class="privacy-option">
+                            <input
+                                type="checkbox"
+                                id="showLastSeen"
+                                ${data.show_last_seen ? "checked" : ""}
+                            >
+                            <span>Показывать, когда я был(а) в сети</span>
                         </label>
 
                         <button
@@ -1337,6 +1348,9 @@ async function savePrivacy() {
     const showBirthDate =
         document.getElementById("showBirthDate").checked;
 
+    const showLastSeen =
+        document.getElementById("showLastSeen").checked;
+
     const { error } =
         await supabaseClient.rpc(
             "update_profile_visibility",
@@ -1355,6 +1369,20 @@ async function savePrivacy() {
             error.message
         );
 
+        return;
+    }
+
+    const { error: activityError } =
+        await supabaseClient.rpc(
+            "update_activity_visibility",
+            {
+                p_show_last_seen: showLastSeen
+            }
+        );
+
+    if (activityError) {
+        console.error(activityError);
+        alert("Основные настройки сохранены, но видимость активности изменить не удалось.");
         return;
     }
 
