@@ -47,6 +47,7 @@
       ['Общество',[
         ['newspaper.html','Газета','📰'],
         ['calendar.html','Календарь','📅'],
+        ['contests.html','Конкурсы','🏆'],
         ['initiatives.html','Инициативы','🛠️'],
         ['projects.html','Дочерние проекты','🧩'],
         ['community.html','Telegram','✈️']
