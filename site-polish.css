@@ -59,9 +59,14 @@ table{max-width:100%;border-collapse:collapse}
     grid-template-columns:minmax(0,1fr)!important;
   }
   .cards,.needs,.stats{grid-template-columns:minmax(0,1fr)!important}
-  .actions,.buttons,.toolbar,.tabs,.filters,.composer-bottom,.chat-head,.hero,.hero-top,.top,.row-actions,.avatar-buttons,.admin-buttons{
+  .actions,.buttons,.toolbar,.filters,.composer-bottom,.chat-head,.hero,.hero-top,.top,.row-actions,.avatar-buttons,.admin-buttons{
     flex-wrap:wrap!important;
   }
+  .tabs,.feed-tabs{display:flex!important;flex-wrap:nowrap!important;overflow-x:auto!important;-webkit-overflow-scrolling:touch!important;scrollbar-width:none!important;padding-bottom:4px!important}
+  .tabs::-webkit-scrollbar,.feed-tabs::-webkit-scrollbar{display:none!important}
+  .tabs>*,.feed-tabs>*{flex:0 0 auto!important}
+  .comment-form,.wall-compose{grid-template-columns:minmax(0,1fr)!important}
+  .comment-form>button,.wall-compose>button{width:100%!important}
   .actions>a,.actions>button,.buttons>a,.buttons>button{max-width:100%}
   .sidebar{width:100%!important;max-width:100%!important}
   .panel,.box,.card,.section,.article,.reader,.composer{max-width:100%!important}
