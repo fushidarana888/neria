@@ -46,3 +46,4 @@ body>header.neria-site-header{height:58px!important;min-height:58px!important;ba
   .neria-menu-group{border-bottom:1px solid #efedf1!important;padding-bottom:8px!important}
   .neria-menu-group:last-child{border-bottom:0!important}
 }
+@media(max-width:820px){html.neria-menu-open,html.neria-menu-open body{overflow:hidden!important;overscroll-behavior:contain}.neria-menu-panel{overscroll-behavior:contain!important;-webkit-overflow-scrolling:touch!important}}
