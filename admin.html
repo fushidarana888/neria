@@ -1060,8 +1060,8 @@ function friendlyError(error){
         const el=document.getElementById("alliedCommunityList"); if(!el)return;
         const {data,error}=await supabaseClient.rpc("founder_list_allied_communities");
         if(error){el.innerHTML='<div class="error">'+escapeHtml(friendlyError(error))+'</div>';return}
-        const rows=(data||[]);
-        if(!rows.length){el.innerHTML='<div class="empty">Партнёров и союзников пока нет.</div>';return}
+        const rows=(data||[]).filter(x=>x.is_active);
+        if(!rows.length){el.innerHTML='<div class="empty">Действующих партнёров и союзников пока нет.</div>';return}
         const levelNames={partner:"🔗 Партнёр Нерии",ally:"🤝 Союзное сообщество",special:"⭐ Особый союзник"};
         el.innerHTML=rows.map(x=>{
             const status=x.is_active?"Действует":"Завершено";
