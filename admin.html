@@ -1385,7 +1385,7 @@ function showAdminSection(section, button) {
         el.innerHTML = rows.map(c => {
             return '<div class="deal-admin-card">' +
                 '<div class="deal-admin-title">' +
-                    (c.prefix ? '<span style="color:#6d3fc0">[' + escapeHtml(c.prefix) + ']</span> ' : '') +
+                    (c.prefix ? '<span class="neria-prefix" style="--prefix:' + escapeHtml(c.prefix_color || "#6d3fc0") + '">[' + escapeHtml(c.prefix) + ']</span> ' : '') +
                     escapeHtml(c.nickname || "Без ника") +
                     ' · ' +
                     escapeHtml(formatCitizenNumber(c.citizen_number)) +
