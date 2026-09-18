@@ -831,7 +831,7 @@ body>header:not(.neria-unified-header){display:none!important}
             <div class="status">
 
                 Гражданин Нерии
-                ${data.prefix ? ' · <span style="display:inline-block;color:' + escapeHtml(data.prefix_color || "#6d3fc0") + ';border:1px solid ' + escapeHtml(data.prefix_color || "#6d3fc0") + ';border-radius:999px;padding:2px 7px;font-weight:800">[' + escapeHtml(data.prefix) + ']</span>' : ''}
+                ${data.prefix ? ' · <span class="neria-prefix" style="--prefix:' + escapeHtml(data.prefix_color || "#6d3fc0") + '">[' + escapeHtml(data.prefix) + ']</span>' : ''}
 
             </div>
 
