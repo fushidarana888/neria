@@ -83,3 +83,74 @@ table{max-width:100%;border-collapse:collapse}
   html{scroll-behavior:auto}
   *,*::before,*::after{animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important}
 }
+/* Neria citizen prefixes */
+.neria-prefix,.prefix,.prefix-badge{
+  --prefix:#6d3fc0;
+  position:relative;
+  display:inline-flex!important;
+  align-items:center;
+  justify-content:center;
+  vertical-align:middle;
+  max-width:100%;
+  padding:3px 8px!important;
+  margin:0 4px 1px 0;
+  border-radius:999px!important;
+  border:1px solid color-mix(in srgb,var(--prefix) 38%,white)!important;
+  background:
+    linear-gradient(115deg,
+      color-mix(in srgb,var(--prefix) 14%,white) 0%,
+      color-mix(in srgb,var(--prefix) 24%,white) 28%,
+      color-mix(in srgb,#8b5bd6 18%,white) 52%,
+      color-mix(in srgb,var(--prefix) 25%,white) 76%,
+      color-mix(in srgb,var(--prefix) 13%,white) 100%)!important;
+  background-size:240% 100%!important;
+  color:color-mix(in srgb,var(--prefix) 82%,#17171c)!important;
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,.78),
+    0 1px 5px color-mix(in srgb,var(--prefix) 15%,transparent)!important;
+  font-size:.78em!important;
+  font-weight:850!important;
+  line-height:1.25!important;
+  letter-spacing:.22px!important;
+  white-space:nowrap;
+  text-decoration:none!important;
+  animation:neriaPrefixShimmer 5.5s ease-in-out infinite;
+}
+.neria-prefix::before,.prefix::before,.prefix-badge::before{
+  content:"";
+  position:absolute;
+  inset:1px;
+  border-radius:inherit;
+  pointer-events:none;
+  background:linear-gradient(105deg,transparent 20%,rgba(255,255,255,.48) 45%,transparent 68%);
+  background-size:220% 100%;
+  opacity:.62;
+  animation:neriaPrefixGloss 5.5s ease-in-out infinite;
+}
+.neria-prefix:hover,.prefix:hover,.prefix-badge:hover{
+  border-color:color-mix(in srgb,var(--prefix) 58%,white)!important;
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,.9),
+    0 2px 9px color-mix(in srgb,var(--prefix) 23%,transparent)!important;
+}
+@keyframes neriaPrefixShimmer{
+  0%,100%{background-position:0% 50%}
+  50%{background-position:100% 50%}
+}
+@keyframes neriaPrefixGloss{
+  0%,18%,100%{background-position:180% 0}
+  52%,70%{background-position:-80% 0}
+}
+@media(max-width:760px){
+  .neria-prefix,.prefix,.prefix-badge{
+    padding:3px 7px!important;
+    font-size:.76em!important;
+    max-width:min(52vw,240px);
+    overflow:hidden;
+    text-overflow:ellipsis;
+  }
+}
+@media(prefers-reduced-motion:reduce){
+  .neria-prefix,.prefix,.prefix-badge,
+  .neria-prefix::before,.prefix::before,.prefix-badge::before{animation:none!important}
+}
