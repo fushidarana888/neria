@@ -10,7 +10,7 @@
   function addScript(src,key){if(document.querySelector('script[data-'+key+']'))return;const s=document.createElement('script');s.src=src;s.defer=true;s.setAttribute('data-'+key,'1');document.head.appendChild(s)}
   function loadCosmetics(path){if(['profile.html','citizen.html'].includes(path))addScript('profile-cosmetics.js?v=5','neria-cosmetics')}
   function init(){
-    addStyle('site-polish.css?v=3','neria-polish');
+    addStyle('site-polish.css?v=4','neria-polish');
     addScript('site-polish.js?v=2','neria-polish');
     const path=(location.pathname.split('/').pop()||'index.html').toLowerCase();
     if(path.startsWith('demo-'))return;
