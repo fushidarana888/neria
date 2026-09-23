@@ -17,7 +17,7 @@
     document.querySelectorAll('body > header').forEach(h=>h.remove());
 
     const familyPages=['family.html','state-family.html'];
-    const statePages=['state.html','state-founder.html','state-ministers.html','state-deputies.html','state-elections.html','state-justice.html','state-migration.html','state-economy.html','state-events.html','state-careers.html','state-earn-nr.html','state-alliance.html','constitution.html','government-law.html','economy-law.html'];
+    const statePages=['state.html','state-founder.html','state-ministers.html','state-deputies.html','state-elections.html','state-justice.html','state-migration.html','state-economy.html','state-events.html','state-careers.html','state-earn-nr.html','state-alliance.html','constitution.html','government-law.html','economy-law.html','associations-law.html','referendums.html'];
     const economyPages=['treasury.html','wallet.html','shop.html','market.html'];
     const communityPages=['communities.html','group.html'];
     const activeFor=href=>href==='family.html'?familyPages.includes(path):href==='state.html'?statePages.includes(path):href==='treasury.html'?economyPages.includes(path):href==='communities.html'?communityPages.includes(path):href===path;
@@ -41,6 +41,7 @@
       ['Государство',[
         ['citizens.html','Граждане','🪪'],
         ['laws.html','Законы','📜'],
+        ['referendums.html','Референдумы','🗳️'],
         ['alliances.html','Союзы','🤝']
       ]],
       ['Экономика',[
